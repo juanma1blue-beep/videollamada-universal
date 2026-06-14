@@ -4,39 +4,39 @@
     <meta charset="UTF-8">
     <title>VideoChat Pro</title>
     <style>
-        body { font-family: sans-serif; background: #1c1c1c; color: white; text-align: center; padding: 10px; }
-        .setup-box { background: #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        input { padding: 10px; border-radius: 4px; border: none; width: 60%; }
-        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; background: #007bff; color: white; }
+        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
+        .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        input { padding: 10px; border-radius: 8px; border: none; width: 60%; margin-bottom: 10px; }
+        .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; }
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
-        .video-box { width: 100%; max-width: 380px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
+        .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-        .fs-btn { position: absolute; bottom: 60px; right: 10px; background: rgba(0,0,0,0.6); border: none; padding: 8px; border-radius: 6px; color: white; cursor: pointer; }
-        .end-call-btn { background: #ff3b30; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        .controls { background: #2c2c2c; padding: 10px; }
-        .volume-control { width: 80%; cursor: pointer; }
+        .fs-btn { position: absolute; bottom: 50px; right: 10px; background: rgba(0,0,0,0.6); border: none; color: white; padding: 6px; cursor: pointer; border-radius: 4px; }
+        .vol-range { width: 80%; margin: 10px 0; }
+        .end-call { background: #ff3b30; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: bold; margin-top: 20px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="setup-box">
         <input type="text" id="roomInput" placeholder="Código de sala">
-        <button onclick="joinRoom()">Unirse a sala</button>
-        <p id="roomDisplay">Tu código: Generando...</p>
+        <br>
+        <button class="action-btn" onclick="joinRoom()">Iniciar/Unirse a sala</button>
+        <p id="roomDisplay" style="margin-top:10px; font-weight:bold; color:#0084ff;"></p>
     </div>
 
     <div class="wrapper">
         <div class="video-box">
             <video id="localVideo" autoplay playsinline muted></video>
             <button class="fs-btn" onclick="toggleFS('localVideo')">⛶</button>
-            <div class="controls"><input type="range" id="volumeLocal" class="volume-control" min="0" max="1" step="0.1" value="1"></div>
+            <input type="range" class="vol-range" id="volLocal" min="0" max="1" step="0.1" value="1">
         </div>
         <div class="video-box">
             <video id="remoteVideo" autoplay playsinline></video>
             <button class="fs-btn" onclick="toggleFS('remoteVideo')">⛶</button>
-            <div class="controls"><input type="range" id="volumeRemote" class="volume-control" min="0" max="1" step="0.1" value="1"></div>
+            <input type="range" class="vol-range" id="volRemote" min="0" max="1" step="0.1" value="1">
         </div>
     </div>
-    <button class="end-call-btn" onclick="endCall()">Finalizar Videollamada</button>
+    <button class="end-call" onclick="endCall()">Finalizar Videollamada</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
