@@ -4,12 +4,12 @@ const remoteVideo = document.getElementById('remoteVideo');
 const volumeRemote = document.getElementById('volumeRemote');
 let localStream;
 
-// --- FUNCIÓN: Generar código ---
+// Generar ID de sala
 function generateRandomRoomId() {
     return Math.random().toString(36).substring(2, 9);
 }
 
-// --- FUNCIÓN: Asignar ID ---
+// Mostrar ID
 function setRoomId() {
     const roomInput = document.getElementById('roomInput');
     const displayDiv = document.getElementById('room-id-display');
@@ -18,6 +18,7 @@ function setRoomId() {
     if (displayDiv) displayDiv.innerText = "Tu código de sala: " + newId;
 }
 
+// Iniciar cámara
 async function startCamera() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -27,11 +28,12 @@ async function startCamera() {
     }
 }
 
-// --- LOGICA VOLUMEN ---
+// Controlar volumen remoto
 volumeRemote.addEventListener('input', (e) => {
     remoteVideo.volume = e.target.value;
 });
 
+// Unirse a sala
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
     if (roomId) {
@@ -45,5 +47,6 @@ socket.on('user-connected', (userId) => {
     console.log("Usuario remoto conectado: " + userId);
 });
 
+// Ejecución inicial
 startCamera();
 setRoomId();
