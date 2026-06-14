@@ -5,7 +5,10 @@
     <title>VideoChat Pro</title>
     <style>
         body { font-family: sans-serif; background: #1c1c1c; color: white; text-align: center; padding: 10px; }
-        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 15px; }
+        .setup-box { background: #333; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        input { padding: 10px; border-radius: 4px; border: none; width: 60%; }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 4px; background: #007bff; color: white; }
+        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
         .video-box { width: 100%; max-width: 380px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
         .fs-btn { position: absolute; bottom: 60px; right: 10px; background: rgba(0,0,0,0.6); border: none; padding: 8px; border-radius: 6px; color: white; cursor: pointer; }
@@ -15,6 +18,12 @@
     </style>
 </head>
 <body>
+    <div class="setup-box">
+        <input type="text" id="roomInput" placeholder="Código de sala">
+        <button onclick="joinRoom()">Unirse a sala</button>
+        <p id="roomDisplay">Tu código: Generando...</p>
+    </div>
+
     <div class="wrapper">
         <div class="video-box">
             <video id="localVideo" autoplay playsinline muted></video>
