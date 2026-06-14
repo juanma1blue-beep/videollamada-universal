@@ -7,12 +7,17 @@ const valLocal = document.getElementById('valLocal');
 const valRemote = document.getElementById('valRemote');
 let localStream;
 
-// Función para pantalla completa
+// Función para pantalla completa universal
 function toggleFS(id) {
     const elem = document.getElementById(id);
-    if (elem.requestFullscreen) elem.requestFullscreen();
+    if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { /* Soporte iOS/Safari */
+        elem.webkitRequestFullscreen();
+    }
 }
 
+// Iniciar cámara
 async function startCamera() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -20,7 +25,7 @@ async function startCamera() {
     } catch (error) { console.error("Error cámara:", error); }
 }
 
-// Controles de volumen con %
+// Volumen con %
 volumeLocal.addEventListener('input', (e) => {
     const vol = parseFloat(e.target.value);
     localVideo.volume = vol;
