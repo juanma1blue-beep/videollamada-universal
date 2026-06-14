@@ -7,25 +7,27 @@ const valLocal = document.getElementById('valLocal');
 const valRemote = document.getElementById('valRemote');
 let localStream;
 
-// Función para pantalla completa universal
 function toggleFS(id) {
     const elem = document.getElementById(id);
-    if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) { /* Soporte iOS/Safari */
-        elem.webkitRequestFullscreen();
-    }
+    if (elem.requestFullscreen) elem.requestFullscreen();
+    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
 }
 
-// Iniciar cámara
 async function startCamera() {
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        // Configuración con cancelación de eco y supresión de ruido para evitar el "grillo"
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+            video: true, 
+            audio: {
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true
+            } 
+        });
         localVideo.srcObject = localStream;
-    } catch (error) { console.error("Error cámara:", error); }
+    } catch (error) { console.error("Error al acceder a la cámara:", error); }
 }
 
-// Volumen con %
 volumeLocal.addEventListener('input', (e) => {
     const vol = parseFloat(e.target.value);
     localVideo.volume = vol;
@@ -41,12 +43,11 @@ volumeRemote.addEventListener('input', (e) => {
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
     if (roomId) socket.emit('join-room', roomId);
-    else alert("Introduce un código.");
+    else alert("Por favor, introduce un código.");
 }
 
-socket.on('user-connected', (userId) => console.log("Usuario remoto: " + userId));
+socket.on('user-connected', (userId) => console.log("Usuario remoto conectado: " + userId));
 
-// Inicialización
 startCamera();
 const newId = Math.random().toString(36).substring(2, 9);
 document.getElementById('roomInput').value = newId;
