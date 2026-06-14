@@ -3,33 +3,34 @@ const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 let localStream;
 
+// Generar código aleatorio al cargar
+const randomRoom = Math.random().toString(36).substring(2, 9);
+document.getElementById('roomInput').value = randomRoom;
+document.getElementById('roomDisplay').innerText = "Tu código: " + randomRoom;
+
 async function startCamera() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ 
             video: true, 
-            audio: {
-                echoCancellation: true,    // Filtro contra eco
-                noiseSuppression: true,   // Filtro contra el "grillo"
-                autoGainControl: true,    // Evita saturación
-                latency: 0                // Prioridad velocidad
-            } 
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, latency: 0 } 
         });
         localVideo.srcObject = localStream;
-        localVideo.muted = true; // IMPRESCINDIBLE: Tu voz nunca sale por tu altavoz
+        localVideo.muted = true; // Evita tu propio eco
     } catch (err) { alert("Error de cámara: " + err.message); }
 }
 
-function toggleFS(id) {
-    document.getElementById(id).requestFullscreen();
+function joinRoom() {
+    const roomId = document.getElementById('roomInput').value;
+    socket.emit('join-room', roomId);
+    alert("Te has unido a la sala: " + roomId);
 }
 
-// Función para colgar
+function toggleFS(id) { document.getElementById(id).requestFullscreen(); }
+
 function endCall() {
-    if (localStream) {
-        localStream.getTracks().forEach(track => track.stop());
-    }
+    if (localStream) localStream.getTracks().forEach(track => track.stop());
     socket.disconnect();
-    window.location.reload(); // Recarga para limpiar la memoria
+    window.location.reload();
 }
 
 document.getElementById('volumeRemote').addEventListener('input', (e) => {
