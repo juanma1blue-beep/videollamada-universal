@@ -3,65 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VideoChat Privado</title>
+    <title>VideoChat Pro</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background-color: #f9f9f9; }
-        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin-top: 20px; }
-        
-        .video-box { 
-            width: 100%; max-width: 400px; display: flex; flex-direction: column; 
-            align-items: center; padding-bottom: 20px; position: relative; 
-        }
-        
-        video { 
-            width: 100%; aspect-ratio: 16 / 9; object-fit: cover; 
-            background: #000; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .fs-btn {
-            position: absolute; bottom: 75px; right: 15px; 
-            background: rgba(0,0,0,0.5); color: white; border: none; 
-            padding: 8px; border-radius: 6px; cursor: pointer; z-index: 10;
-        }
-
-        .fs-icon { width: 16px; height: 16px; position: relative; }
-        .fs-icon::before, .fs-icon::after {
-            content: ''; position: absolute; width: 100%; height: 100%;
-            border: 2px solid white; box-sizing: border-box;
-        }
-        .fs-icon::before { border-width: 2px 2px 0 0; top: 0; right: 0; }
-        .fs-icon::after { border-width: 0 0 2px 2px; bottom: 0; left: 0; }
-
-        label { display: block; margin: 15px 0 8px 0; font-weight: bold; color: #333; }
-        .volume-control { width: 100%; max-width: 300px; cursor: pointer; }
-        .volume-value { margin-top: 5px; font-size: 0.9em; color: #555; font-weight: bold; }
-        #room-id-display { font-weight: bold; margin: 15px 0; padding: 12px; border: 1px solid #ccc; border-radius: 8px; display: inline-block; background: white; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 10px; background-color: #1c1c1c; color: white; }
+        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 15px; }
+        .video-box { width: 100%; max-width: 380px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
+        video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+        .fs-btn { position: absolute; bottom: 60px; right: 10px; background: rgba(0,0,0,0.6); border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: white; z-index: 10; }
+        .controls { background: #2c2c2c; padding: 10px; border-radius: 0 0 12px 12px; }
+        .volume-control { width: 80%; cursor: pointer; }
+        #room-id-display { font-size: 0.9em; background: #333; padding: 8px; border-radius: 6px; display: inline-block; margin: 10px; }
     </style>
 </head>
 <body>
-    <h1>VideoChat</h1>
-    <div id="room-id-display">Generando código...</div>
-    <br>
-    <input type="text" id="roomInput" placeholder="Introduce el código de sala">
-    <button onclick="joinRoom()">Unirse a la sala</button>
-    
+    <h3>VideoChat Pro</h3>
+    <div id="room-id-display">Cargando sala...</div>
     <div class="wrapper">
         <div class="video-box">
             <video id="localVideo" autoplay playsinline muted></video>
-            <button class="fs-btn" onclick="toggleFS('localVideo')"><div class="fs-icon"></div></button>
-            <label>Tu Volumen</label>
-            <input type="range" id="volumeLocal" class="volume-control" min="0" max="1" step="0.1" value="1">
-            <div class="volume-value">Nivel: <span id="valLocal">100%</span></div>
+            <button class="fs-btn" onclick="toggleFS('localVideo')">⛶</button>
+            <div class="controls">
+                <input type="range" id="volumeLocal" class="volume-control" min="0" max="1" step="0.1" value="1">
+            </div>
         </div>
         <div class="video-box">
             <video id="remoteVideo" autoplay playsinline></video>
-            <button class="fs-btn" onclick="toggleFS('remoteVideo')"><div class="fs-icon"></div></button>
-            <label>Volumen Remoto</label>
-            <input type="range" id="volumeRemote" class="volume-control" min="0" max="1" step="0.1" value="1">
-            <div class="volume-value">Nivel: <span id="valRemote">100%</span></div>
+            <button class="fs-btn" onclick="toggleFS('remoteVideo')">⛶</button>
+            <div class="controls">
+                <input type="range" id="volumeRemote" class="volume-control" min="0" max="1" step="0.1" value="1">
+            </div>
         </div>
     </div>
-
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>
