@@ -31,7 +31,7 @@
 
         .volume-control { width: 100%; max-width: 300px; cursor: pointer; }
 
-        .volume-value { margin-top: 5px; font-size: 0.9em; color: #555; }
+        .volume-value { margin-top: 5px; font-size: 0.9em; color: #555; font-weight: bold; }
 
         #room-id-display { 
             font-weight: bold; margin: 15px 0; padding: 12px; 
@@ -53,13 +53,13 @@
             <video id="localVideo" autoplay playsinline muted></video>
             <label for="volumeLocal">Tu Volumen</label>
             <input type="range" id="volumeLocal" class="volume-control" min="0" max="1" step="0.1" value="1">
-            <div class="volume-value">Nivel: <span id="valLocal">1.0</span></div>
+            <div class="volume-value">Nivel: <span id="valLocal">100%</span></div>
         </div>
         <div class="video-box">
             <video id="remoteVideo" autoplay playsinline></video>
             <label for="volumeRemote">Volumen Remoto</label>
             <input type="range" id="volumeRemote" class="volume-control" min="0" max="1" step="0.1" value="1">
-            <div class="volume-value">Nivel: <span id="valRemote">1.0</span></div>
+            <div class="volume-value">Nivel: <span id="valRemote">100%</span></div>
         </div>
     </div>
 
