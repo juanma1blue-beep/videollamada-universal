@@ -1,54 +1,36 @@
 const socket = io();
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
-const volumeLocal = document.getElementById('volumeLocal');
-const volumeRemote = document.getElementById('volumeRemote');
-const valLocal = document.getElementById('valLocal');
-const valRemote = document.getElementById('valRemote');
-let localStream;
+
+// Configuración de latencia baja y supresión de ruido avanzada
+const constraints = {
+    video: true,
+    audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        latency: 0 // Intentar minimizar el retardo
+    }
+};
+
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        localVideo.srcObject = stream;
+        localVideo.muted = true; // Vital para evitar el retorno y eco
+    } catch (err) { console.error("Error Pro Audio:", err); }
+}
 
 function toggleFS(id) {
     const elem = document.getElementById(id);
     if (elem.requestFullscreen) elem.requestFullscreen();
-    else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
 }
 
-async function startCamera() {
-    try {
-        // Configuración con cancelación de eco y supresión de ruido para evitar el "grillo"
-        localStream = await navigator.mediaDevices.getUserMedia({ 
-            video: true, 
-            audio: {
-                echoCancellation: true,
-                noiseSuppression: true,
-                autoGainControl: true
-            } 
-        });
-        localVideo.srcObject = localStream;
-    } catch (error) { console.error("Error al acceder a la cámara:", error); }
-}
-
-volumeLocal.addEventListener('input', (e) => {
-    const vol = parseFloat(e.target.value);
-    localVideo.volume = vol;
-    valLocal.innerText = Math.round(vol * 100) + "%";
+// Control de volumen profesional
+document.getElementById('volumeRemote').addEventListener('input', (e) => {
+    remoteVideo.volume = e.target.value;
 });
-
-volumeRemote.addEventListener('input', (e) => {
-    const vol = parseFloat(e.target.value);
-    remoteVideo.volume = vol;
-    valRemote.innerText = Math.round(vol * 100) + "%";
-});
-
-function joinRoom() {
-    const roomId = document.getElementById('roomInput').value;
-    if (roomId) socket.emit('join-room', roomId);
-    else alert("Por favor, introduce un código.");
-}
-
-socket.on('user-connected', (userId) => console.log("Usuario remoto conectado: " + userId));
 
 startCamera();
 const newId = Math.random().toString(36).substring(2, 9);
-document.getElementById('roomInput').value = newId;
-document.getElementById('room-id-display').innerText = "Tu código de sala: " + newId;
+document.getElementById('room-id-display').innerText = "Tu Código: " + newId;
