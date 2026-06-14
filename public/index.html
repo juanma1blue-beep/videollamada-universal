@@ -2,15 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Videollamada</title>
+    <title>VideoChat Privado</title>
+    <style>
+        video { width: 45%; background: #000; }
+    </style>
 </head>
 <body>
-    <h1>Sala Privada</h1>
-    <div id="roomIdDisplay"></div>
-    <video id="localVideo" autoplay playsinline muted style="width: 300px; border: 3px solid blue;"></video>
+    <h1>VideoChat</h1>
+    
+    <div id="room-id-display" style="font-weight: bold; margin: 10px 0; padding: 5px; border: 1px solid #ccc; display: inline-block;">
+        Generando código de sala...
+    </div>
+    
     <br>
-    <button id="joinButton">Unirse a la sala</button>
+    <input type="text" id="roomInput" placeholder="Introduce el código de sala">
+    <button onclick="joinRoom()">Unirse a la sala</button>
+    
+    <div>
+        <video id="localVideo" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
