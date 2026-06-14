@@ -2,46 +2,66 @@ const socket = io();
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 let localStream;
+let peerConnection;
+const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-// --- NUEVA FUNCIÓN: Generar código de sala aleatorio ---
-function generateRandomRoomId() {
-    return Math.random().toString(36).substring(2, 9); // Genera un código de 7 caracteres
-}
-
-// --- NUEVA FUNCIÓN: Asignar ID al cargar ---
+// --- FUNCIÓN: Generar ID y mostrarlo ---
+function generateRandomRoomId() { return Math.random().toString(36).substring(2, 9); }
 function setRoomId() {
     const roomInput = document.getElementById('roomInput');
-    if (roomInput && !roomInput.value) {
-        roomInput.value = generateRandomRoomId();
-    }
+    const displayDiv = document.getElementById('room-id-display');
+    const newId = generateRandomRoomId();
+    if (roomInput) roomInput.value = newId;
+    if (displayDiv) displayDiv.innerText = "Tu código de sala: " + newId;
 }
 
+// --- LÓGICA WEBRTC ---
 async function startCamera() {
-    try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        localVideo.srcObject = localStream;
-    } catch (error) {
-        console.error("Error al acceder a la cámara:", error);
-    }
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localVideo.srcObject = localStream;
+}
+
+function createPeerConnection(targetId) {
+    peerConnection = new RTCPeerConnection(config);
+    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+    
+    peerConnection.onicecandidate = (event) => {
+        if (event.candidate) socket.emit('ice-candidate', { target: targetId, candidate: event.candidate });
+    };
+    
+    peerConnection.ontrack = (event) => { remoteVideo.srcObject = event.streams[0]; };
+    return peerConnection;
 }
 
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
-    if (roomId) {
-        socket.emit('join-room', roomId);
-        console.log("Unido a la sala privada: " + roomId);
-        // Ocultar botones de inicio para mejorar la interfaz
-    } else {
-        alert("Por favor, ingresa o genera un código de sala.");
-    }
+    if (!roomId) return alert("Introduce un código");
+    socket.emit('join-room', roomId);
+    document.getElementById('room-id-display').innerText = "Conectado a: " + roomId;
 }
 
-socket.on('user-connected', (userId) => {
-    console.log("Usuario remoto conectado: " + userId);
-    // Aquí es donde en el futuro pondremos la lógica para mostrar el vídeo remoto
+socket.on('user-connected', async (userId) => {
+    const pc = createPeerConnection(userId);
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    socket.emit('offer', { target: userId, offer });
 });
 
-// Iniciar cámara al cargar la página
+socket.on('offer', async (payload) => {
+    const pc = createPeerConnection(payload.sender);
+    await pc.setRemoteDescription(payload.offer);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    socket.emit('answer', { target: payload.sender, answer });
+});
+
+socket.on('answer', async (payload) => {
+    await peerConnection.setRemoteDescription(payload.answer);
+});
+
+socket.on('ice-candidate', async (payload) => {
+    await peerConnection.addIceCandidate(payload.candidate);
+});
+
 startCamera();
-// Llamar a la función para poner un ID aleatorio automáticamente
 setRoomId();
