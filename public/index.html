@@ -2,38 +2,33 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VideoChat Pro</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; text-align: center; padding: 10px; background-color: #1c1c1c; color: white; }
+        body { font-family: sans-serif; background: #1c1c1c; color: white; text-align: center; padding: 10px; }
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 15px; }
         .video-box { width: 100%; max-width: 380px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-        .fs-btn { position: absolute; bottom: 60px; right: 10px; background: rgba(0,0,0,0.6); border: none; padding: 8px; border-radius: 6px; cursor: pointer; color: white; z-index: 10; }
-        .controls { background: #2c2c2c; padding: 10px; border-radius: 0 0 12px 12px; }
+        .fs-btn { position: absolute; bottom: 60px; right: 10px; background: rgba(0,0,0,0.6); border: none; padding: 8px; border-radius: 6px; color: white; cursor: pointer; }
+        .end-call-btn { background: #ff3b30; color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        .controls { background: #2c2c2c; padding: 10px; }
         .volume-control { width: 80%; cursor: pointer; }
-        #room-id-display { font-size: 0.9em; background: #333; padding: 8px; border-radius: 6px; display: inline-block; margin: 10px; }
     </style>
 </head>
 <body>
-    <h3>VideoChat Pro</h3>
-    <div id="room-id-display">Cargando sala...</div>
     <div class="wrapper">
         <div class="video-box">
             <video id="localVideo" autoplay playsinline muted></video>
             <button class="fs-btn" onclick="toggleFS('localVideo')">⛶</button>
-            <div class="controls">
-                <input type="range" id="volumeLocal" class="volume-control" min="0" max="1" step="0.1" value="1">
-            </div>
+            <div class="controls"><input type="range" id="volumeLocal" class="volume-control" min="0" max="1" step="0.1" value="1"></div>
         </div>
         <div class="video-box">
             <video id="remoteVideo" autoplay playsinline></video>
             <button class="fs-btn" onclick="toggleFS('remoteVideo')">⛶</button>
-            <div class="controls">
-                <input type="range" id="volumeRemote" class="volume-control" min="0" max="1" step="0.1" value="1">
-            </div>
+            <div class="controls"><input type="range" id="volumeRemote" class="volume-control" min="0" max="1" step="0.1" value="1"></div>
         </div>
     </div>
+    <button class="end-call-btn" onclick="endCall()">Finalizar Videollamada</button>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
 </body>
