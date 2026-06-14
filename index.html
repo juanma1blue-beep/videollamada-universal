@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>VideoChat Privado</title>
+    <style>
+        video { width: 45%; background: #000; }
+    </style>
+</head>
+<body>
+    <h1>VideoChat</h1>
+    <input type="text" id="roomInput" placeholder="Introduce el código de sala">
+    <button onclick="joinRoom()">Unirse a la sala</button>
+    
+    <div>
+        <video id="localVideo" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
