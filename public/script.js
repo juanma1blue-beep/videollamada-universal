@@ -28,18 +28,18 @@ async function startCamera() {
     }
 }
 
-// Control Volumen Local
+// Control Volumen Local con formato %
 volumeLocal.addEventListener('input', (e) => {
-    const vol = e.target.value;
+    const vol = parseFloat(e.target.value);
     localVideo.volume = vol;
-    valLocal.innerText = vol;
+    valLocal.innerText = Math.round(vol * 100) + "%";
 });
 
-// Control Volumen Remoto
+// Control Volumen Remoto con formato %
 volumeRemote.addEventListener('input', (e) => {
-    const vol = e.target.value;
+    const vol = parseFloat(e.target.value);
     remoteVideo.volume = vol;
-    valRemote.innerText = vol;
+    valRemote.innerText = Math.round(vol * 100) + "%";
 });
 
 function joinRoom() {
