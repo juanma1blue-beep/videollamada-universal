@@ -7,35 +7,26 @@ const valLocal = document.getElementById('valLocal');
 const valRemote = document.getElementById('valRemote');
 let localStream;
 
-function generateRandomRoomId() {
-    return Math.random().toString(36).substring(2, 9);
-}
-
-function setRoomId() {
-    const roomInput = document.getElementById('roomInput');
-    const displayDiv = document.getElementById('room-id-display');
-    const newId = generateRandomRoomId();
-    if (roomInput) roomInput.value = newId;
-    if (displayDiv) displayDiv.innerText = "Tu código de sala: " + newId;
+// Función para pantalla completa
+function toggleFS(id) {
+    const elem = document.getElementById(id);
+    if (elem.requestFullscreen) elem.requestFullscreen();
 }
 
 async function startCamera() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
-    } catch (error) {
-        console.error("Error al acceder a la cámara:", error);
-    }
+    } catch (error) { console.error("Error cámara:", error); }
 }
 
-// Control Volumen Local con formato %
+// Controles de volumen con %
 volumeLocal.addEventListener('input', (e) => {
     const vol = parseFloat(e.target.value);
     localVideo.volume = vol;
     valLocal.innerText = Math.round(vol * 100) + "%";
 });
 
-// Control Volumen Remoto con formato %
 volumeRemote.addEventListener('input', (e) => {
     const vol = parseFloat(e.target.value);
     remoteVideo.volume = vol;
@@ -44,16 +35,14 @@ volumeRemote.addEventListener('input', (e) => {
 
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
-    if (roomId) {
-        socket.emit('join-room', roomId);
-    } else {
-        alert("Por favor, ingresa o genera un código de sala.");
-    }
+    if (roomId) socket.emit('join-room', roomId);
+    else alert("Introduce un código.");
 }
 
-socket.on('user-connected', (userId) => {
-    console.log("Usuario remoto conectado: " + userId);
-});
+socket.on('user-connected', (userId) => console.log("Usuario remoto: " + userId));
 
+// Inicialización
 startCamera();
-setRoomId();
+const newId = Math.random().toString(36).substring(2, 9);
+document.getElementById('roomInput').value = newId;
+document.getElementById('room-id-display').innerText = "Tu código de sala: " + newId;
