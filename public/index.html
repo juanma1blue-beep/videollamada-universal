@@ -11,6 +11,8 @@
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        /* Indicador de estado (Semáforo) */
+        .status-indicator { position: absolute; top: 10px; left: 10px; font-size: 1.5em; z-index: 20; }
         #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin: 10px 0; }
         .end-call { background: #ff3b30; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     </style>
@@ -24,8 +26,14 @@
     </div>
 
     <div class="wrapper">
-        <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
-        <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
+        <div class="video-box">
+            <div class="status-indicator" id="statusLocal">●</div>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <div class="video-box">
+            <div class="status-indicator" id="statusRemote">●</div>
+            <video id="remoteVideo" autoplay playsinline></video>
+        </div>
     </div>
     <button class="end-call" onclick="endCall()">Finalizar Videollamada</button>
 
