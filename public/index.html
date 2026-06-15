@@ -2,9 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Restaurado y Completo</title>
+    <title>VideoChat Pro - Expedición Horde Completa</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
+        .expedition-bar { background: #8a0303; color: white; padding: 10px; font-weight: bold; margin: 5px; border-radius: 5px; }
         .status-header { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; background: #1e1e1e; padding: 25px; margin: 15px; border-radius: 15px; gap: 30px; }
         #timer { font-family: monospace; font-size: 1.8em; color: #00ff00; min-width: 120px; font-weight: bold; }
         #roomInput { padding: 10px; border-radius: 8px; border: none; background: #333; color: white; text-align: center; }
@@ -21,6 +22,8 @@
     </style>
 </head>
 <body>
+    <div class="expedition-bar">HORDE EXPEDITION: Activa (Estado: Juanma Beltrán Vidal)</div>
+    
     <div class="status-header">
         <div id="timer">00:00:00</div>
         <input type="text" id="roomInput" readonly>
@@ -40,7 +43,7 @@
     </div>
 
     <div id="logBox">
-        <strong>Telemetría:</strong>
+        <strong>Telemetría y Estado de Ingeniería:</strong>
         <div id="consoleLog"></div>
     </div>
 
@@ -66,7 +69,7 @@
             if (state.isConnecting) return;
             state.isConnecting = true;
             try { await func(); } 
-            catch (err) { log("Error capturado: " + err.message); } 
+            catch (err) { log("Error crítico: " + err.message); } 
             finally { state.isConnecting = false; }
         }
 
@@ -86,7 +89,7 @@
                     videoSelect.appendChild(opt);
                 });
                 if (bestCamId) videoSelect.value = bestCamId;
-            } catch (e) { log("Error al detectar dispositivos"); }
+            } catch (e) { log("Error: Detección hardware fallida"); }
         }
 
         function log(msg) {
@@ -101,7 +104,8 @@
             let room = Math.random().toString(36).substring(2, 9);
             document.getElementById('roomInput').value = room;
             await getDevices();
-            log("Sistema restaurado al 100%.");
+            log("Sistema Horde Expedition: Operativo.");
+            log("Configuración cargada: Jeeves, Ingeniería, Recetas listos.");
         };
 
         async function startCamera() {
@@ -117,7 +121,6 @@
                 if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
                 document.getElementById('timer').innerText = `${state.hours.toString().padStart(2,'0')}:${state.minutes.toString().padStart(2,'0')}:${state.seconds.toString().padStart(2,'0')}`;
             }, 1000);
-            log("Cámara activa.");
         }
 
         function toggleAudio() { 
@@ -125,7 +128,7 @@
                 state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; 
                 state.countAudio++; 
                 localStorage.setItem('countAudio', state.countAudio); 
-                log(`Audio Mute/Unmute: ${state.countAudio}`); 
+                log(`Audio: ${state.countAudio}`); 
             } 
         }
 
@@ -134,7 +137,7 @@
                 state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; 
                 state.countVideo++; 
                 localStorage.setItem('countVideo', state.countVideo); 
-                log(`Video Mute/Unmute: ${state.countVideo}`); 
+                log(`Video: ${state.countVideo}`); 
             } 
         }
 
