@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Expedición Horde Completa</title>
+    <title>VideoChat Pro - Misión Útil</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
         .expedition-bar { background: #8a0303; color: white; padding: 10px; font-weight: bold; margin: 5px; border-radius: 5px; }
@@ -22,7 +22,7 @@
     </style>
 </head>
 <body>
-    <div class="expedition-bar">HORDE EXPEDITION: Activa (Estado: Juanma Beltrán Vidal)</div>
+    <div class="expedition-bar">HORDE EXPEDITION: Activa (Estado: Misión Útil)</div>
     
     <div class="status-header">
         <div id="timer">00:00:00</div>
@@ -105,7 +105,7 @@
             document.getElementById('roomInput').value = room;
             await getDevices();
             log("Sistema Horde Expedition: Operativo.");
-            log("Configuración cargada: Jeeves, Ingeniería, Recetas listos.");
+            log("Estado: Misión Útil - Sistemas de Ingeniería listos.");
         };
 
         async function startCamera() {
@@ -158,6 +158,7 @@
         function endCall() { 
             clearInterval(state.timerInterval); 
             if(state.localStream) state.localStream.getTracks().forEach(t => t.stop()); 
+            // Eliminamos la alerta con tu nombre y recargamos limpiamente
             localStorage.removeItem('lastRoom');
             window.location.reload(); 
         }
