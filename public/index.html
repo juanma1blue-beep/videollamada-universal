@@ -75,7 +75,7 @@
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Generación inmediata del código
+        // Generación del código aleatorio al cargar
         document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
         
         const socket = io();
@@ -91,7 +91,8 @@
             el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; 
             el.scrollTop = el.scrollHeight; 
         }
-        function confirmEnd() { if(confirm("¿Finalizar expedición?")) window.location.reload(); }
+        function confirmEnd() { if(confirm("¿Deseas finalizar la videollamada?")) window.location.reload(); }
+        
         async function startCamera() {
             try {
                 state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
