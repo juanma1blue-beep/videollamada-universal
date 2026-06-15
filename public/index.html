@@ -19,6 +19,16 @@
         .name-input { width: 55px; background: #242f3d; color: white; border: none; padding: 2px; border-radius: 4px; font-size: 0.7em; }
         .btn-ok { background: #242f3d; color: white; border: none; padding: 2px 4px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
         
+        .name-display { width: 70px; overflow: hidden; white-space: nowrap; font-size: 0.8em; font-weight: bold; color: #fff; }
+        .scrolling-text { animation: scrollCycle 6s infinite; }
+        
+        @keyframes scrollCycle {
+            0%, 20% { transform: translateX(0); }
+            40% { transform: translateX(-100%); }
+            60% { transform: translateX(100%); }
+            80%, 100% { transform: translateX(0); }
+        }
+        
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
         video { width: 100%; height: 100%; object-fit: cover; }
@@ -35,7 +45,7 @@
 </head>
 <body>
     <div class="status-header">
-        <input type="text" id="roomInput" readonly title="Código de Sala">
+        <input type="text" id="roomInput" readonly>
         <span class="arrow">➜</span>
         <button class="btn-forest-green" onclick="copyRoomCode()">📋 Copiar</button>
         <span class="arrow">➜</span>
@@ -47,7 +57,8 @@
             <div class="cam-overlay">
                 <div style="display:flex; align-items:center; gap:4px;">
                     <div id="statusDot1" class="status-dot"></div>
-                    <input type="text" id="name1" class="name-input" placeholder="Tu nombre...">
+                    <div id="display1" class="name-display"></div>
+                    <input type="text" id="name1" class="name-input" placeholder="Nombre...">
                     <button class="btn-ok" onclick="saveName(1)">OK</button>
                 </div>
                 <button class="btn-hangup" onclick="confirmEnd()">📞</button>
@@ -58,7 +69,8 @@
             <div class="cam-overlay">
                 <div style="display:flex; align-items:center; gap:4px;">
                     <div id="statusDot2" class="status-dot"></div>
-                    <input type="text" id="name2" class="name-input" placeholder="Socio...">
+                    <div id="display2" class="name-display"></div>
+                    <input type="text" id="name2" class="name-input" placeholder="Nombre...">
                     <button class="btn-ok" onclick="saveName(2)">OK</button>
                 </div>
                 <button class="btn-hangup" onclick="confirmEnd()">📞</button>
@@ -77,26 +89,44 @@
     <script>
         document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
         
+        window.onload = () => {
+            for(let i=1; i<=2; i++) {
+                const saved = sessionStorage.getItem('u'+i);
+                if(saved) updateDisplay(i, saved);
+            }
+        };
+
         const socket = io();
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
+        function updateDisplay(id, name) {
+            const el = document.getElementById('display'+id);
+            el.innerText = name;
+            el.classList.add('scrolling-text');
+        }
+
+        function saveName(id) {
+            const name = document.getElementById('name'+id).value;
+            if(name) {
+                sessionStorage.setItem('u'+id, name);
+                updateDisplay(id, name);
+                log("Nombre guardado: " + name);
+            }
+        }
+
         function copyRoomCode() {
             const el = document.getElementById('roomInput');
             el.select(); document.execCommand('copy');
-            log("Código copiado al portapapeles.");
+            log("Código copiado.");
         }
         function log(msg) { 
             const el = document.getElementById('consoleLog'); 
             el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; 
             el.scrollTop = el.scrollHeight; 
         }
-
-        // Lógica corregida: Solo pide confirmación si hay stream activo
         function confirmEnd() { 
             if (state.localStream) {
-                if(confirm("¿Deseas finalizar la videollamada?")) {
-                    window.location.reload(); 
-                }
+                if(confirm("¿Deseas finalizar la videollamada?")) window.location.reload(); 
             } else {
                 log("No hay videollamada activa.");
             }
@@ -121,7 +151,6 @@
         }
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-        function saveName(id) { sessionStorage.setItem('u'+id, document.getElementById('name'+id).value); }
     </script>
 </body>
 </html>
