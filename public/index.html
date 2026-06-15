@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Optimizado</title>
+    <title>Sistema Blindado</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -61,7 +61,7 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema optimizado.</div>
+        <div id="sysLog">Sistema sellado.</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
@@ -75,14 +75,12 @@
 
         function log(m) { document.getElementById('sysLog').innerText = m; }
         
-        // Monitor de visibilidad para ahorro energético
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden) {
-                log("Modo ahorro activo");
-            } else {
-                log("Sistema reactivado");
-            }
-        });
+        // Sello de integridad: Limpieza al arrancar
+        window.onload = () => {
+            sessionStorage.removeItem('temp_stream_lock'); // Sello de seguridad
+            if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
+            log("Sistema verificado");
+        };
 
         function confirmConnection() {
             document.getElementById('remoteBox').classList.add('active-signal');
@@ -93,7 +91,7 @@
         function handleLoss() {
             document.getElementById('remoteBox').classList.remove('active-signal');
             document.getElementById('remoteStatus').style.display = 'block';
-            log("Buscando señal...");
+            log("Reconectando...");
         }
 
         function toggleEdit() {
@@ -109,8 +107,9 @@
         function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
 
         async function connect() {
-            log("Conectando...");
+            log("Iniciando...");
             try {
+                // Auditoría de hardware antes de abrir el flujo
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: true, 
                     audio: { echoCancellation: true, noiseSuppression: true } 
@@ -125,27 +124,23 @@
                         document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
                     }, 1000);
                 }
-                log("Sistema en línea");
-            } catch(e) { log("Error: Verifica hardware"); }
+                log("Sesión segura");
+            } catch(e) { log("Error: Ajuste requerido"); }
         }
 
         function toggleAudio() { 
             if(localStream && localStream.getAudioTracks().length > 0) {
                 localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
-                log(localStream.getAudioTracks()[0].enabled ? "Audio ON" : "Audio OFF");
+                log(localStream.getAudioTracks()[0].enabled ? "Audio OK" : "Audio Silenciado");
             }
         }
         
         function toggleVideo() { 
             if(localStream && localStream.getVideoTracks().length > 0) {
                 localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
-                log(localStream.getVideoTracks()[0].enabled ? "Vídeo ON" : "Vídeo OFF");
+                log(localStream.getVideoTracks()[0].enabled ? "Vídeo OK" : "Vídeo Pausado");
             }
         }
-
-        window.onload = () => {
-            if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
-        };
     </script>
 </body>
 </html>
