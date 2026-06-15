@@ -4,23 +4,31 @@ const remoteVideo = document.getElementById('remoteVideo');
 const timerDisplay = document.getElementById('timer');
 let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
 
-// Generar ID al cargar
+// 1. Generación inmediata del código de sala
 window.onload = () => {
-    document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
+    const randomRoom = Math.random().toString(36).substring(2, 9);
+    document.getElementById('roomInput').value = randomRoom;
 };
 
+// 2. Audio Profesional (Hardcore Anti-Eco)
 async function startCamera() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ 
             video: true, 
-            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
+            audio: {
+                echoCancellation: { exact: true },
+                noiseSuppression: { exact: true },
+                autoGainControl: { exact: true },
+                latency: 0
+            } 
         });
         localVideo.srcObject = localStream;
-        localVideo.muted = true; // Mute obligatorio para ti mismo
+        localVideo.muted = true; // Mute local obligatorio para evitar tu propia voz
         startTimer();
-    } catch (err) { alert("Error: " + err.message); }
+    } catch (err) { console.error("Error de cámara:", err); }
 }
 
+// 3. Cronómetro (HH:MM:SS)
 function startTimer() {
     timerInterval = setInterval(() => {
         seconds++;
@@ -35,15 +43,13 @@ function startTimer() {
 
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
-    socket.emit('join-room', roomId);
-    console.log("Conectado a:", roomId);
+    if (roomId) socket.emit('join-room', roomId);
 }
 
 function endCall() {
     clearInterval(timerInterval);
-    if (localStream) localStream.getTracks().forEach(t => t.stop());
-    socket.disconnect();
-    window.location.reload();
+    if(localStream) localStream.getTracks().forEach(t => t.stop());
+    window.location.reload(); // Limpieza profunda al colgar
 }
 
 startCamera();
