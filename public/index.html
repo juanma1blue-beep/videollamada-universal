@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Misión Útil - Control Centralizado</title>
+    <title>Misión Útil - Control Total</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
+        .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 8px; height: 35px; box-sizing: border-box; }
         
         #roomInput { width: 80px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
-        .arrow { color: #555; font-size: 1em; font-weight: bold; }
         
+        /* Flechas guía */
+        .arrow { color: #228B22; font-size: 1.2em; font-weight: bold; opacity: 0.7; }
+        
+        /* Botones Marco Verde Bosque */
         .btn-forest-green { 
             background: #242f3d; 
             color: #228B22; 
             border: 2px solid #228B22; 
-            padding: 2px 6px; 
+            padding: 3px 8px; 
             border-radius: 4px; 
             font-size: 0.7em; 
             font-weight: bold; 
@@ -25,18 +28,15 @@
 
         .name-input { width: 60px; background: #242f3d; color: white; border: none; padding: 3px; border-radius: 4px; font-size: 0.7em; }
         .btn-ok { background: #242f3d; color: white; border: none; padding: 2px 5px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
-        
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
         video { width: 100%; height: 100%; object-fit: cover; }
         #timer { position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; pointer-events: none; }
         .cam-overlay { position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 100; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; font-size: 0.85em; }
         .cam-info { display: flex; align-items: center; gap: 6px; }
-        
         .status-dot { width: 10px; height: 10px; background: #ff4444; border-radius: 50%; transition: 0.3s; }
         .status-dot.active { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
         .status-dot.warning { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
-        
         .btn-hangup { background: #ff5959; border: none; color: white; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 1.1em; }
         .bottom-panel { background: #17212b; padding: 8px; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; flex-shrink: 0; }
         #consoleLog { font-size: 0.7em; color: #00ff00; height: 30px; overflow-y: auto; background: #0e1621; padding: 4px; border-radius: 4px; font-family: monospace; }
@@ -80,7 +80,7 @@
         </div>
     </div>
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema restaurado y listo.</div>
+        <div id="consoleLog">Sistema restaurado. Código aleatorio generado.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
