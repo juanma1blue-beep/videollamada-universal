@@ -2,16 +2,24 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Maestro Profesional</title>
+    <title>VideoChat Pro - Maestro Ordenado</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
-        .status-header { background: #1e1e1e; padding: 15px; margin: 10px; border-radius: 12px; }
-        select { padding: 8px; width: 80%; margin-top: 5px; border-radius: 8px; }
-        #timer { font-family: monospace; font-size: 1.5em; color: #00ff00; }
-        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        
+        /* Ajuste de orden: Flex-wrap y gap para que no se peguen */
+        .status-header { 
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
+            background: #1e1e1e; padding: 20px; margin: 10px; border-radius: 12px; gap: 15px; 
+        }
+        
+        #timer { font-family: monospace; font-size: 1.5em; color: #00ff00; min-width: 100px; }
+        select { padding: 8px; border-radius: 8px; border: none; background: #333; color: white; }
+        
+        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 10px; }
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .status-indicator { position: absolute; bottom: 15px; left: 15px; font-size: 2em; z-index: 500; color: #ff3b30; text-shadow: 0 0 5px #000; }
+        
         #chatBox, #logBox { width: 100%; max-width: 350px; margin: 10px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
         #messages, #consoleLog { height: 80px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
         #consoleLog { color: #00ff00; font-family: monospace; }
@@ -22,9 +30,9 @@
 <body>
     <div class="status-header">
         <div id="timer">00:00:00</div>
-        <input type="text" id="roomInput" style="width: 100px;" readonly>
-        <select id="videoSource"><option value="">Selecciona Cámara...</option></select>
-        <button onclick="safeExecute(joinRoom)" style="padding: 5px 10px; margin-top:10px;">Conectar</button>
+        <input type="text" id="roomInput" style="width: 80px; padding: 8px; border-radius: 8px; border: none;" readonly>
+        <select id="videoSource"><option value="">Cámara...</option></select>
+        <button onclick="safeExecute(joinRoom)" style="padding: 8px 15px; border-radius: 8px; border: none; background: #0084ff; color: white; cursor: pointer;">Conectar</button>
     </div>
 
     <div class="wrapper">
@@ -60,21 +68,15 @@
         const socket = io();
         const state = { localStream: null, timerInterval: null, countAudio: parseInt(localStorage.getItem('countAudio')) || 0, countVideo: parseInt(localStorage.getItem('countVideo')) || 0, seconds: 0, minutes: 0, hours: 0 };
 
-        async function safeExecute(func) {
-            try { await func(); } 
-            catch (err) { log("Error capturado: " + err.message); document.getElementById('statusLocal').style.color = "#ff3b30"; }
-        }
+        async function safeExecute(func) { try { await func(); } catch (err) { log("Error: " + err.message); } }
 
         async function getDevices() {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoSelect = document.getElementById('videoSource');
-            devices.forEach(device => {
-                if (device.kind === 'videoinput') {
-                    const option = document.createElement('option');
-                    option.value = device.deviceId;
-                    option.text = device.label || 'Cámara ' + (videoSelect.length + 1);
-                    videoSelect.appendChild(option);
-                }
+            devices.filter(d => d.kind === 'videoinput').forEach(d => {
+                const option = document.createElement('option');
+                option.value = d.deviceId; option.text = d.label || 'Cámara';
+                videoSelect.appendChild(option);
             });
         }
 
@@ -91,54 +93,25 @@
             document.getElementById('roomInput').value = room;
             localStorage.setItem('lastRoom', room);
             await getDevices();
-            log("Sistema cargado. Dispositivos detectados.");
+            log("Sistema inicializado.");
         };
 
         async function startCamera() {
             const videoSource = document.getElementById('videoSource').value;
-            const constraints = {
-                video: { deviceId: videoSource ? { exact: videoSource } : undefined },
-                audio: true
-            };
-            state.localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            state.localStream = await navigator.mediaDevices.getUserMedia({video: {deviceId: videoSource ? {exact: videoSource} : undefined}, audio: true});
             document.getElementById('localVideo').srcObject = state.localStream;
             document.getElementById('statusLocal').style.color = "#00ff00";
-            
             state.timerInterval = setInterval(() => {
-                state.seconds++;
-                if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
+                state.seconds++; if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
                 document.getElementById('timer').innerText = `${state.hours.toString().padStart(2,'0')}:${state.minutes.toString().padStart(2,'0')}:${state.seconds.toString().padStart(2,'0')}`;
             }, 1000);
-            log("Cámara iniciada.");
         }
 
-        function toggleAudio() {
-            if (!state.localStream) return;
-            state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled;
-            state.countAudio++;
-            localStorage.setItem('countAudio', state.countAudio);
-            log(`Audio: ${state.countAudio}`);
-        }
-
-        function toggleVideo() {
-            if (!state.localStream) return;
-            state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled;
-            state.countVideo++;
-            localStorage.setItem('countVideo', state.countVideo);
-            log(`Video: ${state.countVideo}`);
-        }
-
-        async function joinRoom() { 
-            socket.emit('join-room', document.getElementById('roomInput').value); 
-            await startCamera(); 
-        }
-
-        function endCall() { 
-            clearInterval(state.timerInterval);
-            if(state.localStream) state.localStream.getTracks().forEach(t => t.stop());
-            window.location.reload(); 
-        }
-
+        function toggleAudio() { if (state.localStream) { state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; state.countAudio++; localStorage.setItem('countAudio', state.countAudio); log(`Audio: ${state.countAudio}`); } }
+        function toggleVideo() { if (state.localStream) { state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; state.countVideo++; localStorage.setItem('countVideo', state.countVideo); log(`Video: ${state.countVideo}`); } }
+        function sendMessage() { const input = document.getElementById('chatInput'); socket.emit('chat-message', input.value); document.getElementById('messages').innerHTML += `<div>Tú: ${input.value}</div>`; input.value = ''; }
+        async function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); await startCamera(); }
+        function endCall() { clearInterval(state.timerInterval); if(state.localStream) state.localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
         socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
     </script>
 </body>
