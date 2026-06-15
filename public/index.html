@@ -97,6 +97,9 @@
         function updateStatus() {
             document.getElementById('remoteBox').classList.add('active-signal');
             document.getElementById('remoteStatus').style.display = 'none';
+            // Sensor de Presencia Activado
+            document.title = "¡Conexión recibida!";
+            new Audio('https://actions.google.com/sounds/v1/notifications/beep_short.ogg').play().catch(()=>{});
             updateLog("Conectado");
         }
 
