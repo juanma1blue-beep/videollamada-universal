@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro</title>
+    <title>VideoChat Pro - Maestro</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; padding-bottom: 150px; }
         .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        input { padding: 10px; border-radius: 8px; border: none; width: 60%; }
-        .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; margin-top: 10px; }
+        input, select { padding: 10px; border-radius: 8px; border: none; width: 60%; margin-bottom: 10px; }
+        .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; }
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; transition: 0.3s; }
         .talking { border: 3px solid #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.4); }
@@ -21,13 +21,15 @@
         .control-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e1e1e; padding: 15px 0; display: flex; justify-content: center; gap: 20px; z-index: 100; border-top: 1px solid #333; }
         .control-bar button { background: #333; border: none; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5em; cursor: pointer; transition: 0.3s; }
         .control-bar #btnEnd { background: #ff3b30; }
-        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin-top: 10px; }
-        #statusMessage { font-size: 0.9em; color: #888; margin-top: 5px; }
     </style>
 </head>
 <body>
     <div class="setup-box">
         <input type="text" id="roomInput" placeholder="Código de sala">
+        <select id="qualitySelect">
+            <option value="low">Modo Expedición (Fluidez)</option>
+            <option value="high">Modo Exposición (Calidad)</option>
+        </select>
         <br>
         <button class="action-btn" onclick="joinRoom()">Conectar</button>
         <div id="timer">00:00:00</div>
@@ -66,43 +68,39 @@
     <script>
         const socket = io();
         const localVideo = document.getElementById('localVideo');
-        const timerDisplay = document.getElementById('timer');
-        const statusMessage = document.getElementById('statusMessage');
         const consoleLog = document.getElementById('consoleLog');
-        let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
+        let localStream, timerInterval;
 
         function log(msg) {
             const time = new Date().toLocaleTimeString();
             consoleLog.innerHTML += `<div>[${time}] ${msg}</div>`;
-            document.getElementById('consoleLog').scrollTop = consoleLog.scrollHeight;
+            consoleLog.scrollTop = consoleLog.scrollHeight;
         }
 
-        window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
-
         async function startCamera() {
+            const quality = document.getElementById('qualitySelect').value;
+            const constraints = {
+                video: quality === 'high' ? { width: 1280, height: 720, frameRate: 30 } : { width: 640, height: 360, frameRate: 60 },
+                audio: { echoCancellation: true, noiseSuppression: true }
+            };
+            
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, latency: 0 } });
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
                 localVideo.srcObject = localStream;
-                startTimer();
                 startVoiceDetection(localStream);
-                log("Cámara y Micrófono inicializados.");
-            } catch (err) { log("Error: No se pudo acceder a la cámara."); }
+                log("Cámara iniciada en modo: " + quality);
+            } catch (err) { log("Error de cámara: " + err); }
         }
 
         function sendMessage() {
             const input = document.getElementById('chatInput');
             if (input.value) {
                 socket.emit('chat-message', input.value);
-                appendMessage("Tú: " + input.value);
+                document.getElementById('messages').innerHTML += `<div>Tú: ${input.value}</div>`;
                 input.value = '';
             }
         }
-        socket.on('chat-message', (msg) => appendMessage("Otro: " + msg));
-        function appendMessage(text) {
-            const m = document.getElementById('messages');
-            m.innerHTML += `<div>${text}</div>`;
-            m.scrollTop = m.scrollHeight;
-        }
+        socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
 
         async function startVoiceDetection(stream) {
             const ctx = new AudioContext();
@@ -122,34 +120,14 @@
         function toggleAudio() { 
             const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled; 
             document.getElementById('btnAudio').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
-            log("Audio: " + (t.enabled ? "Activado" : "Silenciado"));
         }
         function toggleVideo() { 
             const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled; 
             document.getElementById('btnVideo').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
-            log("Video: " + (t.enabled ? "Activado" : "Apagado"));
         }
 
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                seconds++; if (seconds === 60) { seconds = 0; minutes++; }
-                if (minutes === 60) { minutes = 0; hours++; }
-                timerDisplay.innerText = (hours<10?"0"+hours:hours)+":"+(minutes<10?"0"+minutes:minutes)+":"+(seconds<10?"0"+seconds:seconds);
-            }, 1000);
-        }
-
-        socket.on('disconnect', () => { 
-            log("Conexión perdida. Intentando reconectar...");
-            statusMessage.innerText = "Reconectando..."; 
-            setTimeout(() => { socket.connect(); socket.emit('join-room', document.getElementById('roomInput').value); }, 5000); 
-        });
-        socket.on('connect', () => { log("Conectado al servidor."); statusMessage.innerText = "Conectado"; });
-        socket.on('user-joined', () => { log("Usuario remoto unido."); statusMessage.innerText = "Usuario conectado"; });
-
-        function joinRoom() { const r = document.getElementById('roomInput').value; if(r) { socket.emit('join-room', r); log("Conectando a sala: " + r); } }
-        function endCall() { log("Llamada finalizada."); clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
-
-        startCamera();
+        function joinRoom() { const r = document.getElementById('roomInput').value; if(r) { socket.emit('join-room', r); log("Conectando..."); startCamera(); } }
+        function endCall() { if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
     </script>
 </body>
 </html>
