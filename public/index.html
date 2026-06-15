@@ -5,16 +5,20 @@
     <title>VideoChat Pro</title>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
-        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 15px; }
-        .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
-        video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
-        /* Contador de tiempo limpio */
-        #timer { font-family: monospace; font-size: 1.2em; color: #00ff00; margin: 10px; }
-        .end-btn { background: #ff3b30; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .controls-top { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        #timer { font-size: 1.5em; color: #00ff00; margin: 10px; font-family: monospace; }
+        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .video-box { width: 100%; max-width: 350px; background: #000; border-radius: 10px; overflow: hidden; }
+        video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        .end-btn { background: #ff3b30; color: white; border: none; padding: 15px 30px; border-radius: 25px; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div id="timer">00:00:00</div>
+    <div class="controls-top">
+        <input type="text" id="roomInput" placeholder="Código de sala">
+        <button onclick="joinRoom()">Conectar</button>
+        <div id="timer">00:00:00</div>
+    </div>
     <div class="wrapper">
         <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
