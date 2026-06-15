@@ -2,13 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Misión Útil - Control Centralizado</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; gap: 6px; height: 35px; box-sizing: border-box; }
+        .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
         #roomInput { width: 80px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
         
-        /* Botones con marco Verde Bosque (#228B22) */
+        .arrow { color: #555; font-size: 1em; font-weight: bold; }
+        
         .btn-forest-green { 
             background: #242f3d; 
             color: #228B22; 
@@ -42,7 +44,9 @@
 <body>
     <div class="status-header">
         <input type="text" id="roomInput" readonly>
+        <span class="arrow">➜</span>
         <button class="btn-forest-green" onclick="copyRoomCode()">📋 Copiar</button>
+        <span class="arrow">➜</span>
         <button class="btn-forest-green" onclick="safeExecute(joinRoom)">Conectar</button>
     </div>
     <div class="wrapper">
@@ -73,7 +77,7 @@
         </div>
     </div>
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema 100% restaurado.</div>
+        <div id="consoleLog">Sistema 100% operativo.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
@@ -84,14 +88,12 @@
         const socket = io();
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
-        // --- FUNCIÓN DE COPIAR REINCORPORADA Y VERIFICADA ---
         function copyRoomCode() {
             const el = document.getElementById('roomInput');
             el.select();
             document.execCommand('copy');
-            log("Código copiado al portapapeles.");
+            log("Código copiado.");
         }
-
         function confirmEnd() {
             if(confirm("¿Seguro que deseas finalizar la transmisión?")) endCall();
         }
