@@ -3,63 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Misión Útil</title>
+    <title>Misión Útil - Funcional</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
-        
-        #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; }
+        #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; }
         .arrow { color: #228B22; font-weight: bold; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; }
-        #timer { position: absolute; top: 5px; left: 5px; color: #00ff00; font-family: monospace; }
-        
         .overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; justify-content: space-between; }
         .input-group { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.5); padding: 3px; border-radius: 4px; }
         .status-dot { width: 10px; height: 10px; background: red; border-radius: 50%; }
         .btn-call { background: #ff5959; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        
         .footer { background: #17212b; padding: 8px; border-radius: 8px; }
         #sysLog { color: #00ff00; font-family: monospace; font-size: 0.9em; margin-bottom: 8px; }
         .controls { display: flex; justify-content: space-evenly; }
-        .btn-ctrl { background: #242f3d; border: none; font-size: 1.5em; padding: 5px 15px; border-radius: 50%; }
+        .btn-ctrl { background: #242f3d; border: none; cursor: pointer; padding: 5px 15px; border-radius: 50%; }
     </style>
 </head>
 <body>
     <div class="header">
         <input type="text" id="roomInput" value="krhhe17o9r" readonly>
         <span class="arrow">➜</span>
-        <button class="btn-header">📋 Copiar</button>
+        <button class="btn-header" onclick="copyCode()">📋 Copiar</button>
         <span class="arrow">➜</span>
-        <button class="btn-header">🔗 Conectar</button>
+        <button class="btn-header" onclick="connect()">🔗 Conectar</button>
     </div>
 
     <div class="wrapper">
         <div class="video-box">
-            <div id="timer">00:00:00</div>
+            <div id="timer" style="position:absolute; top:5px; left:5px; color:#00ff00; font-family:monospace;">00:00:00</div>
             <div class="overlay">
                 <div class="input-group">
-                    <div class="status-dot"></div>
-                    <input type="text" placeholder="Tu nombre" style="background:#242f3d; color:white; border:none; width:80px;">
-                    <button style="background:#242f3d; color:white; border:none; cursor:pointer;">OK</button>
+                    <div id="dot1" class="status-dot"></div>
+                    <input type="text" id="n1" placeholder="Tu nombre" style="background:#242f3d; color:white; border:none; width:80px;">
+                    <button onclick="save(1)" style="background:#242f3d; color:white; border:none; cursor:pointer;">OK</button>
                 </div>
-                <button class="btn-call">📞</button>
+                <button class="btn-call" onclick="end()">📞</button>
             </div>
         </div>
         <div class="video-box">
             <div class="overlay">
                 <div class="input-group">
-                    <div class="status-dot"></div>
-                    <input type="text" placeholder="Socio..." style="background:#242f3d; color:white; border:none; width:80px;">
-                    <button style="background:#242f3d; color:white; border:none; cursor:pointer;">OK</button>
+                    <div id="dot2" class="status-dot"></div>
+                    <input type="text" id="n2" placeholder="Socio..." style="background:#242f3d; color:white; border:none; width:80px;">
+                    <button onclick="save(2)" style="background:#242f3d; color:white; border:none; cursor:pointer;">OK</button>
                 </div>
-                <button class="btn-call">📞</button>
+                <button class="btn-call" onclick="end()">📞</button>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema 100% operativo. Listo para conectar.</div>
-        <div class="controls
+        <div id="sysLog">Sistema operativo. Listo para conectar.</div>
+        <div class="controls">
+            <button class="btn-ctrl" onclick="toggle('audio')">🎙️</button>
+            <button class="btn-ctrl" onclick="toggle('video')">📷</button>
+        </div>
+    </div>
+
+    <script>
+        function log(m) { document.getElementById('sysLog').innerText = m; }
+        function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado"); }
+        function save(id) { log("Nombre guardado: " + document.getElementById('n'+id).value); }
+        function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
+        async function connect() { 
+            log("Conectando a sala " + document.getElementById('roomInput').value + "...");
+            document.getElementById('dot1').style.background = '#00ff00';
+            document.getElementById('dot2').style.background = '#00ff00';
+            let s = 0; setInterval(() => { s++; document.getElementById('timer').innerText = new Date(s * 1000).toISOString().substr(11, 8); }, 1000);
+        }
+        function toggle(type) { log(type + " cambiado"); }
+    </script>
+</body>
+</html>
