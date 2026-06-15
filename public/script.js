@@ -21,26 +21,31 @@ async function startCamera() {
     } catch (err) { console.error("Error cámara:", err); }
 }
 
-// Controles independientes
-function toggleAudio() {
-    const track = localStream.getAudioTracks()[0];
-    track.enabled = !track.enabled;
-}
+// Reconexión automática pasiva (No intrusiva)
+socket.on('disconnect', () => {
+    statusMessage.innerText = "Conexión perdida. Recuperando...";
+    statusMessage.style.color = "#ff9500";
+    setTimeout(() => {
+        const roomId = document.getElementById('roomInput').value;
+        if (roomId) {
+            socket.connect();
+            socket.emit('join-room', roomId);
+        }
+    }, 5000);
+});
 
-function toggleVideo() {
-    const track = localStream.getVideoTracks()[0];
-    track.enabled = !track.enabled;
-}
+socket.on('connect', () => statusMessage.innerText = "Conectado al servidor");
+socket.on('user-joined', () => { statusMessage.innerText = "Usuario conectado"; statusMessage.style.color = "#00ff00"; });
+
+function toggleAudio() { const track = localStream.getAudioTracks()[0]; track.enabled = !track.enabled; }
+function toggleVideo() { const track = localStream.getVideoTracks()[0]; track.enabled = !track.enabled; }
 
 function startTimer() {
     timerInterval = setInterval(() => {
         seconds++;
         if (seconds === 60) { seconds = 0; minutes++; }
         if (minutes === 60) { minutes = 0; hours++; }
-        timerDisplay.innerText = 
-            (hours < 10 ? "0"+hours : hours) + ":" + 
-            (minutes < 10 ? "0"+minutes : minutes) + ":" + 
-            (seconds < 10 ? "0"+seconds : seconds);
+        timerDisplay.innerText = (hours < 10 ? "0"+hours : hours) + ":" + (minutes < 10 ? "0"+minutes : minutes) + ":" + (seconds < 10 ? "0"+seconds : seconds);
     }, 1000);
 }
 
@@ -60,10 +65,6 @@ function monitorStats(pc, elementId) {
         }
     }, 3000);
 }
-
-socket.on('connect', () => statusMessage.innerText = "Conectado al servidor");
-socket.on('user-joined', () => { statusMessage.innerText = "Usuario conectado"; statusMessage.style.color = "#00ff00"; });
-socket.on('disconnect', () => { statusMessage.innerText = "Desconectado"; statusMessage.style.color = "#ff3b30"; });
 
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
