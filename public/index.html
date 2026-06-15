@@ -2,75 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Videollamada - Seguro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Videollamada</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .status-header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; }
-        
-        #roomInput { width: 85px; background: #242f3d; color: #fff; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
-        .btn-green { background: #242f3d; color: #228B22; border: 2px solid #228B22; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
-        
-        /* Estrellas y Nombre */
-        .star { width: 6px; height: 6px; background: gold; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); display: inline-block; animation: pulse 1s infinite alternate; }
-        @keyframes pulse { from { opacity: 0.5; transform: scale(0.8); } to { opacity: 1; transform: scale(1.1); } }
-        .name-display { font-weight: bold; color: gold; margin-left: 5px; font-size: 0.8em; }
-        
-        .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
-        .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
+        .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; }
+        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        .cam-overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; z-index: 100; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); padding: 3px 6px; border-radius: 6px; }
-        .btn-hangup { background: #ff5959; border: none; color: white; border-radius: 4px; padding: 1px 6px; cursor: pointer; }
+        .cam-overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; z-index: 10; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 6px; }
+        .star { width: 6px; height: 6px; background: gold; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); display: inline-block; }
+        .name-txt { font-weight: bold; color: gold; font-size: 0.9em; margin-left: 5px; }
         
-        .bottom-panel { background: #17212b; padding: 6px; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; flex-shrink: 0; }
-        #consoleLog { font-size: 0.65em; color: #00ff00; height: 35px; overflow-y: auto; background: #0e1621; padding: 3px; border-radius: 4px; font-family: monospace; }
-        .control-bar { display: flex; justify-content: space-evenly; }
-        button.ctrl-btn { background: #242f3d; border: none; font-size: 1.1em; cursor: pointer; padding: 6px; border-radius: 50%; }
+        .btn-base { background: #242f3d; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="status-header">
-        <input type="text" id="roomInput" readonly>
-        <button class="btn-green" onclick="copyCode()">📋 Copiar</button>
-        <button class="btn-green" onclick="connect()">🔗 Conectar</button>
-    </div>
-    
     <div class="wrapper">
         <div class="video-box">
+            <video id="v1" autoplay playsinline muted></video>
             <div class="cam-overlay">
                 <div style="display:flex; align-items:center;">
                     <div id="stars1"></div>
-                    <div id="display1" class="name-display"></div>
-                    <input type="text" id="name1" style="width:50px; background:#242f3d; color:white; border:none; margin-left:5px;" placeholder="Nombre...">
-                    <button onclick="saveName(1)" style="margin-left:2px;">OK</button>
+                    <div id="display1" class="name-txt"></div>
+                    <input type="text" id="name1" class="btn-base" style="width:60px;" placeholder="Nombre">
+                    <button class="btn-base" onclick="aplicar(1)">OK</button>
                 </div>
-                <button class="btn-hangup" onclick="endCall()">📞</button>
             </div>
-            <video id="v1" autoplay playsinline muted></video>
         </div>
         <div class="video-box">
             <video id="v2" autoplay playsinline></video>
         </div>
     </div>
 
-    <div class="bottom-panel">
-        <div id="consoleLog">Sistema seguro. Listo para iniciar.</div>
-        <div class="control-bar">
-            <button class="ctrl-btn" onclick="toggleMedia('audio')">🎙️</button>
-            <button class="ctrl-btn" onclick="toggleMedia('video')">📷</button>
-        </div>
-    </div>
-
     <script>
-        document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
-        
-        function saveName(id) {
+        function aplicar(id) {
             const name = document.getElementById('name'+id).value;
-            const starField = document.getElementById('stars'+id);
+            const field = document.getElementById('stars'+id);
             const display = document.getElementById('display'+id);
             
-            starField.innerHTML = '<span class="star"></span><span class="star"></span><span class="star"></span>';
+            field.innerHTML = '<span class="star"></span><span class="star"></span><span class="star"></span>';
             setTimeout(() => {
                 display.innerText = name;
                 setInterval(() => {
@@ -78,12 +49,6 @@
                 }, 60000);
             }, 1000);
         }
-
-        function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); }
-        function endCall() { if(confirm("¿Finalizar?")) window.location.reload(); }
-        function log(m) { const c = document.getElementById('consoleLog'); c.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${m}</div>`; }
-        async function connect() { log("Conectando..."); }
-        function toggleMedia(t) { log(t + " toggled."); }
     </script>
 </body>
 </html>
