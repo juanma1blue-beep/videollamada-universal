@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Videollamada</title>
+    <title>Sistema de Videollamada Inteligente</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
         #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; }
-        .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
-        .btn-header:active { transform: scale(0.95); background: #228B22; color: #fff; }
+        .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-header:active { background: #228B22; color: #fff; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         video { width: 100%; height: 100%; object-fit: cover; }
@@ -26,9 +26,10 @@
 </head>
 <body>
     <div class="header">
-        <input type="text" id="roomInput" value="krhhe17o9r" readonly>
-        <button class="btn-header" onclick="copyCode()">📋 Copiar</button>
-        <button class="btn-header" onclick="connect()">🔗 Conectar</button>
+        <input type="text" id="roomInput" value="krhhe17o9r" readonly style="cursor:not-allowed;">
+        <button class="btn-header" onclick="toggleEdit()">✏️</button>
+        <button class="btn-header" onclick="copyCode()">📋</button>
+        <button class="btn-header" onclick="connect()">🔗</button>
     </div>
 
     <div class="wrapper">
@@ -72,6 +73,15 @@
         let seconds = 0;
 
         function log(m) { document.getElementById('sysLog').innerText = m; }
+        
+        function toggleEdit() {
+            const input = document.getElementById('roomInput');
+            input.readOnly = !input.readOnly;
+            input.style.border = input.readOnly ? '1px solid #228B22' : '1px solid #ff5959';
+            input.style.cursor = input.readOnly ? 'not-allowed' : 'text';
+            log(input.readOnly ? "Código guardado" : "Modo edición activo");
+        }
+
         function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado"); }
         function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); log("Nombre guardado"); }
         function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
@@ -93,19 +103,21 @@
                         document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
                     }, 1000);
                 }
-                log("Conectado");
-            } catch(e) { log("Error: Ajuste de hardware necesario."); }
+                log("Conexión activa");
+            } catch(e) { log("Error: Verifica hardware"); }
         }
 
         function toggleAudio() { 
             if(localStream && localStream.getAudioTracks().length > 0) {
                 localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+                log(localStream.getAudioTracks()[0].enabled ? "Audio ON" : "Audio OFF");
             }
         }
         
         function toggleVideo() { 
             if(localStream && localStream.getVideoTracks().length > 0) {
                 localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
+                log(localStream.getVideoTracks()[0].enabled ? "Vídeo ON" : "Vídeo OFF");
             }
         }
 
