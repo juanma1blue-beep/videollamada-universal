@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Videollamada Inteligente</title>
+    <title>Sistema Inteligente</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -11,7 +11,9 @@
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-header:active { background: #228B22; color: #fff; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
-        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #242f3d; transition: border 0.3s; }
+        /* Clase para cuando la conexión está activa */
+        .video-box.active-signal { border: 2px solid #228B22; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .placeholder-text { color: #555; font-size: 0.8em; position: absolute; }
         .overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; justify-content: space-between; z-index: 5; }
@@ -33,7 +35,7 @@
     </div>
 
     <div class="wrapper">
-        <div class="video-box">
+        <div class="video-box" id="localBox">
             <div id="timer" style="position:absolute; top:5px; left:5px; color:#00ff00; font-family:monospace; font-weight:bold; z-index:10;">00:00:00</div>
             <video id="localVideo" autoplay playsinline muted></video>
             <div class="overlay">
@@ -45,9 +47,9 @@
                 <button class="btn-call" onclick="end()">📞</button>
             </div>
         </div>
-        <div class="video-box">
-            <div class="placeholder-text">Esperando señal remota...</div>
-            <video id="remoteVideo" autoplay playsinline></video>
+        <div class="video-box" id="remoteBox">
+            <div class="placeholder-text" id="remoteStatus">Esperando señal remota...</div>
+            <video id="remoteVideo" autoplay playsinline onplay="confirmConnection()"></video>
             <div class="overlay">
                 <div class="input-group">
                     <div id="dot2" class="status-dot"></div>
@@ -74,6 +76,12 @@
 
         function log(m) { document.getElementById('sysLog').innerText = m; }
         
+        function confirmConnection() {
+            document.getElementById('remoteBox').classList.add('active-signal');
+            document.getElementById('remoteStatus').style.display = 'none';
+            log("Señal remota sincronizada");
+        }
+
         function toggleEdit() {
             const input = document.getElementById('roomInput');
             input.readOnly = !input.readOnly;
@@ -87,15 +95,15 @@
         function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
 
         async function connect() {
-            log("Iniciando conexión...");
+            log("Conectando...");
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: true, 
                     audio: { echoCancellation: true, noiseSuppression: true } 
                 });
                 document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('localBox').classList.add('active-signal');
                 document.getElementById('dot1').style.background = '#00ff00';
-                document.getElementById('dot2').style.background = '#00ff00';
                 
                 if (!timerInterval) {
                     timerInterval = setInterval(() => {
@@ -103,7 +111,7 @@
                         document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
                     }, 1000);
                 }
-                log("Conexión activa");
+                log("Sistema activo");
             } catch(e) { log("Error: Verifica hardware"); }
         }
 
