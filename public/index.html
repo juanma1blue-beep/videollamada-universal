@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Maestro Blindado</title>
+    <title>VideoChat Pro - Misión Crítica</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
         .status-header { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; background: #1e1e1e; padding: 25px; margin: 15px; border-radius: 15px; gap: 30px; }
@@ -24,7 +24,7 @@
     <div class="status-header">
         <div id="timer">00:00:00</div>
         <input type="text" id="roomInput" readonly>
-        <select id="videoSource"><option value="">Detectando cámaras...</option></select>
+        <select id="videoSource"></select>
         <button id="btnConnect" onclick="safeExecute(joinRoom)" style="padding: 10px 20px; border-radius: 8px; border: none; background: #0084ff; color: white; cursor: pointer;">Conectar</button>
     </div>
 
@@ -46,7 +46,7 @@
     </div>
 
     <div id="logBox">
-        <strong>Telemetría:</strong>
+        <strong>Telemetría Crítica:</strong>
         <div id="consoleLog"></div>
     </div>
 
@@ -59,20 +59,24 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const state = { 
-            localStream: null, 
-            timerInterval: null, 
-            isConnecting: false,
-            countAudio: parseInt(localStorage.getItem('countAudio')) || 0, 
-            countVideo: parseInt(localStorage.getItem('countVideo')) || 0, 
-            seconds: 0, minutes: 0, hours: 0 
-        };
+        const state = { localStream: null, timerInterval: null, isConnecting: false, countAudio: parseInt(localStorage.getItem('countAudio')) || 0, countVideo: parseInt(localStorage.getItem('countVideo')) || 0, seconds: 0, minutes: 0, hours: 0 };
+
+        // Mejora 1 & 2: Monitoreo de Red y Batería
+        window.addEventListener('online', () => log("Red Restaurada."));
+        window.addEventListener('offline', () => log("¡ALERTA: Red perdida!"));
+        
+        if (navigator.getBattery) {
+            navigator.getBattery().then(battery => {
+                battery.addEventListener('levelchange', () => {
+                    if (battery.level < 0.15) log("¡ALERTA: Batería baja (<15%)!");
+                });
+            });
+        }
 
         async function safeExecute(func) { 
             if (state.isConnecting) return;
             state.isConnecting = true;
-            try { await func(); } 
-            catch (err) { log("Error: " + err.message); } 
+            try { await func(); } catch (err) { log("Error: " + err.message); } 
             finally { state.isConnecting = false; }
         }
 
@@ -81,17 +85,15 @@
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const videoSelect = document.getElementById('videoSource');
                 videoSelect.innerHTML = '';
-                let bestCamId = null;
                 devices.filter(d => d.kind === 'videoinput').forEach((d, index) => {
                     const opt = document.createElement('option');
                     opt.value = d.deviceId;
                     const label = d.label.toLowerCase();
-                    if (label.includes('back')) { opt.text = "Cámara Trasera"; bestCamId = d.deviceId; }
+                    if (label.includes('back')) { opt.text = "Cámara Trasera"; videoSelect.value = d.deviceId; }
                     else if (label.includes('front')) opt.text = "Cámara Selfie";
                     else opt.text = "Cámara " + (index + 1);
                     videoSelect.appendChild(opt);
                 });
-                if (bestCamId) videoSelect.value = bestCamId;
             } catch (e) { log("Error acceso dispositivos"); }
         }
 
@@ -104,11 +106,9 @@
         }
 
         window.onload = async () => { 
-            // Genera ID volátil al arrancar
-            let room = Math.random().toString(36).substring(2, 9);
-            document.getElementById('roomInput').value = room;
+            document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
             await getDevices();
-            log("Sistema activo. Identidad volátil generada.");
+            log("Sistema listo para misión.");
         };
 
         async function startCamera() {
@@ -128,21 +128,15 @@
 
         function toggleAudio() { 
             if (state.localStream?.getAudioTracks()[0]) { 
-                const track = state.localStream.getAudioTracks()[0];
-                track.enabled = !track.enabled; 
-                state.countAudio++; 
-                localStorage.setItem('countAudio', state.countAudio); 
-                log(`Audio: ${state.countAudio}`); 
+                state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; 
+                state.countAudio++; log(`Audio: ${state.countAudio}`); 
             } 
         }
 
         function toggleVideo() { 
             if (state.localStream?.getVideoTracks()[0]) { 
-                const track = state.localStream.getVideoTracks()[0];
-                track.enabled = !track.enabled; 
-                state.countVideo++; 
-                localStorage.setItem('countVideo', state.countVideo); 
-                log(`Video: ${state.countVideo}`); 
+                state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; 
+                state.countVideo++; log(`Video: ${state.countVideo}`); 
             } 
         }
 
@@ -163,8 +157,6 @@
         function endCall() { 
             clearInterval(state.timerInterval); 
             if(state.localStream) state.localStream.getTracks().forEach(t => t.stop()); 
-            // Borrado seguro para evitar persistencia de hacker
-            localStorage.removeItem('lastRoom');
             window.location.reload(); 
         }
 
