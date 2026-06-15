@@ -2,18 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Maestro</title>
+    <title>VideoChat Pro - Sistema Blindado</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
-        
-        /* Nueva Franja Superior para el contador */
         .status-header { display: flex; justify-content: space-around; background: #1e1e1e; padding: 15px; margin: 10px; border-radius: 12px; }
         #timer { font-family: monospace; font-size: 1.5em; color: #00ff00; }
-        
-        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 10px; }
+        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        
         .status-indicator { position: absolute; bottom: 15px; left: 15px; font-size: 2em; z-index: 500; color: #ff3b30; text-shadow: 0 0 5px #000; }
         #chatBox, #logBox { width: 100%; max-width: 350px; margin: 10px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
         #messages, #consoleLog { height: 80px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
@@ -26,7 +22,7 @@
     <div class="status-header">
         <div id="timer">00:00:00</div>
         <input type="text" id="roomInput" style="width: 100px; padding: 5px;" readonly>
-        <button onclick="joinRoom()" style="padding: 5px 10px;">Conectar</button>
+        <button onclick="safeExecute(joinRoom)" style="padding: 5px 10px;">Conectar</button>
     </div>
 
     <div class="wrapper">
@@ -62,6 +58,16 @@
         const socket = io();
         const state = { localStream: null, timerInterval: null, countAudio: 0, countVideo: 0, seconds: 0, minutes: 0, hours: 0 };
 
+        // Wrapper de seguridad para autocuración
+        async function safeExecute(func) {
+            try {
+                await func();
+            } catch (err) {
+                log("Error capturado en: " + func.name + " -> " + err.message);
+                document.getElementById('statusLocal').style.color = "#ff3b30";
+            }
+        }
+
         function log(msg) {
             const entry = document.createElement('div');
             entry.innerText = `[${new Date().toLocaleTimeString()}] ${msg}`;
@@ -73,33 +79,29 @@
         window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
 
         async function startCamera() {
-            try {
-                state.localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                document.getElementById('localVideo').srcObject = state.localStream;
-                document.getElementById('statusLocal').style.color = "#00ff00";
-                
-                state.timerInterval = setInterval(() => {
-                    state.seconds++;
-                    if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
-                    if (state.minutes === 60) { state.minutes = 0; state.hours++; }
-                    document.getElementById('timer').innerText = `${state.hours.toString().padStart(2,'0')}:${state.minutes.toString().padStart(2,'0')}:${state.seconds.toString().padStart(2,'0')}`;
-                }, 1000);
-                log("Sistema iniciado.");
-            } catch (err) { log("Error de acceso."); }
+            state.localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('localVideo').srcObject = state.localStream;
+            document.getElementById('statusLocal').style.color = "#00ff00";
+            
+            state.timerInterval = setInterval(() => {
+                state.seconds++;
+                if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
+                if (state.minutes === 60) { state.minutes = 0; state.hours++; }
+                document.getElementById('timer').innerText = `${state.hours.toString().padStart(2,'0')}:${state.minutes.toString().padStart(2,'0')}:${state.seconds.toString().padStart(2,'0')}`;
+            }, 1000);
+            log("Sistema operativo.");
         }
 
         function toggleAudio() {
             if (!state.localStream) return;
-            const t = state.localStream.getAudioTracks()[0];
-            t.enabled = !t.enabled;
+            state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled;
             state.countAudio++;
             log(`Audio alternado. Total: ${state.countAudio}`);
         }
 
         function toggleVideo() {
             if (!state.localStream) return;
-            const t = state.localStream.getVideoTracks()[0];
-            t.enabled = !t.enabled;
+            state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled;
             state.countVideo++;
             log(`Video alternado. Total: ${state.countVideo}`);
         }
@@ -111,9 +113,9 @@
             input.value = '';
         }
 
-        function joinRoom() { 
+        async function joinRoom() { 
             socket.emit('join-room', document.getElementById('roomInput').value); 
-            startCamera(); 
+            await startCamera(); 
         }
 
         function endCall() { 
