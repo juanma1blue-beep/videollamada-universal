@@ -44,14 +44,14 @@
         <div class="video-box">
             <div id="timer">00:00:00</div>
             <div class="cam-overlay">
-                <div class="cam-info"><div id="statusDot" class="status-dot"></div><span id="displayUser">Usuario: --</span></div>
+                <div class="cam-info"><div id="statusDot" class="status-dot"></div><span id="displayUser1">Usuario: --</span></div>
                 <button class="btn-hangup" onclick="endCall()">📞</button>
             </div>
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
         <div class="video-box">
             <div class="cam-overlay">
-                <div class="cam-info"><span>Remoto</span></div>
+                <div class="cam-info"><span id="displayUser2">Usuario: --</span></div>
                 <button class="btn-hangup" onclick="endCall()">📞</button>
             </div>
             <video id="remoteVideo" autoplay playsinline></video>
@@ -74,7 +74,8 @@
         function saveSession() {
             const name = document.getElementById('userName').value;
             sessionStorage.setItem('u', name);
-            document.getElementById('displayUser').innerText = "Usuario: " + name;
+            document.getElementById('displayUser1').innerText = "Usuario: " + name;
+            document.getElementById('displayUser2').innerText = "Usuario: " + name;
         }
         function log(msg) { const el = document.getElementById('consoleLog'); el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
         async function startCamera() {
@@ -95,7 +96,10 @@
         function endCall() { clearInterval(state.timerInterval); updateStatus(false); window.location.reload(); }
         window.onload = () => {
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
-            if(sessionStorage.getItem('u')) document.getElementById('displayUser').innerText = "Usuario: " + sessionStorage.getItem('u');
+            if(sessionStorage.getItem('u')) {
+                document.getElementById('displayUser1').innerText = "Usuario: " + sessionStorage.getItem('u');
+                document.getElementById('displayUser2').innerText = "Usuario: " + sessionStorage.getItem('u');
+            }
         };
     </script>
 </body>
