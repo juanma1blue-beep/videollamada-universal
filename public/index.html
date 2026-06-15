@@ -3,25 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VideoChat Pro - Control Central</title>
+    <title>Misión Útil - Control Central</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
         .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
-        #roomInput { width: 90px; background: #242f3d; color: #6ab2f2; border: none; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; flex-shrink: 0; }
-        #userName { width: 80px; background: #242f3d; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 0.8em; }
+        #roomInput { width: 80px; background: #242f3d; color: #6ab2f2; border: none; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; flex-shrink: 0; }
+        #userName { width: 70px; background: #242f3d; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 0.8em; }
         #btnConfirm { background: #242f3d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; cursor: pointer; }
         #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 0.8em; flex-shrink: 0; }
-
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
-        video { width: 100%; height: 85%; object-fit: cover; }
-        
-        .cam-info { height: 15%; display: flex; align-items: center; padding: 0 10px; gap: 8px; background: #17212b; font-size: 0.8em; }
-        .status-dot { width: 10px; height: 10px; background: #00ff00; border-radius: 50%; box-shadow: 0 0 5px #00ff00; }
-        
+        video { width: 100%; height: 100%; object-fit: cover; }
         #timer { position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; pointer-events: none; }
-
+        .cam-overlay { position: absolute; bottom: 10px; left: 10px; z-index: 100; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 4px; font-size: 0.85em; }
+        .status-dot { width: 10px; height: 10px; background: #ff4444; border-radius: 50%; transition: 0.3s; }
+        .status-dot.active { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
         .bottom-panel { background: #17212b; padding: 8px; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; flex-shrink: 0; }
         #consoleLog { font-size: 0.7em; color: #00ff00; height: 30px; overflow-y: auto; background: #0e1621; padding: 4px; border-radius: 4px; font-family: monospace; }
         .control-bar { display: flex; justify-content: space-evenly; padding: 4px; }
@@ -29,69 +25,63 @@
     </style>
 </head>
 <body>
-
     <div class="status-header">
         <input type="text" id="roomInput" readonly>
         <input type="text" id="userName" placeholder="Usuario...">
         <button id="btnConfirm" onclick="saveSession()">OK</button>
         <button id="btnConnect" onclick="safeExecute(joinRoom)">Conectar</button>
     </div>
-
     <div class="wrapper">
         <div class="video-box">
             <div id="timer">00:00:00</div>
+            <div class="cam-overlay">
+                <div id="statusDot" class="status-dot"></div>
+                <span id="displayUser">Usuario: --</span>
+            </div>
             <video id="localVideo" autoplay playsinline muted></video>
-            <div class="cam-info"><div class="status-dot"></div><span id="displayUser">Usuario: --</span></div>
         </div>
-        <div class="video-box">
-            <video id="remoteVideo" autoplay playsinline></video>
-            <div class="cam-info"><div class="status-dot"></div><span>Remoto</span></div>
-        </div>
+        <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
-
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema listo.</div>
+        <div id="consoleLog">Sistema en espera...</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
             <button class="ctrl-btn" onclick="endCall()" style="color: #ff5959;">❌</button>
         </div>
     </div>
-
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
         const state = { localStream: null, timerInterval: null, startTime: 0 };
-
+        function updateStatus(active) { document.getElementById('statusDot').className = active ? 'status-dot active' : 'status-dot'; }
         function saveSession() {
             const name = document.getElementById('userName').value;
             sessionStorage.setItem('u', name);
             document.getElementById('displayUser').innerText = "Usuario: " + name;
-            log("Usuario guardado: " + name);
+            log("Configuración aplicada.");
         }
-
         function log(msg) {
             const el = document.getElementById('consoleLog');
             el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
             el.scrollTop = el.scrollHeight;
         }
-
         async function startCamera() {
             state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('localVideo').srcObject = state.localStream;
+            updateStatus(true);
             state.startTime = Date.now();
             state.timerInterval = setInterval(() => {
                 const diff = new Date(Date.now() - state.startTime);
                 document.getElementById('timer').innerText = diff.toISOString().substr(11, 8);
             }, 1000);
+            log("Conexión establecida.");
         }
-
         async function safeExecute(func) { try { await func(); } catch(e) { log("Error: " + e.message); } }
         async function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); await startCamera(); }
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-        function endCall() { clearInterval(state.timerInterval); window.location.reload(); }
-
+        function endCall() { clearInterval(state.timerInterval); updateStatus(false); window.location.reload(); }
         window.onload = () => {
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
             if(sessionStorage.getItem('u')) {
