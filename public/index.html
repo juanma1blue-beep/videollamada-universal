@@ -8,9 +8,9 @@
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 8px; height: 35px; box-sizing: border-box; }
         
-        #roomInput { width: 90px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.9em; }
+        #roomInput { width: 90px; background: #242f3d; color: #fff; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.9em; }
         
-        .arrow { color: #228B22; font-size: 1.2em; font-weight: bold; opacity: 0.7; }
+        .arrow { color: #228B22; font-size: 1.2em; font-weight: bold; }
         
         .btn-forest-green { 
             background: #242f3d; 
@@ -22,19 +22,15 @@
             font-weight: bold; 
             cursor: pointer; 
         }
-        .btn-forest-green:active { background: #228B22; color: #fff; }
-
+        
         .name-input { width: 60px; background: #242f3d; color: white; border: none; padding: 3px; border-radius: 4px; font-size: 0.7em; }
         .btn-ok { background: #242f3d; color: white; border: none; padding: 2px 5px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        #timer { position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; pointer-events: none; }
+        #timer { position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; }
         .cam-overlay { position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 100; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; font-size: 0.85em; }
-        .cam-info { display: flex; align-items: center; gap: 6px; }
-        .status-dot { width: 10px; height: 10px; background: #ff4444; border-radius: 50%; transition: 0.3s; }
-        .status-dot.active { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
-        .status-dot.warning { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
+        .status-dot { width: 10px; height: 10px; background: #ff4444; border-radius: 50%; }
         .btn-hangup { background: #ff5959; border: none; color: white; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 1.1em; }
         .bottom-panel { background: #17212b; padding: 8px; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; flex-shrink: 0; }
         #consoleLog { font-size: 0.7em; color: #00ff00; height: 30px; overflow-y: auto; background: #0e1621; padding: 4px; border-radius: 4px; font-family: monospace; }
@@ -44,7 +40,7 @@
 </head>
 <body>
     <div class="status-header">
-        <input type="text" id="roomInput" readonly>
+        <input type="text" id="roomInput" value="Cargando..." readonly>
         <span class="arrow">➜</span>
         <button class="btn-forest-green" onclick="copyRoomCode()">📋 Copiar</button>
         <span class="arrow">➜</span>
@@ -54,11 +50,10 @@
         <div class="video-box">
             <div id="timer">00:00:00</div>
             <div class="cam-overlay">
-                <div class="cam-info">
+                <div style="display:flex; align-items:center; gap:5px;">
                     <div id="statusDot1" class="status-dot"></div>
                     <input type="text" id="name1" class="name-input" placeholder="Nombre...">
                     <button class="btn-ok" onclick="saveName(1)">OK</button>
-                    <span id="displayUser1"></span>
                 </div>
                 <button class="btn-hangup" onclick="confirmEnd()">📞</button>
             </div>
@@ -66,11 +61,10 @@
         </div>
         <div class="video-box">
             <div class="cam-overlay">
-                <div class="cam-info">
+                <div style="display:flex; align-items:center; gap:5px;">
                     <div id="statusDot2" class="status-dot"></div>
                     <input type="text" id="name2" class="name-input" placeholder="Nombre...">
                     <button class="btn-ok" onclick="saveName(2)">OK</button>
-                    <span id="displayUser2"></span>
                 </div>
                 <button class="btn-hangup" onclick="confirmEnd()">📞</button>
             </div>
@@ -78,7 +72,7 @@
         </div>
     </div>
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema activo. Código generado.</div>
+        <div id="consoleLog">Sistema V2.0 cargado.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
@@ -86,76 +80,50 @@
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // Forzamos el código nada más abrir
+        const generatedCode = Math.random().toString(36).substring(2, 12);
+        document.getElementById('roomInput').value = generatedCode;
+
         const socket = io();
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
-        // Generación directa al cargar
-        function generateCode() {
-            const code = Math.random().toString(36).substring(2, 12);
-            document.getElementById('roomInput').value = code;
-        }
-
         function copyRoomCode() {
             const el = document.getElementById('roomInput');
             el.select();
             document.execCommand('copy');
             log("Código copiado: " + el.value);
         }
-        function confirmEnd() {
-            if(confirm("¿Finalizar expedición?")) endCall();
-        }
-        function endCall() { 
-            clearInterval(state.timerInterval); 
-            window.location.reload(); 
-        }
-        function updateStatus(status) { 
-            document.getElementById('statusDot1').className = 'status-dot ' + status;
-            document.getElementById('statusDot2').className = 'status-dot ' + status;
-        }
-        socket.on('disconnect', () => { updateStatus('warning'); log("Conexión perdida."); });
-        socket.on('connect', () => { if(state.localStream) updateStatus('active'); });
-        
-        function saveName(id) {
-            const name = document.getElementById('name'+id).value;
-            document.getElementById('displayUser'+id).innerText = name;
-            sessionStorage.setItem('u'+id, name);
-        }
         function log(msg) { 
             const el = document.getElementById('consoleLog'); 
             el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; 
             el.scrollTop = el.scrollHeight; 
         }
-        
+        function confirmEnd() { if(confirm("¿Finalizar expedición?")) window.location.reload(); }
         async function startCamera() {
             try {
                 state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = state.localStream;
-                updateStatus('active');
+                document.getElementById('statusDot1').style.background = '#00ff00';
                 state.startTime = Date.now();
                 state.timerInterval = setInterval(() => {
                     const diff = new Date(Date.now() - state.startTime);
                     document.getElementById('timer').innerText = diff.toISOString().substr(11, 8);
                 }, 1000);
-            } catch(err) { log("Error: " + err.message); }
+            } catch(err) { log("Error cámara: " + err.message); }
         }
-        
         async function safeExecute(func) { try { await func(); } catch(e) { log("Error: " + e.message); } }
-        
         async function joinRoom() { 
             const roomCode = document.getElementById('roomInput').value;
             socket.emit('join-room', roomCode); 
             await startCamera(); 
         }
-        
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-        
-        window.onload = () => {
-            generateCode(); // Forzamos la ejecución
-            for(let i=1; i<=2; i++) {
-                if(sessionStorage.getItem('u'+i)) document.getElementById('displayUser'+i).innerText = sessionStorage.getItem('u'+i);
-            }
-        };
+        function saveName(id) {
+            const name = document.getElementById('name'+id).value;
+            sessionStorage.setItem('u'+id, name);
+            log("Nombre guardado: " + name);
+        }
     </script>
 </body>
 </html>
