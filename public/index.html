@@ -5,7 +5,6 @@
     <title>VideoChat Pro - Misión Útil</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
-        /* La barra de expedición ha sido eliminada */
         .status-header { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; background: #1e1e1e; padding: 25px; margin: 15px; border-radius: 15px; gap: 30px; }
         #timer { font-family: monospace; font-size: 1.8em; color: #00ff00; min-width: 120px; font-weight: bold; }
         #roomInput { padding: 10px; border-radius: 8px; border: none; background: #333; color: white; text-align: center; }
@@ -25,6 +24,9 @@
     <div class="status-header">
         <div id="timer">00:00:00</div>
         <input type="text" id="roomInput" readonly>
+        
+        <div id="statusIndicator" style="padding: 10px; border-radius: 8px; background: #333; color: #00ff00; font-size: 0.8em; font-weight: bold;">AUTO: ESTABLE</div>
+        
         <select id="videoSource"></select>
         <button id="btnConnect" onclick="safeExecute(joinRoom)" style="padding: 10px 20px; border-radius: 8px; border: none; background: #0084ff; color: white; cursor: pointer;">Conectar</button>
     </div>
@@ -41,7 +43,7 @@
     </div>
 
     <div id="logBox">
-        <strong>Telemetría:</strong>
+        <strong>Telemetría de Ingeniería:</strong>
         <div id="consoleLog"></div>
     </div>
 
@@ -55,7 +57,14 @@
     <script>
         localStorage.clear();
         const socket = io();
-        const state = { localStream: null, timerInterval: null, isConnecting: false, countAudio: 0, countVideo: 0, seconds: 0, minutes: 0, hours: 0 };
+        const state = { 
+            localStream: null, 
+            timerInterval: null, 
+            isConnecting: false,
+            countAudio: 0, 
+            countVideo: 0, 
+            seconds: 0, minutes: 0, hours: 0 
+        };
 
         function log(msg) {
             const entry = document.createElement('div');
@@ -65,11 +74,46 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        async function safeExecute(func) { if (state.isConnecting) return; state.isConnecting = true; try { await func(); } catch (err) { log("Error operativo."); } finally { state.isConnecting = false; } }
+        async function monitorConnection() {
+            if (!state.localStream) return;
+            const statusBox = document.getElementById('statusIndicator');
+            const connection = navigator.connection;
+            if (connection && connection.saveData) {
+                statusBox.innerText = "AUTO: MODO ESTABLE";
+                statusBox.style.color = "#ffcc00";
+            } else {
+                statusBox.innerText = "AUTO: ESTABLE";
+                statusBox.style.color = "#00ff00";
+            }
+        }
+        setInterval(monitorConnection, 5000);
+
+        async function safeExecute(func) { 
+            if (state.isConnecting) return;
+            state.isConnecting = true;
+            try { await func(); } 
+            catch (err) { log("Error operativo."); } 
+            finally { state.isConnecting = false; }
+        }
+
+        async function getDevices() {
+            try {
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoSelect = document.getElementById('videoSource');
+                videoSelect.innerHTML = '';
+                devices.filter(d => d.kind === 'videoinput').forEach((d, index) => {
+                    const opt = document.createElement('option');
+                    opt.value = d.deviceId;
+                    opt.text = "Cámara " + (index + 1);
+                    videoSelect.appendChild(opt);
+                });
+            } catch (e) { log("Error hardware."); }
+        }
 
         window.onload = async () => { 
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
-            log("Sistema operativo.");
+            await getDevices();
+            log("Sistema: Misión Útil - Listo.");
         };
 
         async function startCamera() {
@@ -79,7 +123,6 @@
                 audio: true
             });
             document.getElementById('localVideo').srcObject = state.localStream;
-            document.getElementById('statusLocal').style.color = "#00ff00";
             state.timerInterval = setInterval(() => {
                 state.seconds++; 
                 if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
@@ -87,9 +130,12 @@
             }, 1000);
         }
 
+        function toggleAudio() { if (state.localStream?.getAudioTracks()[0]) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
+        function toggleVideo() { if (state.localStream?.getVideoTracks()[0]) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
+        function sendMessage() { socket.emit('chat-message', document.getElementById('chatInput').value); document.getElementById('chatInput').value = ''; }
         async function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); await startCamera(); document.getElementById('btnConnect').disabled = true; }
         function endCall() { localStorage.clear(); window.location.reload(); }
-        // ... (resto de funciones intactas)
+        socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
     </script>
 </body>
 </html>
