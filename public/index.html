@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Aikido - Optimizado</title>
+    <title>Sistema de Videollamada</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -59,7 +59,7 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema Aikido activo.</div>
+        <div id="sysLog">Sistema listo.</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
@@ -77,7 +77,7 @@
         function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
 
         async function connect() {
-            log("Flujo iniciado...");
+            log("Iniciando conexión...");
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: true, 
@@ -93,12 +93,21 @@
                         document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
                     }, 1000);
                 }
-                log("Conectado con fluidez.");
+                log("Conectado");
             } catch(e) { log("Error: Ajuste de hardware necesario."); }
         }
 
-        function toggleAudio() { if(localStream) localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled; }
-        function toggleVideo() { if(localStream) localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled; }
+        function toggleAudio() { 
+            if(localStream && localStream.getAudioTracks().length > 0) {
+                localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
+            }
+        }
+        
+        function toggleVideo() { 
+            if(localStream && localStream.getVideoTracks().length > 0) {
+                localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
+            }
+        }
 
         window.onload = () => {
             if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
