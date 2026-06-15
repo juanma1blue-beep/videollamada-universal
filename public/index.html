@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Maestro</title>
+    <title>VideoChat Pro - Restaurado</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; padding-bottom: 150px; }
+        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; padding-bottom: 160px; }
         .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
         input, select { padding: 10px; border-radius: 8px; border: none; width: 60%; margin-bottom: 10px; }
         .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; }
@@ -12,7 +12,7 @@
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; transition: 0.3s; }
         .talking { border: 3px solid #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.4); }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
+        .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; }
         
         #chatBox, #logBox { width: 100%; max-width: 350px; margin: 10px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
         #messages, #consoleLog { height: 80px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
@@ -21,6 +21,7 @@
         .control-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e1e1e; padding: 15px 0; display: flex; justify-content: center; gap: 20px; z-index: 100; border-top: 1px solid #333; }
         .control-bar button { background: #333; border: none; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5em; cursor: pointer; transition: 0.3s; }
         .control-bar #btnEnd { background: #ff3b30; }
+        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -37,20 +38,14 @@
     </div>
 
     <div class="wrapper">
-        <div class="video-box" id="localBox">
-            <div class="status-indicator" id="statusLocal">●</div>
-            <video id="localVideo" autoplay playsinline muted></video>
-        </div>
-        <div class="video-box" id="remoteBox">
-            <div class="status-indicator" id="statusRemote">●</div>
-            <video id="remoteVideo" autoplay playsinline></video>
-        </div>
+        <div class="video-box" id="localBox"><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="video-box" id="remoteBox"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
 
     <div id="chatBox">
         <div id="messages"></div>
-        <input type="text" id="chatInput" placeholder="Mensaje..." style="width: 75%;">
-        <button onclick="sendMessage()" style="padding: 5px; cursor: pointer;">➤</button>
+        <input type="text" id="chatInput" placeholder="Mensaje..." style="width: 70%;">
+        <button onclick="sendMessage()">➤</button>
     </div>
 
     <div id="logBox">
@@ -69,38 +64,34 @@
         const socket = io();
         const localVideo = document.getElementById('localVideo');
         const consoleLog = document.getElementById('consoleLog');
-        let localStream, timerInterval;
+        let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
 
         function log(msg) {
-            const time = new Date().toLocaleTimeString();
-            consoleLog.innerHTML += `<div>[${time}] ${msg}</div>`;
+            consoleLog.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
             consoleLog.scrollTop = consoleLog.scrollHeight;
         }
 
         async function startCamera() {
-            const quality = document.getElementById('qualitySelect').value;
-            const constraints = {
-                video: quality === 'high' ? { width: 1280, height: 720, frameRate: 30 } : { width: 640, height: 360, frameRate: 60 },
-                audio: { echoCancellation: true, noiseSuppression: true }
-            };
+            const constraints = document.getElementById('qualitySelect').value === 'high' 
+                ? { video: { width: 1280, height: 720 }, audio: true } 
+                : { video: { width: 640, height: 360 }, audio: true };
             
             try {
                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
                 localVideo.srcObject = localStream;
+                startTimer();
                 startVoiceDetection(localStream);
-                log("Cámara iniciada en modo: " + quality);
-            } catch (err) { log("Error de cámara: " + err); }
+                log("Cámara iniciada correctamente.");
+            } catch (err) { log("Error: " + err); }
         }
 
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            if (input.value) {
-                socket.emit('chat-message', input.value);
-                document.getElementById('messages').innerHTML += `<div>Tú: ${input.value}</div>`;
-                input.value = '';
-            }
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++; if (seconds === 60) { seconds = 0; minutes++; }
+                if (minutes === 60) { minutes = 0; hours++; }
+                document.getElementById('timer').innerText = (hours<10?"0"+hours:hours)+":"+(minutes<10?"0"+minutes:minutes)+":"+(seconds<10?"0"+seconds:seconds);
+            }, 1000);
         }
-        socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
 
         async function startVoiceDetection(stream) {
             const ctx = new AudioContext();
@@ -117,17 +108,20 @@
             }, 200);
         }
 
-        function toggleAudio() { 
-            const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled; 
-            document.getElementById('btnAudio').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            socket.emit('chat-message', input.value);
+            document.getElementById('messages').innerHTML += `<div>Tú: ${input.value}</div>`;
+            input.value = '';
         }
-        function toggleVideo() { 
-            const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled; 
-            document.getElementById('btnVideo').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
-        }
-
-        function joinRoom() { const r = document.getElementById('roomInput').value; if(r) { socket.emit('join-room', r); log("Conectando..."); startCamera(); } }
-        function endCall() { if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
+        
+        socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
+        socket.on('disconnect', () => { log("Reconectando..."); setTimeout(() => { socket.connect(); socket.emit('join-room', document.getElementById('roomInput').value); }, 5000); });
+        
+        function toggleAudio() { const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled; document.getElementById('btnAudio').style.backgroundColor = t.enabled ? "#333" : "#ff3b30"; }
+        function toggleVideo() { const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled; document.getElementById('btnVideo').style.backgroundColor = t.enabled ? "#333" : "#ff3b30"; }
+        function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); log("Conectado."); startCamera(); }
+        function endCall() { clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
     </script>
 </body>
 </html>
