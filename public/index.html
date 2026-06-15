@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Blindado</title>
+    <title>VideoChat Pro - Maestro Persistente</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
         .status-header { display: flex; justify-content: space-around; background: #1e1e1e; padding: 15px; margin: 10px; border-radius: 12px; }
@@ -56,16 +56,16 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const state = { localStream: null, timerInterval: null, countAudio: 0, countVideo: 0, seconds: 0, minutes: 0, hours: 0 };
+        const state = { 
+            localStream: null, timerInterval: null, 
+            countAudio: parseInt(localStorage.getItem('countAudio')) || 0, 
+            countVideo: parseInt(localStorage.getItem('countVideo')) || 0, 
+            seconds: 0, minutes: 0, hours: 0 
+        };
 
-        // Wrapper de seguridad para autocuración
         async function safeExecute(func) {
-            try {
-                await func();
-            } catch (err) {
-                log("Error capturado en: " + func.name + " -> " + err.message);
-                document.getElementById('statusLocal').style.color = "#ff3b30";
-            }
+            try { await func(); } 
+            catch (err) { log("Error capturado: " + err.message); }
         }
 
         function log(msg) {
@@ -76,34 +76,38 @@
             logBox.scrollTop = logBox.scrollHeight;
         }
 
-        window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
+        window.onload = () => { 
+            let room = localStorage.getItem('lastRoom') || Math.random().toString(36).substring(2, 9);
+            document.getElementById('roomInput').value = room;
+            localStorage.setItem('lastRoom', room);
+            log("Memoria cargada. Contadores: A:" + state.countAudio + " V:" + state.countVideo);
+        };
 
         async function startCamera() {
             state.localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = state.localStream;
             document.getElementById('statusLocal').style.color = "#00ff00";
-            
             state.timerInterval = setInterval(() => {
                 state.seconds++;
                 if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
-                if (state.minutes === 60) { state.minutes = 0; state.hours++; }
                 document.getElementById('timer').innerText = `${state.hours.toString().padStart(2,'0')}:${state.minutes.toString().padStart(2,'0')}:${state.seconds.toString().padStart(2,'0')}`;
             }, 1000);
-            log("Sistema operativo.");
         }
 
         function toggleAudio() {
             if (!state.localStream) return;
             state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled;
             state.countAudio++;
-            log(`Audio alternado. Total: ${state.countAudio}`);
+            localStorage.setItem('countAudio', state.countAudio);
+            log(`Audio: ${state.countAudio}`);
         }
 
         function toggleVideo() {
             if (!state.localStream) return;
             state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled;
             state.countVideo++;
-            log(`Video alternado. Total: ${state.countVideo}`);
+            localStorage.setItem('countVideo', state.countVideo);
+            log(`Video: ${state.countVideo}`);
         }
 
         function sendMessage() {
