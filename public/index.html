@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Resiliente</title>
+    <title>Sistema Optimizado</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -61,7 +61,7 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema listo.</div>
+        <div id="sysLog">Sistema optimizado.</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
@@ -75,6 +75,15 @@
 
         function log(m) { document.getElementById('sysLog').innerText = m; }
         
+        // Monitor de visibilidad para ahorro energético
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden) {
+                log("Modo ahorro activo");
+            } else {
+                log("Sistema reactivado");
+            }
+        });
+
         function confirmConnection() {
             document.getElementById('remoteBox').classList.add('active-signal');
             document.getElementById('remoteStatus').style.display = 'none';
