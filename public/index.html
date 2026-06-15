@@ -24,9 +24,7 @@
     <div class="status-header">
         <div id="timer">00:00:00</div>
         <input type="text" id="roomInput" readonly>
-        
         <div id="statusIndicator" style="padding: 10px; border-radius: 8px; background: #333; color: #00ff00; font-size: 0.8em; font-weight: bold;">AUTO: ESTABLE</div>
-        
         <select id="videoSource"></select>
         <button id="btnConnect" onclick="safeExecute(joinRoom)" style="padding: 10px 20px; border-radius: 8px; border: none; background: #0084ff; color: white; cursor: pointer;">Conectar</button>
     </div>
@@ -57,14 +55,7 @@
     <script>
         localStorage.clear();
         const socket = io();
-        const state = { 
-            localStream: null, 
-            timerInterval: null, 
-            isConnecting: false,
-            countAudio: 0, 
-            countVideo: 0, 
-            seconds: 0, minutes: 0, hours: 0 
-        };
+        const state = { localStream: null, timerInterval: null, isConnecting: false, seconds: 0, minutes: 0, hours: 0 };
 
         function log(msg) {
             const entry = document.createElement('div');
@@ -78,21 +69,15 @@
             if (!state.localStream) return;
             const statusBox = document.getElementById('statusIndicator');
             const connection = navigator.connection;
-            if (connection && connection.saveData) {
-                statusBox.innerText = "AUTO: MODO ESTABLE";
-                statusBox.style.color = "#ffcc00";
-            } else {
-                statusBox.innerText = "AUTO: ESTABLE";
-                statusBox.style.color = "#00ff00";
-            }
+            statusBox.innerText = (connection && connection.saveData) ? "AUTO: MODO ESTABLE" : "AUTO: ESTABLE";
+            statusBox.style.color = (connection && connection.saveData) ? "#ffcc00" : "#00ff00";
         }
         setInterval(monitorConnection, 5000);
 
         async function safeExecute(func) { 
             if (state.isConnecting) return;
             state.isConnecting = true;
-            try { await func(); } 
-            catch (err) { log("Error operativo."); } 
+            try { await func(); } catch (err) { log("Error: Fallo operativo."); } 
             finally { state.isConnecting = false; }
         }
 
@@ -113,7 +98,7 @@
         window.onload = async () => { 
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
             await getDevices();
-            log("Sistema: Misión Útil - Listo.");
+            log("Sistema operativo: Misión Útil.");
         };
 
         async function startCamera() {
@@ -123,6 +108,7 @@
                 audio: true
             });
             document.getElementById('localVideo').srcObject = state.localStream;
+            document.getElementById('statusLocal').style.color = "#00ff00"; // Activación bolita verde
             state.timerInterval = setInterval(() => {
                 state.seconds++; 
                 if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
@@ -130,10 +116,15 @@
             }, 1000);
         }
 
+        async function joinRoom() { 
+            socket.emit('join-room', document.getElementById('roomInput').value); 
+            await startCamera(); 
+            document.getElementById('btnConnect').disabled = true;
+        }
+
         function toggleAudio() { if (state.localStream?.getAudioTracks()[0]) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream?.getVideoTracks()[0]) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
         function sendMessage() { socket.emit('chat-message', document.getElementById('chatInput').value); document.getElementById('chatInput').value = ''; }
-        async function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); await startCamera(); document.getElementById('btnConnect').disabled = true; }
         function endCall() { localStorage.clear(); window.location.reload(); }
         socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
     </script>
