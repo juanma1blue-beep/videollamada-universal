@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Videollamada - Contador Activo</title>
+    <title>Sistema de Videollamada - Seguro</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -50,8 +50,8 @@
             <div class="overlay">
                 <div class="input-group">
                     <div id="dot2" class="status-dot"></div>
-                    <input type="text" id="n2" placeholder="Socio..." style="background:transparent; color:white; border:none; width:80px;">
-                    <button onclick="save(2)" style="background:transparent; color:white; border:none; cursor:pointer;">OK</button>
+                    <input type="text" id="n2" placeholder="Remoto" style="background:transparent; color:white; border:none; width:80px;" disabled>
+                    <button style="background:transparent; color:gray; border:none;" disabled>OK</button>
                 </div>
                 <button class="btn-call" onclick="end()">📞</button>
             </div>
@@ -59,7 +59,7 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema listo.</div>
+        <div id="sysLog">Sistema seguro.</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
@@ -87,7 +87,6 @@
                 document.getElementById('dot1').style.background = '#00ff00';
                 document.getElementById('dot2').style.background = '#00ff00';
                 
-                // Inicio del contador robusto
                 if (!timerInterval) {
                     timerInterval = setInterval(() => {
                         seconds++;
@@ -95,7 +94,7 @@
                     }, 1000);
                 }
                 log("Conectado");
-            } catch(e) { log("Error: Verifica cámara/micro"); }
+            } catch(e) { log("Error: Verifica permisos"); }
         }
 
         function toggleAudio() { if(localStream) localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled; }
@@ -103,7 +102,6 @@
 
         window.onload = () => {
             if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
-            if(sessionStorage.getItem('n2')) document.getElementById('n2').value = sessionStorage.getItem('n2');
         };
     </script>
 </body>
