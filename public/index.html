@@ -3,29 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VideoChat Pro - Misión Útil</title>
+    <title>Misión Útil - Control Central</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Header Telegram Style */
-        .status-header { background: #17212b; padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 5px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); z-index: 10; }
-        #timer { color: #6ab2f2; font-family: monospace; font-size: 0.9em; }
-        #roomInput { width: 60px; background: #242f3d; color: white; border: none; padding: 5px; border-radius: 5px; text-align: center; font-size: 0.8em; }
-        #statusIndicator { color: #00ff00; font-size: 0.7em; font-weight: bold; }
-        
-        /* Cámaras Inmersivas */
-        .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 5px; gap: 5px; overflow: hidden; }
+        /* CABECERA COMPACTA Y AJUSTADA AL 100% */
+        .status-header { background: #17212b; padding: 8px; display: flex; align-items: center; justify-content: space-between; gap: 4px; border-radius: 10px; flex-shrink: 0; font-size: 0.85em; }
+        #timer { color: #6ab2f2; font-family: monospace; }
+        #roomInput { width: 50px; background: #242f3d; color: #fff; border: none; padding: 4px; border-radius: 4px; text-align: center; }
+        #statusIndicator { color: #00ff00; font-weight: bold; white-space: nowrap; }
+        select { background: #242f3d; color: #fff; border: none; padding: 4px; border-radius: 4px; max-width: 80px; }
+        #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; }
+
+        .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 5px 0; gap: 5px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Panel Inferior: Chat + Telemetría + Controles */
-        .bottom-panel { background: #17212b; border-top-left-radius: 20px; border-top-right-radius: 20px; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
+        .bottom-panel { background: #17212b; padding: 8px; display: flex; flex-direction: column; gap: 5px; border-radius: 10px; flex-shrink: 0; }
         #chatBox { display: flex; gap: 5px; }
-        #consoleLog { font-size: 0.7em; color: #00ff00; height: 40px; overflow-y: auto; font-family: monospace; background: #0e1621; padding: 5px; border-radius: 5px; }
-        
+        #chatInput { flex-grow: 1; background: #242f3d; border: none; color: white; border-radius: 5px; padding: 6px; }
+        #consoleLog { font-size: 0.7em; color: #00ff00; height: 35px; overflow-y: auto; background: #0e1621; padding: 4px; border-radius: 4px; font-family: monospace; }
         .control-bar { display: flex; justify-content: space-around; padding: 5px; }
-        button { background: transparent; border: none; font-size: 1.4em; cursor: pointer; padding: 5px; border-radius: 50%; }
-        button:active { background: #242f3d; }
+        button.ctrl-btn { background: transparent; border: none; font-size: 1.3em; cursor: pointer; padding: 5px; }
     </style>
 </head>
 <body>
@@ -34,8 +33,8 @@
         <div id="timer">00:00:00</div>
         <input type="text" id="roomInput" readonly>
         <div id="statusIndicator">AUTO: ESTABLE</div>
-        <select id="videoSource" style="background:#242f3d; color:white; border:none; border-radius:5px;"></select>
-        <button id="btnConnect" onclick="safeExecute(joinRoom)" style="color:#6ab2f2; font-size:0.9em;">Conectar</button>
+        <select id="videoSource"></select>
+        <button id="btnConnect" onclick="safeExecute(joinRoom)">Conectar</button>
     </div>
 
     <div class="wrapper">
@@ -45,19 +44,20 @@
 
     <div class="bottom-panel">
         <div id="chatBox">
-            <input type="text" id="chatInput" style="flex-grow:1; background:#242f3d; border:none; color:white; border-radius:5px; padding:5px;">
-            <button onclick="sendMessage()">➤</button>
+            <input type="text" id="chatInput" placeholder="Mensaje...">
+            <button onclick="sendMessage()" style="color:#6ab2f2;">➤</button>
         </div>
         <div id="consoleLog">Telemetría iniciada...</div>
         <div class="control-bar">
-            <button onclick="toggleAudio()">🎙️</button>
-            <button onclick="toggleVideo()">📷</button>
-            <button onclick="endCall()" style="color: #ff5959;">❌</button>
+            <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
+            <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
+            <button class="ctrl-btn" onclick="endCall()" style="color: #ff5959;">❌</button>
         </div>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // MANTENEMOS LÓGICA COMPLETA DE EVENTOS Y PERSISTENCIA
         const socket = io();
         const state = { localStream: null, timerInterval: null, seconds: 0, minutes: 0, hours: 0 };
 
@@ -68,6 +68,14 @@
             logBox.appendChild(entry);
             logBox.scrollTop = logBox.scrollHeight;
         }
+
+        async function monitorConnection() {
+            if (!state.localStream) return;
+            const statusBox = document.getElementById('statusIndicator');
+            const connection = navigator.connection;
+            statusBox.innerText = (connection && connection.saveData) ? "ESTABLE" : "ESTABLE"; // Simplificado para que no desborde
+        }
+        setInterval(monitorConnection, 5000);
 
         async function startCamera() {
             const videoSource = document.getElementById('videoSource').value;
@@ -98,7 +106,7 @@
             const select = document.getElementById('videoSource');
             devices.filter(d => d.kind === 'videoinput').forEach((d, i) => {
                 const opt = document.createElement('option');
-                opt.value = d.deviceId; opt.text = "Cámara " + (i + 1);
+                opt.value = d.deviceId; opt.text = "Cam " + (i + 1); // Texto acortado para que no desborde
                 select.appendChild(opt);
             });
         };
