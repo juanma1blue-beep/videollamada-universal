@@ -7,12 +7,9 @@
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
-        #roomInput { width: 90px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
-        
-        /* Estilo del botón copiar */
-        .btn-copy { background: #3d4a5d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
-        .btn-copy:active { background: #6ab2f2; }
-
+        #roomInput { width: 80px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
+        .btn-copy { background: #242f3d; color: #00ff00; border: 2px solid #00ff00; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
+        .btn-copy:active { background: #00ff00; color: #000; }
         .name-input { width: 60px; background: #242f3d; color: white; border: none; padding: 3px; border-radius: 4px; font-size: 0.7em; }
         .btn-ok { background: #242f3d; color: white; border: none; padding: 2px 5px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
         #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 0.8em; }
@@ -66,7 +63,7 @@
         </div>
     </div>
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema seguro activo.</div>
+        <div id="consoleLog">Sistema activo.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
@@ -78,46 +75,35 @@
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
         function copyRoomCode() {
-            const code = document.getElementById('roomInput');
-            code.select();
+            const codeInput = document.getElementById('roomInput');
+            codeInput.select();
             document.execCommand('copy');
-            log("Código copiado: " + code.value);
+            log("Código copiado.");
         }
-
         function confirmEnd() {
-            if(confirm("¿Seguro que deseas finalizar la transmisión?")) {
-                endCall();
-            }
+            if(confirm("¿Seguro que deseas finalizar la transmisión?")) endCall();
         }
-        
         function endCall() { 
             clearInterval(state.timerInterval); 
             updateStatus('offline'); 
             window.location.reload(); 
         }
-
         function updateStatus(status) { 
-            const d1 = document.getElementById('statusDot1');
-            const d2 = document.getElementById('statusDot2');
-            d1.className = 'status-dot ' + status;
-            d2.className = 'status-dot ' + status;
+            document.getElementById('statusDot1').className = 'status-dot ' + status;
+            document.getElementById('statusDot2').className = 'status-dot ' + status;
         }
-
         socket.on('disconnect', () => { updateStatus('warning'); log("Conexión inestable."); });
         socket.on('connect', () => { if(state.localStream) updateStatus('active'); });
-
         function saveName(id) {
             const name = document.getElementById('name'+id).value;
             document.getElementById('displayUser'+id).innerText = name;
             sessionStorage.setItem('u'+id, name);
         }
-
         function log(msg) { 
             const el = document.getElementById('consoleLog'); 
             el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; 
             el.scrollTop = el.scrollHeight; 
         }
-
         async function startCamera() {
             state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('localVideo').srcObject = state.localStream;
@@ -129,7 +115,6 @@
             }, 1000);
             log("Cámara operativa.");
         }
-
         async function safeExecute(func) { try { await func(); } catch(e) { log("Error: " + e.message); } }
         async function joinRoom() { 
             const roomCode = document.getElementById('roomInput').value;
@@ -137,10 +122,8 @@
             log("Conectando a: " + roomCode);
             await startCamera(); 
         }
-
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-
         window.onload = () => {
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
             for(let i=1; i<=2; i++) {
