@@ -5,27 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VideoChat Pro - Misión Útil</title>
     <style>
-        /* CSS Universal y Responsive: Maximiza espacio sin romper lógica */
-        body { font-family: -apple-system, sans-serif; background: #121212; color: white; margin: 0; padding: 10px; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        body { font-family: -apple-system, sans-serif; background: #121212; color: white; margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .status-header { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; background: #1e1e1e; padding: 15px; border-radius: 12px; gap: 10px; flex-shrink: 0; }
+        .status-header { display: flex; flex-direction: row; justify-content: space-between; align-items: center; background: #1e1e1e; padding: 10px; border-radius: 12px; gap: 5px; flex-shrink: 0; width: 100%; box-sizing: border-box; }
         
-        .wrapper { display: flex; flex-direction: row; gap: 10px; flex-grow: 1; min-height: 0; width: 100%; justify-content: center; align-items: center; }
-        .video-box { flex: 1; height: 100%; max-width: 48%; background: #000; border-radius: 12px; overflow: hidden; display: flex; align-items: center; position: relative; }
-        video { width: 100%; height: 100%; object-fit: contain; }
+        #timer { font-family: monospace; font-size: 1.1em; color: #00ff00; }
+        #roomInput { width: 60px; text-align: center; background: #333; color: white; border: none; padding: 5px; border-radius: 5px; }
+        #statusIndicator { font-size: 0.7em; font-weight: bold; color: #00ff00; }
         
-        .control-bar { padding: 15px; display: flex; justify-content: center; gap: 20px; background: #1e1e1e; border-radius: 12px; margin-top: 5px; flex-shrink: 0; }
-        button { padding: 12px 20px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        .cam-controls { display: flex; gap: 5px; align-items: center; }
+        select { background: #333; color: white; border: none; padding: 5px; border-radius: 5px; }
+        button#btnConnect { background: #0084ff; color: white; border: none; padding: 8px 12px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+
+        .wrapper { display: flex; flex-direction: row; gap: 5px; flex-grow: 1; margin: 5px 0; min-height: 0; }
+        .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; display: flex; align-items: center; position: relative; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
+        .control-bar { padding: 10px; display: flex; justify-content: center; gap: 15px; background: #1e1e1e; border-radius: 12px; flex-shrink: 0; }
+        .control-bar button { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="status-header">
-        <div id="timer" style="color: #00ff00; font-family: monospace;">00:00:00</div>
-        <input type="text" id="roomInput" readonly style="width: 80px; text-align: center; background: #333; color: white; border: none; padding: 5px;">
-        <div id="statusIndicator" style="font-weight: bold; font-size: 0.8em; color: #00ff00;">AUTO: ESTABLE</div>
-        <select id="videoSource" style="background:#333; color:white; border:none; padding:5px;"></select>
-        <button id="btnConnect" onclick="safeExecute(joinRoom)" style="background:#0084ff; color:white;">Conectar</button>
+        <div id="timer">00:00:00</div>
+        <input type="text" id="roomInput" readonly>
+        <div id="statusIndicator">AUTO: ESTABLE</div>
+        <div class="cam-controls">
+            <select id="videoSource"></select>
+            <button id="btnConnect" onclick="safeExecute(joinRoom)">Conectar</button>
+        </div>
     </div>
 
     <div class="wrapper">
@@ -41,16 +50,18 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // MANTENEMOS TU LÓGICA DE EVENTOS ORIGINAL
+        // MANTENEMOS LÓGICA COMPLETA DE EVENTOS Y PERSISTENCIA
         const socket = io();
         const state = { localStream: null, timerInterval: null, isConnecting: false, seconds: 0, minutes: 0, hours: 0 };
 
-        async function safeExecute(func) { 
-            if (state.isConnecting) return;
-            state.isConnecting = true;
-            try { await func(); } catch (err) { console.error(err); } 
-            finally { state.isConnecting = false; }
+        async function monitorConnection() {
+            if (!state.localStream) return;
+            const statusBox = document.getElementById('statusIndicator');
+            const connection = navigator.connection;
+            statusBox.innerText = (connection && connection.saveData) ? "AUTO: MODO ESTABLE" : "AUTO: ESTABLE";
+            statusBox.style.color = (connection && connection.saveData) ? "#ffcc00" : "#00ff00";
         }
+        setInterval(monitorConnection, 5000);
 
         async function startCamera() {
             const videoSource = document.getElementById('videoSource').value;
@@ -59,7 +70,6 @@
                 audio: true
             });
             document.getElementById('localVideo').srcObject = state.localStream;
-            // Eventos originales intactos
             state.timerInterval = setInterval(() => {
                 state.seconds++; 
                 if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
@@ -67,13 +77,34 @@
             }, 1000);
         }
 
-        // TUS FUNCIONES PERSISTENTES
-        async function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); await startCamera(); document.getElementById('btnConnect').disabled = true; }
+        async function safeExecute(func) { 
+            if (state.isConnecting) return;
+            state.isConnecting = true;
+            try { await func(); } catch (err) { console.error(err); } 
+            finally { state.isConnecting = false; }
+        }
+
+        async function joinRoom() { 
+            socket.emit('join-room', document.getElementById('roomInput').value); 
+            await startCamera(); 
+            document.getElementById('btnConnect').disabled = true;
+        }
+
         function toggleAudio() { if (state.localStream?.getAudioTracks()[0]) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream?.getVideoTracks()[0]) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-        function endCall() { clearInterval(state.timerInterval); window.location.reload(); }
-        
-        window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
+        function endCall() { clearInterval(state.timerInterval); localStorage.clear(); window.location.reload(); }
+
+        window.onload = async () => { 
+            document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoSelect = document.getElementById('videoSource');
+            devices.filter(d => d.kind === 'videoinput').forEach((d, i) => {
+                const opt = document.createElement('option');
+                opt.value = d.deviceId;
+                opt.text = "Cámara " + (i + 1);
+                videoSelect.appendChild(opt);
+            });
+        };
     </script>
 </body>
 </html>
