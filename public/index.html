@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Videollamada Aikido</title>
+    <title>Sistema Purificado</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -61,7 +61,7 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema listo y adaptativo.</div>
+        <div id="sysLog">Sistema purificado.</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
@@ -76,13 +76,18 @@
         function log(m) { document.getElementById('sysLog').innerHTML = m; }
         
         window.onload = () => {
+            // Limpieza al iniciar por si acaso quedó residuo
             sessionStorage.removeItem('temp_stream_lock');
             if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
         };
 
-        document.addEventListener("visibilitychange", () => {
-            log(document.hidden ? "Modo ahorro activo" : "Sistema reactivado");
-        });
+        function end() { 
+            if(confirm("¿Finalizar y purificar sistema?")) {
+                // Purificación de memoria
+                sessionStorage.clear();
+                window.location.reload();
+            }
+        }
 
         function confirmConnection() {
             document.getElementById('remoteBox').classList.add('active-signal');
@@ -106,23 +111,13 @@
 
         function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado"); }
         function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); log("Nombre guardado"); }
-        function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
 
         async function connect() {
             log("Adaptando flujo...");
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: {
-                        width: { ideal: 1280, max: 1920 },
-                        height: { ideal: 720, max: 1080 },
-                        frameRate: { ideal: 30, max: 60 },
-                        resizeMode: "crop-and-scale" 
-                    },
-                    audio: { 
-                        echoCancellation: true, 
-                        noiseSuppression: true,
-                        autoGainControl: true 
-                    } 
+                    video: { width: { ideal: 1280, max: 1920 }, height: { ideal: 720, max: 1080 }, frameRate: { ideal: 30, max: 60 }, resizeMode: "crop-and-scale" },
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
                 });
                 document.getElementById('localVideo').srcObject = localStream;
                 document.getElementById('localBox').classList.add('active-signal');
@@ -134,7 +129,7 @@
                         document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
                     }, 1000);
                 }
-                log("Sesión adaptativa activa");
+                log("Sesión segura");
             } catch(e) { 
                 log("Permiso denegado. <button onclick='connect()' style='background:#ff5959; border:none; color:white; cursor:pointer; padding:2px 5px; border-radius:3px;'>Reintentar</button>"); 
             }
