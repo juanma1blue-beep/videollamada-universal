@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Videollamada - Optimizado</title>
+    <title>Sistema de Videollamada - Contador Activo</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -34,7 +34,7 @@
 
     <div class="wrapper">
         <div class="video-box">
-            <div id="timer" style="position:absolute; top:5px; left:5px; color:#00ff00; font-family:monospace;">00:00:00</div>
+            <div id="timer" style="position:absolute; top:5px; left:5px; color:#00ff00; font-family:monospace; font-weight:bold; z-index:10;">00:00:00</div>
             <video id="localVideo" autoplay playsinline muted></video>
             <div class="overlay">
                 <div class="input-group">
@@ -68,39 +68,43 @@
 
     <script>
         let localStream = null;
+        let timerInterval = null;
+        let seconds = 0;
+
         function log(m) { document.getElementById('sysLog').innerText = m; }
-        
+        function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado"); }
+        function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); log("Nombre guardado"); }
+        function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
+
         async function connect() {
+            log("Conectando...");
             try {
-                // Filtro de cancelación de eco crítico (echoCancellation: true)
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: true, 
                     audio: { echoCancellation: true, noiseSuppression: true } 
                 });
                 document.getElementById('localVideo').srcObject = localStream;
                 document.getElementById('dot1').style.background = '#00ff00';
-                log("Conectado (Audio optimizado)");
-            } catch(e) { log("Error: Verifica permiso de micro"); }
+                document.getElementById('dot2').style.background = '#00ff00';
+                
+                // Inicio del contador robusto
+                if (!timerInterval) {
+                    timerInterval = setInterval(() => {
+                        seconds++;
+                        document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
+                    }, 1000);
+                }
+                log("Conectado");
+            } catch(e) { log("Error: Verifica cámara/micro"); }
         }
 
-        function toggleAudio() { 
-            if(localStream) {
-                const track = localStream.getAudioTracks()[0];
-                track.enabled = !track.enabled;
-                log(track.enabled ? "Micro activo" : "Micro silenciado");
-            }
-        }
-        
-        function toggleVideo() {
-            if(localStream) {
-                localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
-                log("Cámara toggled");
-            }
-        }
+        function toggleAudio() { if(localStream) localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled; }
+        function toggleVideo() { if(localStream) localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled; }
 
-        function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
-        function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); log("Nombre guardado"); }
-        function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado"); }
+        window.onload = () => {
+            if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
+            if(sessionStorage.getItem('n2')) document.getElementById('n2').value = sessionStorage.getItem('n2');
+        };
     </script>
 </body>
 </html>
