@@ -9,7 +9,6 @@ window.onload = () => {
     document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
 };
 
-// Audio y Cámara (Núcleo intacto)
 async function startCamera() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ 
@@ -20,6 +19,17 @@ async function startCamera() {
         localVideo.muted = true;
         startTimer();
     } catch (err) { console.error("Error cámara:", err); }
+}
+
+// Controles independientes
+function toggleAudio() {
+    const track = localStream.getAudioTracks()[0];
+    track.enabled = !track.enabled;
+}
+
+function toggleVideo() {
+    const track = localStream.getVideoTracks()[0];
+    track.enabled = !track.enabled;
 }
 
 function startTimer() {
@@ -34,7 +44,6 @@ function startTimer() {
     }, 1000);
 }
 
-// Monitoreo de red (Semáforo)
 function monitorStats(pc, elementId) {
     setInterval(async () => {
         if (pc && pc.getStats) {
@@ -52,23 +61,13 @@ function monitorStats(pc, elementId) {
     }, 3000);
 }
 
-// Listeners de estado (NUEVO - Sin riesgos)
 socket.on('connect', () => statusMessage.innerText = "Conectado al servidor");
-socket.on('user-joined', () => {
-    statusMessage.innerText = "Usuario conectado";
-    statusMessage.style.color = "#00ff00";
-});
-socket.on('disconnect', () => {
-    statusMessage.innerText = "Desconectado";
-    statusMessage.style.color = "#ff3b30";
-});
+socket.on('user-joined', () => { statusMessage.innerText = "Usuario conectado"; statusMessage.style.color = "#00ff00"; });
+socket.on('disconnect', () => { statusMessage.innerText = "Desconectado"; statusMessage.style.color = "#ff3b30"; });
 
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
-    if (roomId) {
-        socket.emit('join-room', roomId);
-        statusMessage.innerText = "Conectando con la sala...";
-    }
+    if (roomId) { socket.emit('join-room', roomId); statusMessage.innerText = "Conectando..."; }
 }
 
 function endCall() {
