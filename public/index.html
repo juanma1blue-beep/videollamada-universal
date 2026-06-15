@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Blindado</title>
+    <title>VideoChat Pro - Sistema Maestro Blindado</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
         .status-header { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; background: #1e1e1e; padding: 25px; margin: 15px; border-radius: 15px; gap: 30px; }
@@ -104,11 +104,11 @@
         }
 
         window.onload = async () => { 
-            let room = localStorage.getItem('lastRoom') || Math.random().toString(36).substring(2, 9);
+            // Genera ID volátil al arrancar
+            let room = Math.random().toString(36).substring(2, 9);
             document.getElementById('roomInput').value = room;
-            localStorage.setItem('lastRoom', room);
             await getDevices();
-            log("Sistema al 100%. Memoria cargada.");
+            log("Sistema activo. Identidad volátil generada.");
         };
 
         async function startCamera() {
@@ -163,6 +163,8 @@
         function endCall() { 
             clearInterval(state.timerInterval); 
             if(state.localStream) state.localStream.getTracks().forEach(t => t.stop()); 
+            // Borrado seguro para evitar persistencia de hacker
+            localStorage.removeItem('lastRoom');
             window.location.reload(); 
         }
 
