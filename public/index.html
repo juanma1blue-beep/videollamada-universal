@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Misión Útil - Control Central Seguro</title>
+    <title>Misión Útil - Restauración de Sistema</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
         #roomInput { width: 80px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
         .btn-copy { background: #242f3d; color: #00ff00; border: 2px solid #00ff00; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
-        .btn-copy:active { background: #00ff00; color: #000; }
         .name-input { width: 60px; background: #242f3d; color: white; border: none; padding: 3px; border-radius: 4px; font-size: 0.7em; }
         .btn-ok { background: #242f3d; color: white; border: none; padding: 2px 5px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
         #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 0.8em; }
@@ -63,7 +62,7 @@
         </div>
     </div>
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema activo.</div>
+        <div id="consoleLog">Sistema restaurado y conectado.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
@@ -75,8 +74,8 @@
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
         function copyRoomCode() {
-            const codeInput = document.getElementById('roomInput');
-            codeInput.select();
+            const el = document.getElementById('roomInput');
+            el.select();
             document.execCommand('copy');
             log("Código copiado.");
         }
