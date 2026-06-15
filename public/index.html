@@ -12,7 +12,8 @@
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
-        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin: 10px 0; }
+        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin: 10px 0 0 0; }
+        #statusMessage { font-size: 0.9em; color: #888; margin-top: 5px; }
         .end-call { background: #ff3b30; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
@@ -22,6 +23,7 @@
         <br>
         <button class="action-btn" onclick="joinRoom()">Conectar</button>
         <div id="timer">00:00:00</div>
+        <div id="statusMessage">Esperando...</div>
     </div>
 
     <div class="wrapper">
