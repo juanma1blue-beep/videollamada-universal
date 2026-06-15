@@ -8,12 +8,10 @@
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 8px; height: 35px; box-sizing: border-box; }
         
-        #roomInput { width: 80px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
+        #roomInput { width: 90px; background: #242f3d; color: #6ab2f2; border: 1px solid #3d4a5d; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.9em; }
         
-        /* Flechas guía */
         .arrow { color: #228B22; font-size: 1.2em; font-weight: bold; opacity: 0.7; }
         
-        /* Botones Marco Verde Bosque */
         .btn-forest-green { 
             background: #242f3d; 
             color: #228B22; 
@@ -80,7 +78,7 @@
         </div>
     </div>
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema restaurado. Código aleatorio generado.</div>
+        <div id="consoleLog">Sistema activo. Código generado.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
@@ -91,11 +89,17 @@
         const socket = io();
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
+        // Generación directa al cargar
+        function generateCode() {
+            const code = Math.random().toString(36).substring(2, 12);
+            document.getElementById('roomInput').value = code;
+        }
+
         function copyRoomCode() {
             const el = document.getElementById('roomInput');
             el.select();
             document.execCommand('copy');
-            log("Código copiado.");
+            log("Código copiado: " + el.value);
         }
         function confirmEnd() {
             if(confirm("¿Finalizar expedición?")) endCall();
@@ -147,7 +151,7 @@
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
         
         window.onload = () => {
-            document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
+            generateCode(); // Forzamos la ejecución
             for(let i=1; i<=2; i++) {
                 if(sessionStorage.getItem('u'+i)) document.getElementById('displayUser'+i).innerText = sessionStorage.getItem('u'+i);
             }
