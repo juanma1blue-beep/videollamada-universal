@@ -13,7 +13,25 @@ async function startCamera() {
         localVideo.srcObject = localStream;
         localVideo.muted = true;
         startTimer();
+        startVoiceDetection(localStream); // Activamos detector de voz
     } catch (err) { console.error("Error cámara:", err); }
+}
+
+// Detector de voz (Aislado)
+async function startVoiceDetection(stream) {
+    const audioContext = new AudioContext();
+    const source = audioContext.createMediaStreamSource(stream);
+    const analyzer = audioContext.createAnalyser();
+    source.connect(analyzer);
+    const pcmData = new Float32Array(analyzer.fftSize);
+    setInterval(() => {
+        analyzer.getFloatTimeDomainData(pcmData);
+        let sum = 0;
+        for (let i = 0; i < pcmData.length; i++) sum += pcmData[i] * pcmData[i];
+        let amplitude = Math.sqrt(sum / pcmData.length);
+        if (amplitude > 0.05) document.getElementById('localBox').classList.add('talking');
+        else document.getElementById('localBox').classList.remove('talking');
+    }, 200);
 }
 
 function toggleAudio() {
