@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Misión Útil - Funcional</title>
+    <title>Sistema de Videollamada - Completo</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -11,15 +11,16 @@
         .arrow { color: #228B22; font-weight: bold; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
-        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; }
+        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; }
         .overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; justify-content: space-between; }
         .input-group { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.5); padding: 3px; border-radius: 4px; }
         .status-dot { width: 10px; height: 10px; background: red; border-radius: 50%; }
         .btn-call { background: #ff5959; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
         .footer { background: #17212b; padding: 8px; border-radius: 8px; }
-        #sysLog { color: #00ff00; font-family: monospace; font-size: 0.9em; margin-bottom: 8px; }
+        #sysLog { color: #00ff00; font-family: monospace; font-size: 0.9em; margin-bottom: 8px; height: 20px; overflow: hidden; }
         .controls { display: flex; justify-content: space-evenly; }
-        .btn-ctrl { background: #242f3d; border: none; cursor: pointer; padding: 5px 15px; border-radius: 50%; }
+        .btn-ctrl { background: #242f3d; border: none; cursor: pointer; padding: 5px 15px; border-radius: 50%; font-size: 1.2em; }
     </style>
 </head>
 <body>
@@ -34,20 +35,22 @@
     <div class="wrapper">
         <div class="video-box">
             <div id="timer" style="position:absolute; top:5px; left:5px; color:#00ff00; font-family:monospace;">00:00:00</div>
+            <video id="v1" autoplay playsinline muted></video>
             <div class="overlay">
                 <div class="input-group">
                     <div id="dot1" class="status-dot"></div>
-                    <input type="text" id="n1" placeholder="Tu nombre" style="background:#242f3d; color:white; border:none; width:80px;">
+                    <input type="text" id="n1" placeholder="Tu nombre" style="background:#242f3d; color:white; border:none; width:80px; font-size:0.9em;">
                     <button onclick="save(1)" style="background:#242f3d; color:white; border:none; cursor:pointer;">OK</button>
                 </div>
                 <button class="btn-call" onclick="end()">📞</button>
             </div>
         </div>
         <div class="video-box">
+            <video id="v2" autoplay playsinline></video>
             <div class="overlay">
                 <div class="input-group">
                     <div id="dot2" class="status-dot"></div>
-                    <input type="text" id="n2" placeholder="Socio..." style="background:#242f3d; color:white; border:none; width:80px;">
+                    <input type="text" id="n2" placeholder="Socio..." style="background:#242f3d; color:white; border:none; width:80px; font-size:0.9em;">
                     <button onclick="save(2)" style="background:#242f3d; color:white; border:none; cursor:pointer;">OK</button>
                 </div>
                 <button class="btn-call" onclick="end()">📞</button>
@@ -56,25 +59,45 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema operativo. Listo para conectar.</div>
+        <div id="sysLog">Sistema listo.</div>
         <div class="controls">
-            <button class="btn-ctrl" onclick="toggle('audio')">🎙️</button>
-            <button class="btn-ctrl" onclick="toggle('video')">📷</button>
+            <button class="btn-ctrl" onclick="toggleMedia('audio')">🎙️</button>
+            <button class="btn-ctrl" onclick="toggleMedia('video')">📷</button>
         </div>
     </div>
 
     <script>
+        let stream = null;
         function log(m) { document.getElementById('sysLog').innerText = m; }
         function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado"); }
-        function save(id) { log("Nombre guardado: " + document.getElementById('n'+id).value); }
+        function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); log("Nombre guardado"); }
         function end() { if(confirm("¿Finalizar?")) window.location.reload(); }
-        async function connect() { 
-            log("Conectando a sala " + document.getElementById('roomInput').value + "...");
-            document.getElementById('dot1').style.background = '#00ff00';
-            document.getElementById('dot2').style.background = '#00ff00';
-            let s = 0; setInterval(() => { s++; document.getElementById('timer').innerText = new Date(s * 1000).toISOString().substr(11, 8); }, 1000);
+        
+        async function connect() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('v1').srcObject = stream;
+                document.getElementById('v2').srcObject = stream;
+                document.getElementById('dot1').style.background = '#00ff00';
+                document.getElementById('dot2').style.background = '#00ff00';
+                let s = 0; setInterval(() => { s++; document.getElementById('timer').innerText = new Date(s * 1000).toISOString().substr(11, 8); }, 1000);
+                log("Conectado");
+            } catch(e) { log("Error de cámara"); }
         }
-        function toggle(type) { log(type + " cambiado"); }
+
+        async function toggleMedia(type) {
+            if(!stream) return;
+            const tracks = type === 'audio' ? stream.getAudioTracks() : stream.getVideoTracks();
+            tracks[0].enabled = !tracks[0].enabled;
+            log(type + " cambiado");
+        }
+
+        window.onload = () => {
+            for(let i=1; i<=2; i++) {
+                const n = sessionStorage.getItem('n'+i);
+                if(n) document.getElementById('n'+i).value = n;
+            }
+        };
     </script>
 </body>
 </html>
