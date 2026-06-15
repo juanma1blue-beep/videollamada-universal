@@ -7,46 +7,43 @@
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* CABECERA COMPACTA Y AJUSTADA AL 100% */
-        .status-header { background: #17212b; padding: 8px; display: flex; align-items: center; justify-content: space-between; gap: 4px; border-radius: 10px; flex-shrink: 0; font-size: 0.85em; }
-        #timer { color: #6ab2f2; font-family: monospace; }
+        /* CABECERA MINIMALISTA (Ahorro de espacio) */
+        .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; font-size: 0.85em; }
         #roomInput { width: 50px; background: #242f3d; color: #fff; border: none; padding: 4px; border-radius: 4px; text-align: center; }
-        #statusIndicator { color: #00ff00; font-weight: bold; white-space: nowrap; }
-        select { background: #242f3d; color: #fff; border: none; padding: 4px; border-radius: 4px; max-width: 80px; }
+        #statusIndicator { color: #00ff00; font-weight: bold; }
+        select { background: #242f3d; color: #fff; border: none; padding: 4px; border-radius: 4px; max-width: 70px; }
         #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; }
 
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 5px 0; gap: 5px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
+        /* CONTADOR INCRUSTADO (Parte superior izquierda de tu cámara) */
+        #timer { position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; font-size: 1.1em; background: rgba(0,0,0,0.5); padding: 2px 5px; border-radius: 4px; pointer-events: none; }
+        
         .bottom-panel { background: #17212b; padding: 8px; display: flex; flex-direction: column; gap: 5px; border-radius: 10px; flex-shrink: 0; }
-        #chatBox { display: flex; gap: 5px; }
-        #chatInput { flex-grow: 1; background: #242f3d; border: none; color: white; border-radius: 5px; padding: 6px; }
-        #consoleLog { font-size: 0.7em; color: #00ff00; height: 35px; overflow-y: auto; background: #0e1621; padding: 4px; border-radius: 4px; font-family: monospace; }
+        #consoleLog { font-size: 0.7em; color: #00ff00; height: 30px; overflow-y: auto; background: #0e1621; padding: 4px; border-radius: 4px; font-family: monospace; }
         .control-bar { display: flex; justify-content: space-around; padding: 5px; }
-        button.ctrl-btn { background: transparent; border: none; font-size: 1.3em; cursor: pointer; padding: 5px; }
+        button.ctrl-btn { background: transparent; border: none; font-size: 1.3em; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="status-header">
-        <div id="timer">00:00:00</div>
         <input type="text" id="roomInput" readonly>
-        <div id="statusIndicator">AUTO: ESTABLE</div>
+        <div id="statusIndicator">ESTABLE</div>
         <select id="videoSource"></select>
         <button id="btnConnect" onclick="safeExecute(joinRoom)">Conectar</button>
     </div>
 
     <div class="wrapper">
-        <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="video-box">
+            <div id="timer">00:00:00</div> <video id="localVideo" autoplay playsinline muted></video>
+        </div>
         <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
 
     <div class="bottom-panel">
-        <div id="chatBox">
-            <input type="text" id="chatInput" placeholder="Mensaje...">
-            <button onclick="sendMessage()" style="color:#6ab2f2;">➤</button>
-        </div>
         <div id="consoleLog">Telemetría iniciada...</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
@@ -57,7 +54,6 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // MANTENEMOS LÓGICA COMPLETA DE EVENTOS Y PERSISTENCIA
         const socket = io();
         const state = { localStream: null, timerInterval: null, seconds: 0, minutes: 0, hours: 0 };
 
@@ -68,14 +64,6 @@
             logBox.appendChild(entry);
             logBox.scrollTop = logBox.scrollHeight;
         }
-
-        async function monitorConnection() {
-            if (!state.localStream) return;
-            const statusBox = document.getElementById('statusIndicator');
-            const connection = navigator.connection;
-            statusBox.innerText = (connection && connection.saveData) ? "ESTABLE" : "ESTABLE"; // Simplificado para que no desborde
-        }
-        setInterval(monitorConnection, 5000);
 
         async function startCamera() {
             const videoSource = document.getElementById('videoSource').value;
@@ -94,10 +82,8 @@
 
         async function safeExecute(func) { try { await func(); } catch(e) { log("Error: " + e.message); } }
         async function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); await startCamera(); document.getElementById('btnConnect').style.display = 'none'; }
-        
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-        function sendMessage() { socket.emit('chat-message', document.getElementById('chatInput').value); document.getElementById('chatInput').value = ''; }
         function endCall() { clearInterval(state.timerInterval); window.location.reload(); }
 
         window.onload = async () => {
@@ -106,7 +92,7 @@
             const select = document.getElementById('videoSource');
             devices.filter(d => d.kind === 'videoinput').forEach((d, i) => {
                 const opt = document.createElement('option');
-                opt.value = d.deviceId; opt.text = "Cam " + (i + 1); // Texto acortado para que no desborde
+                opt.value = d.deviceId; opt.text = "Cam " + (i + 1);
                 select.appendChild(opt);
             });
         };
