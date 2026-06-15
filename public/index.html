@@ -17,7 +17,6 @@
         #timer { position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; background: rgba(0,0,0,0.6); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; pointer-events: none; }
         .cam-overlay { position: absolute; bottom: 10px; left: 10px; right: 10px; z-index: 100; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; font-size: 0.85em; }
         .cam-info { display: flex; align-items: center; gap: 6px; }
-        /* Estados: Rojo (Desconectado), Verde (Activo), Amarillo (Aviso/Red) */
         .status-dot { width: 10px; height: 10px; background: #ff4444; border-radius: 50%; transition: 0.3s; }
         .status-dot.active { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
         .status-dot.warning { background: #ffcc00; box-shadow: 0 0 5px #ffcc00; }
@@ -73,10 +72,18 @@
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
         function confirmEnd() {
-            if(confirm("¿Seguro que deseas finalizar la llamada?")) endCall();
+            if(confirm("¿Seguro que deseas finalizar la transmisión?")) {
+                endCall();
+            }
         }
         
-        function updateStatus(status) { // 'active', 'warning', 'offline'
+        function endCall() { 
+            clearInterval(state.timerInterval); 
+            updateStatus('offline'); 
+            window.location.reload(); 
+        }
+
+        function updateStatus(status) { 
             const d1 = document.getElementById('statusDot1');
             const d2 = document.getElementById('statusDot2');
             d1.className = 'status-dot ' + status;
@@ -120,10 +127,8 @@
 
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-        function endCall() { clearInterval(state.timerInterval); updateStatus('offline'); window.location.reload(); }
 
         window.onload = () => {
-            // Genera nuevo código cada vez, sin guardarlo en ningún sitio.
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
             for(let i=1; i<=2; i++) {
                 if(sessionStorage.getItem('u'+i)) document.getElementById('displayUser'+i).innerText = sessionStorage.getItem('u'+i);
