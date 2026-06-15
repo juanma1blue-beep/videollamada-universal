@@ -4,19 +4,22 @@
     <meta charset="UTF-8">
     <title>VideoChat Pro</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
+        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; padding-bottom: 80px; }
         .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        input { padding: 10px; border-radius: 8px; border: none; width: 60%; margin-bottom: 10px; }
-        .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; }
+        input { padding: 10px; border-radius: 8px; border: none; width: 60%; }
+        .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; margin-top: 10px; }
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
-        .local-controls { position: absolute; bottom: 10px; right: 10px; z-index: 20; display: flex; gap: 5px; }
-        .local-controls button { background: rgba(0,0,0,0.5); border: none; color: white; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; font-size: 1.2em; transition: 0.3s; }
-        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin: 10px 0 0 0; }
+        
+        /* DOCK INFERIOR (Nueva Mejora) */
+        .control-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e1e1e; padding: 15px 0; display: flex; justify-content: center; gap: 20px; z-index: 100; border-top: 1px solid #333; }
+        .control-bar button { background: #333; border: none; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5em; cursor: pointer; transition: 0.3s; }
+        .control-bar #btnEnd { background: #ff3b30; }
+        
+        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin-top: 10px; }
         #statusMessage { font-size: 0.9em; color: #888; margin-top: 5px; }
-        .end-call { background: #ff3b30; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -27,79 +30,25 @@
         <div id="timer">00:00:00</div>
         <div id="statusMessage">Esperando...</div>
     </div>
+
     <div class="wrapper">
         <div class="video-box">
             <div class="status-indicator" id="statusLocal">●</div>
             <video id="localVideo" autoplay playsinline muted></video>
-            <div class="local-controls">
-                <button id="btnAudio" onclick="toggleAudio()">🎙️</button>
-                <button id="btnVideo" onclick="toggleVideo()">📷</button>
-            </div>
         </div>
         <div class="video-box">
             <div class="status-indicator" id="statusRemote">●</div>
             <video id="remoteVideo" autoplay playsinline></video>
         </div>
     </div>
-    <button class="end-call" onclick="endCall()">Finalizar Videollamada</button>
+
+    <div class="control-bar">
+        <button id="btnAudio" onclick="toggleAudio()">🎙️</button>
+        <button id="btnVideo" onclick="toggleVideo()">📷</button>
+        <button id="btnEnd" onclick="endCall()">❌</button>
+    </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        const localVideo = document.getElementById('localVideo');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const timerDisplay = document.getElementById('timer');
-        const statusMessage = document.getElementById('statusMessage');
-        let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
-
-        window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
-
-        async function startCamera() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: true, 
-                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, latency: 0 } 
-                });
-                localVideo.srcObject = localStream;
-                localVideo.muted = true;
-                startTimer();
-            } catch (err) { console.error("Error cámara:", err); }
-        }
-
-        function toggleAudio() {
-            const track = localStream.getAudioTracks()[0];
-            track.enabled = !track.enabled;
-            document.getElementById('btnAudio').style.backgroundColor = track.enabled ? "rgba(0,0,0,0.5)" : "#ff3b30";
-        }
-
-        function toggleVideo() {
-            const track = localStream.getVideoTracks()[0];
-            track.enabled = !track.enabled;
-            document.getElementById('btnVideo').style.backgroundColor = track.enabled ? "rgba(0,0,0,0.5)" : "#ff3b30";
-        }
-
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                seconds++;
-                if (seconds === 60) { seconds = 0; minutes++; }
-                if (minutes === 60) { minutes = 0; hours++; }
-                timerDisplay.innerText = (hours < 10 ? "0"+hours : hours) + ":" + (minutes < 10 ? "0"+minutes : minutes) + ":" + (seconds < 10 ? "0"+seconds : seconds);
-            }, 1000);
-        }
-
-        socket.on('disconnect', () => {
-            statusMessage.innerText = "Reconectando...";
-            statusMessage.style.color = "#ff9500";
-            setTimeout(() => { socket.connect(); socket.emit('join-room', document.getElementById('roomInput').value); }, 5000);
-        });
-
-        socket.on('connect', () => statusMessage.innerText = "Conectado");
-        socket.on('user-joined', () => { statusMessage.innerText = "Usuario conectado"; statusMessage.style.color = "#00ff00"; });
-
-        function joinRoom() { const roomId = document.getElementById('roomInput').value; if (roomId) socket.emit('join-room', roomId); }
-        function endCall() { clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
-
-        startCamera();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
