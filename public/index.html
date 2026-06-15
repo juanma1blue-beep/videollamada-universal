@@ -90,8 +90,17 @@
             el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; 
             el.scrollTop = el.scrollHeight; 
         }
-        // Mensaje corregido: "¿Deseas finalizar la videollamada?"
-        function confirmEnd() { if(confirm("¿Deseas finalizar la videollamada?")) window.location.reload(); }
+
+        // Lógica corregida: Solo pide confirmación si hay stream activo
+        function confirmEnd() { 
+            if (state.localStream) {
+                if(confirm("¿Deseas finalizar la videollamada?")) {
+                    window.location.reload(); 
+                }
+            } else {
+                log("No hay videollamada activa.");
+            }
+        }
         
         async function startCamera() {
             try {
