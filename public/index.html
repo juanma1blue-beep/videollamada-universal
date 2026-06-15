@@ -2,96 +2,71 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Misión Útil - Control Total</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Misión Útil - Restaurada</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .status-header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
-        
-        #roomInput { width: 85px; background: #242f3d; color: #fff; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
-        .arrow { color: #228B22; font-size: 1em; font-weight: bold; }
-        
-        .btn-forest-green { background: #242f3d; color: #228B22; border: 2px solid #228B22; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
-        
-        .name-input { width: 55px; background: #242f3d; color: white; border: none; padding: 2px; border-radius: 4px; font-size: 0.7em; }
-        .btn-ok { background: #242f3d; color: white; border: none; padding: 2px 4px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
-        
-        /* Efecto Estelar */
-        .star-container { display: flex; align-items: center; gap: 4px; }
-        .star { width: 6px; height: 6px; background: gold; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); animation: assemble 1.5s ease-out forwards; }
-        @keyframes assemble { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        
-        .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
-        .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        #timer { position: absolute; top: 8px; left: 8px; color: #00ff00; background: rgba(0,0,0,0.6); padding: 2px 4px; border-radius: 4px; font-family: monospace; font-size: 0.85em; }
-        .cam-overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; }
-        
-        .status-dot { width: 8px; height: 8px; background: #ff4444; border-radius: 50%; }
-        .btn-hangup { background: #ff5959; border: none; color: white; border-radius: 4px; cursor: pointer; }
+        body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; }
+        .status-header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 4px; }
+        .btn-green { background: #242f3d; color: #228B22; border: 2px solid #228B22; padding: 2px 6px; border-radius: 4px; cursor: pointer; }
+        .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; }
+        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; }
+        .cam-overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 6px; display: flex; align-items: center; gap: 5px; }
+        .star { width: 5px; height: 5px; background: gold; border-radius: 50%; display: inline-block; animation: pop 1s ease-out; }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        .name-txt { font-weight: bold; color: gold; }
     </style>
 </head>
 <body>
     <div class="status-header">
         <input type="text" id="roomInput" readonly>
-        <span class="arrow">➜</span>
-        <button class="btn-forest-green" onclick="copyRoomCode()">📋 Copiar</button>
-        <span class="arrow">➜</span>
-        <button class="btn-forest-green" onclick="safeExecute(joinRoom)">🔗 Conectar</button>
+        <button class="btn-green" onclick="startCamera()">🔗 Conectar</button>
     </div>
     <div class="wrapper">
         <div class="video-box">
-            <div id="timer">00:00:00</div>
             <div class="cam-overlay">
-                <div class="star-container">
-                    <div id="statusDot1" class="status-dot"></div>
-                    <div id="starField1"></div>
-                    <div id="nameDisplay1" style="font-weight:bold; color:gold;"></div>
-                </div>
-                <div>
-                    <input type="text" id="name1" class="name-input" placeholder="Nombre...">
-                    <button class="btn-ok" onclick="saveNameEffect(1)">OK</button>
-                    <button class="btn-hangup" onclick="confirmEnd()">📞</button>
-                </div>
+                <div id="statusDot1" style="width:8px; height:8px; background:#ff4444; border-radius:50%;"></div>
+                <div id="starContainer1"></div>
+                <div id="nameDisplay1" class="name-txt"></div>
+                <input type="text" id="name1" placeholder="Nombre...">
+                <button onclick="applyName(1)">OK</button>
+                <button onclick="confirmEnd()" style="background:#ff5959; border:none; color:white;">📞</button>
             </div>
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
     </div>
-    <script src="/socket.io/socket.io.js"></script>
+
     <script>
         document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
-        const state = { localStream: null, timerInterval: null };
+        let localStream = null;
 
-        function saveNameEffect(id) {
-            const name = document.getElementById('name' + id).value;
-            const field = document.getElementById('starField1');
+        function applyName(id) {
+            const name = document.getElementById('name'+id).value;
+            const container = document.getElementById('starContainer1');
             const display = document.getElementById('nameDisplay1');
             
-            field.innerHTML = '<div class="star"></div><div class="star"></div><div class="star"></div>';
+            // Efecto estrellas
+            container.innerHTML = '<span class="star"></span><span class="star"></span><span class="star"></span>';
             setTimeout(() => {
                 display.innerText = name;
-                // Ciclo: 1 min visible, desaparece
+                // Ocultar tras 1 min, volver a aparecer tras 1 min
                 setInterval(() => {
                     display.style.display = (display.style.display === 'none') ? 'block' : 'none';
                 }, 60000);
-            }, 2000);
+            }, 1000);
         }
 
-        function confirmEnd() { 
-            if (state.localStream && confirm("¿Deseas finalizar la videollamada?")) window.location.reload();
-            else alert("No hay videollamada activa.");
+        function confirmEnd() {
+            if(localStream && confirm("¿Deseas finalizar la videollamada?")) window.location.reload();
+            else if(!localStream) alert("Cámara no activa.");
         }
 
         async function startCamera() {
             try {
-                state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = state.localStream;
+                localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+                document.getElementById('localVideo').srcObject = localStream;
                 document.getElementById('statusDot1').style.background = '#00ff00';
             } catch(e) { console.error(e); }
         }
-
-        async function joinRoom() { await startCamera(); }
-        async function safeExecute(f) { try { await f(); } catch(e) {} }
     </script>
 </body>
 </html>
