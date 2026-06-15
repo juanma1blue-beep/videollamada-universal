@@ -8,9 +8,9 @@
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
         #roomInput { width: 80px; background: #242f3d; color: #6ab2f2; border: none; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; flex-shrink: 0; }
-        #userName { width: 70px; background: #242f3d; color: white; border: none; padding: 4px; border-radius: 4px; font-size: 0.8em; }
-        #btnConfirm { background: #242f3d; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; cursor: pointer; }
-        #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 0.8em; flex-shrink: 0; }
+        .name-input { width: 60px; background: #242f3d; color: white; border: none; padding: 3px; border-radius: 4px; font-size: 0.7em; }
+        .btn-ok { background: #242f3d; color: white; border: none; padding: 2px 5px; border-radius: 4px; font-size: 0.7em; cursor: pointer; }
+        #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 0.8em; }
 
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
@@ -22,8 +22,7 @@
         .cam-info { display: flex; align-items: center; gap: 6px; }
         .status-dot { width: 10px; height: 10px; background: #ff4444; border-radius: 50%; transition: 0.3s; }
         .status-dot.active { background: #00ff00; box-shadow: 0 0 5px #00ff00; }
-        
-        .btn-hangup { background: #ff5959; border: none; color: white; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 1.1em; display: flex; align-items: center; justify-content: center; }
+        .btn-hangup { background: #ff5959; border: none; color: white; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 1.1em; }
 
         .bottom-panel { background: #17212b; padding: 8px; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; flex-shrink: 0; }
         #consoleLog { font-size: 0.7em; color: #00ff00; height: 30px; overflow-y: auto; background: #0e1621; padding: 4px; border-radius: 4px; font-family: monospace; }
@@ -35,8 +34,6 @@
 
     <div class="status-header">
         <input type="text" id="roomInput" readonly>
-        <input type="text" id="userName" placeholder="Usuario...">
-        <button id="btnConfirm" onclick="saveSession()">OK</button>
         <button id="btnConnect" onclick="safeExecute(joinRoom)">Conectar</button>
     </div>
 
@@ -44,14 +41,24 @@
         <div class="video-box">
             <div id="timer">00:00:00</div>
             <div class="cam-overlay">
-                <div class="cam-info"><div id="statusDot1" class="status-dot"></div><span id="displayUser1">Usuario: --</span></div>
+                <div class="cam-info">
+                    <div id="statusDot1" class="status-dot"></div>
+                    <input type="text" id="name1" class="name-input" placeholder="Nombre...">
+                    <button class="btn-ok" onclick="saveName(1)">OK</button>
+                    <span id="displayUser1"></span>
+                </div>
                 <button class="btn-hangup" onclick="endCall()">📞</button>
             </div>
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
         <div class="video-box">
             <div class="cam-overlay">
-                <div class="cam-info"><div id="statusDot2" class="status-dot"></div><span id="displayUser2">Usuario: --</span></div>
+                <div class="cam-info">
+                    <div id="statusDot2" class="status-dot"></div>
+                    <input type="text" id="name2" class="name-input" placeholder="Nombre...">
+                    <button class="btn-ok" onclick="saveName(2)">OK</button>
+                    <span id="displayUser2"></span>
+                </div>
                 <button class="btn-hangup" onclick="endCall()">📞</button>
             </div>
             <video id="remoteVideo" autoplay playsinline></video>
@@ -59,7 +66,7 @@
     </div>
 
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema en espera...</div>
+        <div id="consoleLog">Sistema listo.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
@@ -71,26 +78,22 @@
         const socket = io();
         const state = { localStream: null, timerInterval: null, startTime: 0 };
         
+        function saveName(id) {
+            const name = document.getElementById('name'+id).value;
+            document.getElementById('displayUser'+id).innerText = name;
+            sessionStorage.setItem('u'+id, name);
+            log("Nombre " + id + " guardado.");
+        }
+        
         function updateStatus(active) { 
             const d1 = document.getElementById('statusDot1');
             const d2 = document.getElementById('statusDot2');
             d1.className = active ? 'status-dot active' : 'status-dot';
             d2.className = active ? 'status-dot active' : 'status-dot';
         }
-        
-        function saveSession() {
-            const name = document.getElementById('userName').value;
-            sessionStorage.setItem('u', name);
-            document.getElementById('displayUser1').innerText = "Usuario: " + name;
-            document.getElementById('displayUser2').innerText = "Usuario: " + name;
-        }
-        
-        function log(msg) { 
-            const el = document.getElementById('consoleLog'); 
-            el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; 
-            el.scrollTop = el.scrollHeight; 
-        }
-        
+
+        function log(msg) { const el = document.getElementById('consoleLog'); el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
+
         async function startCamera() {
             state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             document.getElementById('localVideo').srcObject = state.localStream;
@@ -102,20 +105,17 @@
             }, 1000);
             log("Cámara conectada.");
         }
-        
+
         async function safeExecute(func) { try { await func(); } catch(e) { log("Error: " + e.message); } }
         async function joinRoom() { socket.emit('join-room', document.getElementById('roomInput').value); await startCamera(); }
-        
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
         function toggleVideo() { if (state.localStream) state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; }
-        
         function endCall() { clearInterval(state.timerInterval); updateStatus(false); window.location.reload(); }
-        
+
         window.onload = () => {
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
-            if(sessionStorage.getItem('u')) {
-                document.getElementById('displayUser1').innerText = "Usuario: " + sessionStorage.getItem('u');
-                document.getElementById('displayUser2').innerText = "Usuario: " + sessionStorage.getItem('u');
+            for(let i=1; i<=2; i++) {
+                if(sessionStorage.getItem('u'+i)) document.getElementById('displayUser'+i).innerText = sessionStorage.getItem('u'+i);
             }
         };
     </script>
