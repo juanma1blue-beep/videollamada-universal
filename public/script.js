@@ -2,26 +2,22 @@ const socket = io();
 const localVideo = document.getElementById('localVideo');
 const remoteVideo = document.getElementById('remoteVideo');
 const timerDisplay = document.getElementById('timer');
+const statusMessage = document.getElementById('statusMessage');
 let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
 
-// Inicialización instantánea
 window.onload = () => {
     document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
 };
 
+// Audio y Cámara (Núcleo intacto)
 async function startCamera() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({ 
             video: true, 
-            audio: {
-                echoCancellation: { exact: true },
-                noiseSuppression: { exact: true },
-                autoGainControl: { exact: true },
-                latency: 0
-            } 
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, latency: 0 } 
         });
         localVideo.srcObject = localStream;
-        localVideo.muted = true; // Mute local obligatorio
+        localVideo.muted = true;
         startTimer();
     } catch (err) { console.error("Error cámara:", err); }
 }
@@ -38,6 +34,7 @@ function startTimer() {
     }, 1000);
 }
 
+// Monitoreo de red (Semáforo)
 function monitorStats(pc, elementId) {
     setInterval(async () => {
         if (pc && pc.getStats) {
@@ -55,9 +52,23 @@ function monitorStats(pc, elementId) {
     }, 3000);
 }
 
+// Listeners de estado (NUEVO - Sin riesgos)
+socket.on('connect', () => statusMessage.innerText = "Conectado al servidor");
+socket.on('user-joined', () => {
+    statusMessage.innerText = "Usuario conectado";
+    statusMessage.style.color = "#00ff00";
+});
+socket.on('disconnect', () => {
+    statusMessage.innerText = "Desconectado";
+    statusMessage.style.color = "#ff3b30";
+});
+
 function joinRoom() {
     const roomId = document.getElementById('roomInput').value;
-    if (roomId) socket.emit('join-room', roomId);
+    if (roomId) {
+        socket.emit('join-room', roomId);
+        statusMessage.innerText = "Conectando con la sala...";
+    }
 }
 
 function endCall() {
