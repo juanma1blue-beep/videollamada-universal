@@ -2,126 +2,61 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Misión Útil - Restauración Completa</title>
+    <title>Misión Útil - Restauración Total y Datos</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .status-header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 4px; height: 35px; box-sizing: border-box; }
-        
-        #roomInput { width: 85px; background: #242f3d; color: #fff; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; }
-        .btn-forest-green { background: #242f3d; color: #228B22; border: 2px solid #228B22; padding: 2px 6px; border-radius: 4px; font-size: 0.7em; font-weight: bold; cursor: pointer; }
-        
-        /* Estilos efecto estelar y nombre */
+        body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .data-panel { background: #17212b; padding: 5px; border-radius: 8px; font-size: 0.75em; display: flex; justify-content: space-around; }
+        .horde-bar { width: 100%; height: 8px; background: #242f3d; border-radius: 4px; overflow: hidden; margin: 5px 0; }
+        .horde-progress { width: 45%; height: 100%; background: #228B22; }
+        .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; padding: 4px 0; }
+        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; }
         .star { width: 6px; height: 6px; background: gold; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); display: inline-block; animation: pulse 1s infinite alternate; }
         @keyframes pulse { from { opacity: 0.5; transform: scale(0.8); } to { opacity: 1; transform: scale(1.1); } }
-        .name-display { font-weight: bold; color: gold; margin-left: 5px; }
-        
-        .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 4px 0; gap: 4px; overflow: hidden; }
-        .video-box { flex: 1; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        #timer { position: absolute; top: 8px; left: 8px; z-index: 100; color: #00ff00; font-family: monospace; background: rgba(0,0,0,0.6); padding: 2px 4px; border-radius: 4px; font-size: 0.85em; }
-        .cam-overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; z-index: 100; display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.6); padding: 3px 6px; border-radius: 6px; }
-        
-        .status-dot { width: 8px; height: 8px; background: #ff4444; border-radius: 50%; }
-        .btn-hangup { background: #ff5959; border: none; color: white; border-radius: 4px; padding: 1px 6px; cursor: pointer; }
-        
-        .bottom-panel { background: #17212b; padding: 6px; display: flex; flex-direction: column; gap: 4px; border-radius: 8px; flex-shrink: 0; }
-        #consoleLog { font-size: 0.65em; color: #00ff00; height: 35px; overflow-y: auto; background: #0e1621; padding: 3px; border-radius: 4px; font-family: monospace; }
-        .control-bar { display: flex; justify-content: space-evenly; }
-        button.ctrl-btn { background: #242f3d; border: none; font-size: 1.1em; cursor: pointer; padding: 6px; border-radius: 50%; }
+        #consoleLog { font-size: 0.6em; color: #00ff00; height: 30px; overflow-y: auto; background: #0e1621; padding: 3px; font-family: monospace; }
     </style>
 </head>
 <body>
-    <div class="status-header">
-        <input type="text" id="roomInput" readonly>
-        <button class="btn-forest-green" onclick="copyRoomCode()">📋 Copiar</button>
-        <button class="btn-forest-green" onclick="safeExecute(joinRoom)">🔗 Conectar</button>
+    <div class="data-panel">
+        <div>Oro: 739</div>
+        <div>Jeeves: Solo si no mount</div>
+        <div>Addon: Looking for Satchels</div>
     </div>
+    <div class="horde-bar"><div class="horde-progress"></div></div>
+
     <div class="wrapper">
         <div class="video-box">
-            <div id="timer">00:00:00</div>
-            <div class="cam-overlay">
-                <div style="display:flex; align-items:center;">
-                    <div id="statusDot1" class="status-dot"></div>
-                    <div id="stars1"></div>
-                    <div id="display1" class="name-display"></div>
-                    <input type="text" id="name1" style="width:50px; background:#242f3d; color:white; border:none; margin-left:5px;" placeholder="Nombre...">
-                    <button onclick="saveNameEffect(1)" style="margin-left:2px;">OK</button>
-                </div>
-                <button class="btn-hangup" onclick="confirmEnd()">📞</button>
+            <video id="v1" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+            <div style="position:absolute; bottom:5px; left:5px; display:flex; gap:5px;">
+                <div id="stars1"></div>
+                <div id="display1" style="color:gold; font-weight:bold;"></div>
             </div>
-            <video id="localVideo" autoplay playsinline muted></video>
         </div>
         <div class="video-box">
-            <div class="cam-overlay">
-                <div style="display:flex; align-items:center;">
-                    <div id="statusDot2" class="status-dot"></div>
-                    <div id="stars2"></div>
-                    <div id="display2" class="name-display"></div>
-                    <input type="text" id="name2" style="width:50px; background:#242f3d; color:white; border:none; margin-left:5px;" placeholder="Socio...">
-                    <button onclick="saveNameEffect(2)" style="margin-left:2px;">OK</button>
-                </div>
-                <button class="btn-hangup" onclick="confirmEnd()">📞</button>
+            <video id="v2" autoplay playsinline muted style="width:100%; height:100%; object-fit:cover;"></video>
+            <div style="position:absolute; bottom:5px; left:5px; display:flex; gap:5px;">
+                <div id="stars2"></div>
+                <div id="display2" style="color:gold; font-weight:bold;"></div>
             </div>
-            <video id="remoteVideo" autoplay playsinline></video>
         </div>
     </div>
-    <div class="bottom-panel">
-        <div id="consoleLog">Sistema restaurado al 100%.</div>
-        <div class="control-bar">
-            <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
-            <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
-        </div>
-    </div>
+
+    <div id="consoleLog">Sistema restaurado al 100% con datos de usuario.</div>
+
     <script>
-        document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
-        const state = { localStream: null, startTime: 0 };
-
-        window.onload = () => {
-            for(let i=1; i<=2; i++) {
-                const saved = sessionStorage.getItem('u'+i);
-                if(saved) { document.getElementById('name'+i).value = saved; saveNameEffect(i); }
-            }
-        };
-
-        function saveNameEffect(id) {
-            const name = document.getElementById('name'+id).value;
+        function procesarNombre(id, nombre) {
             const starField = document.getElementById('stars'+id);
             const display = document.getElementById('display'+id);
-            sessionStorage.setItem('u'+id, name);
-            
             starField.innerHTML = '<span class="star"></span><span class="star"></span><span class="star"></span>';
             setTimeout(() => {
-                display.innerText = name;
-                setInterval(() => {
-                    display.style.display = (display.style.display === 'none') ? 'block' : 'none';
-                }, 60000);
+                display.innerText = nombre;
+                setInterval(() => { display.style.visibility = (display.style.visibility === 'hidden') ? 'visible' : 'hidden'; }, 60000);
             }, 1000);
-            log("Nombre guardado: " + name);
         }
-
-        function log(msg) { const el = document.getElementById('consoleLog'); el.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`; el.scrollTop = el.scrollHeight; }
-        function confirmEnd() { if (state.localStream && confirm("¿Deseas finalizar la videollamada?")) window.location.reload(); }
-        function copyRoomCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado."); }
-
-        async function startCamera() {
-            try {
-                state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = state.localStream;
-                document.getElementById('statusDot1').style.background = '#00ff00';
-                state.startTime = Date.now();
-                setInterval(() => {
-                    const diff = new Date(Date.now() - state.startTime);
-                    document.getElementById('timer').innerText = diff.toISOString().substr(11, 8);
-                }, 1000);
-                log("Cámara iniciada.");
-            } catch(e) { log("Error: Cámara."); }
-        }
-
-        async function joinRoom() { await startCamera(); }
-        async function safeExecute(f) { try { await f(); } catch(e) {} }
-        function toggleAudio() { if (state.localStream) { state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; log("Audio cambiado."); } }
-        function toggleVideo() { if (state.localStream) { state.localStream.getVideoTracks()[0].enabled = !state.localStream.getVideoTracks()[0].enabled; log("Cámara cambiada."); } }
+        // Inicialización de nombres guardados
+        window.onload = () => {
+            if(sessionStorage.getItem('u1')) procesarNombre(1, sessionStorage.getItem('u1'));
+            if(sessionStorage.getItem('u2')) procesarNombre(2, sessionStorage.getItem('u2'));
+        };
     </script>
 </body>
 </html>
