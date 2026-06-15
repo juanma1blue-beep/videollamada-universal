@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Maestro Verificado</title>
+    <title>VideoChat Pro - Sistema Maestro Profesional</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
         
@@ -12,10 +12,8 @@
             background: #1e1e1e; padding: 25px; margin: 15px; border-radius: 15px; gap: 30px; 
         }
         
-        /* Contador con espacio propio */
         #timer { font-family: monospace; font-size: 1.8em; color: #00ff00; min-width: 120px; font-weight: bold; }
         
-        /* Input y Select con margen de seguridad */
         #roomInput { padding: 10px; border-radius: 8px; border: none; background: #333; color: white; text-align: center; }
         select { padding: 10px; border-radius: 8px; border: none; background: #333; color: white; cursor: pointer; }
         
@@ -77,9 +75,16 @@
         async function getDevices() {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoSelect = document.getElementById('videoSource');
+            videoSelect.innerHTML = '<option value="">Selecciona Cámara...</option>';
+            let camCount = 1;
             devices.filter(d => d.kind === 'videoinput').forEach(d => {
                 const opt = document.createElement('option');
-                opt.value = d.deviceId; opt.text = d.label || 'Cámara';
+                opt.value = d.deviceId;
+                // Etiquetado inteligente
+                const label = d.label.toLowerCase();
+                if (label.includes('back')) opt.text = "Cámara Trasera";
+                else if (label.includes('front')) opt.text = "Cámara Selfie";
+                else opt.text = "Cámara " + camCount++;
                 videoSelect.appendChild(opt);
             });
         }
