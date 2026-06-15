@@ -14,9 +14,9 @@
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
         
-        /* Chat Estilo Limpio */
-        #chatBox { width: 100%; max-width: 350px; margin: 20px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
-        #messages { height: 100px; overflow-y: auto; font-size: 0.9em; margin-bottom: 10px; color: #ccc; }
+        #chatBox, #logBox { width: 100%; max-width: 350px; margin: 10px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
+        #messages, #consoleLog { height: 80px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
+        #consoleLog { color: #00ff00; font-family: monospace; }
         
         .control-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e1e1e; padding: 15px 0; display: flex; justify-content: center; gap: 20px; z-index: 100; border-top: 1px solid #333; }
         .control-bar button { background: #333; border: none; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5em; cursor: pointer; transition: 0.3s; }
@@ -48,7 +48,12 @@
     <div id="chatBox">
         <div id="messages"></div>
         <input type="text" id="chatInput" placeholder="Mensaje..." style="width: 75%;">
-        <button onclick="sendMessage()" style="padding: 5px; border-radius: 5px; cursor: pointer;">➤</button>
+        <button onclick="sendMessage()" style="padding: 5px; cursor: pointer;">➤</button>
+    </div>
+
+    <div id="logBox">
+        <strong>Consola de Telemetría:</strong>
+        <div id="consoleLog"></div>
     </div>
 
     <div class="control-bar">
@@ -63,7 +68,14 @@
         const localVideo = document.getElementById('localVideo');
         const timerDisplay = document.getElementById('timer');
         const statusMessage = document.getElementById('statusMessage');
+        const consoleLog = document.getElementById('consoleLog');
         let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
+
+        function log(msg) {
+            const time = new Date().toLocaleTimeString();
+            consoleLog.innerHTML += `<div>[${time}] ${msg}</div>`;
+            document.getElementById('consoleLog').scrollTop = consoleLog.scrollHeight;
+        }
 
         window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
 
@@ -73,10 +85,10 @@
                 localVideo.srcObject = localStream;
                 startTimer();
                 startVoiceDetection(localStream);
-            } catch (err) { console.error("Error cámara:", err); }
+                log("Cámara y Micrófono inicializados.");
+            } catch (err) { log("Error: No se pudo acceder a la cámara."); }
         }
 
-        // Chat Logic
         function sendMessage() {
             const input = document.getElementById('chatInput');
             if (input.value) {
@@ -92,7 +104,6 @@
             m.scrollTop = m.scrollHeight;
         }
 
-        // Voice Detector & Toggles
         async function startVoiceDetection(stream) {
             const ctx = new AudioContext();
             const source = ctx.createMediaStreamSource(stream);
@@ -111,10 +122,12 @@
         function toggleAudio() { 
             const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled; 
             document.getElementById('btnAudio').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
+            log("Audio: " + (t.enabled ? "Activado" : "Silenciado"));
         }
         function toggleVideo() { 
             const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled; 
             document.getElementById('btnVideo').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
+            log("Video: " + (t.enabled ? "Activado" : "Apagado"));
         }
 
         function startTimer() {
@@ -125,11 +138,16 @@
             }, 1000);
         }
 
-        socket.on('disconnect', () => { statusMessage.innerText = "Reconectando..."; setTimeout(() => { socket.connect(); socket.emit('join-room', document.getElementById('roomInput').value); }, 5000); });
-        socket.on('connect', () => statusMessage.innerText = "Conectado");
-        socket.on('user-joined', () => { statusMessage.innerText = "Usuario conectado"; });
-        function joinRoom() { const r = document.getElementById('roomInput').value; if(r) socket.emit('join-room', r); }
-        function endCall() { clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
+        socket.on('disconnect', () => { 
+            log("Conexión perdida. Intentando reconectar...");
+            statusMessage.innerText = "Reconectando..."; 
+            setTimeout(() => { socket.connect(); socket.emit('join-room', document.getElementById('roomInput').value); }, 5000); 
+        });
+        socket.on('connect', () => { log("Conectado al servidor."); statusMessage.innerText = "Conectado"; });
+        socket.on('user-joined', () => { log("Usuario remoto unido."); statusMessage.innerText = "Usuario conectado"; });
+
+        function joinRoom() { const r = document.getElementById('roomInput').value; if(r) { socket.emit('join-room', r); log("Conectando a sala: " + r); } }
+        function endCall() { log("Llamada finalizada."); clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
 
         startCamera();
     </script>
