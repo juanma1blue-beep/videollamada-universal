@@ -9,15 +9,14 @@
         input { padding: 10px; border-radius: 8px; border: none; width: 60%; }
         .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; margin-top: 10px; }
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
-        .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
+        .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; transition: 0.3s; }
+        /* Efecto de hablar */
+        .talking { border: 3px solid #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.4); }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; text-shadow: 0 0 4px rgba(0,0,0,0.8); }
-        
-        /* DOCK INFERIOR (Nueva Mejora) */
         .control-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e1e1e; padding: 15px 0; display: flex; justify-content: center; gap: 20px; z-index: 100; border-top: 1px solid #333; }
         .control-bar button { background: #333; border: none; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5em; cursor: pointer; transition: 0.3s; }
         .control-bar #btnEnd { background: #ff3b30; }
-        
         #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin-top: 10px; }
         #statusMessage { font-size: 0.9em; color: #888; margin-top: 5px; }
     </style>
@@ -32,11 +31,11 @@
     </div>
 
     <div class="wrapper">
-        <div class="video-box">
+        <div class="video-box" id="localBox">
             <div class="status-indicator" id="statusLocal">●</div>
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
-        <div class="video-box">
+        <div class="video-box" id="remoteBox">
             <div class="status-indicator" id="statusRemote">●</div>
             <video id="remoteVideo" autoplay playsinline></video>
         </div>
