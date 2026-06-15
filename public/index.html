@@ -7,19 +7,21 @@
     <style>
         body { font-family: -apple-system, sans-serif; background: #0e1621; color: white; margin: 0; padding: 5px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .status-header { background: #17212b; padding: 8px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; gap: 8px; }
+        /* CABECERA: Bloqueada para que no se mueva nada */
+        .status-header { background: #17212b; padding: 6px 8px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; flex-shrink: 0; gap: 4px; overflow: hidden; height: 35px; }
         
-        /* Código aleatorio: Ajustado para verse completo y claro */
-        #roomInput { flex-grow: 1; max-width: 120px; background: #242f3d; color: #6ab2f2; border: none; padding: 6px; border-radius: 5px; text-align: center; font-weight: bold; font-family: monospace; }
+        #roomInput { width: 75px; background: #242f3d; color: #6ab2f2; border: none; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.8em; flex-shrink: 0; }
+        #statusIndicator { color: #00ff00; font-size: 0.65em; font-weight: bold; flex-shrink: 0; }
+        select { background: #242f3d; color: #fff; border: none; padding: 4px; border-radius: 4px; font-size: 0.7em; max-width: 60px; flex-shrink: 0; }
         
-        #statusIndicator { color: #00ff00; font-size: 0.7em; font-weight: bold; white-space: nowrap; }
-        select { background: #242f3d; color: #fff; border: none; padding: 6px; border-radius: 5px; font-size: 0.8em; max-width: 80px; }
-        #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 0.9em; }
+        /* El botón "Conectar" está protegido aquí */
+        #btnConnect { color: #6ab2f2; background: none; border: none; font-weight: bold; cursor: pointer; font-size: 0.8em; padding: 4px; flex-shrink: 0; white-space: nowrap; }
 
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; padding: 5px 0; gap: 5px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 10px; overflow: hidden; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
+        /* Contador integrado */
         #timer { position: absolute; top: 10px; left: 10px; z-index: 100; color: #00ff00; font-family: monospace; font-size: 1.1em; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 4px; pointer-events: none; }
         
         .bottom-panel { background: #17212b; padding: 8px; display: flex; flex-direction: column; gap: 5px; border-radius: 10px; flex-shrink: 0; }
@@ -56,6 +58,7 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        // MANTENEMOS LÓGICA DE EVENTOS ORIGINAL
         const socket = io();
         const state = { localStream: null, timerInterval: null, seconds: 0, minutes: 0, hours: 0 };
 
@@ -94,9 +97,7 @@
         function endCall() { clearInterval(state.timerInterval); window.location.reload(); }
 
         window.onload = async () => {
-            // Generación de código aleatorio de 10 caracteres
             document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
-            
             const devices = await navigator.mediaDevices.enumerateDevices();
             const select = document.getElementById('videoSource');
             devices.filter(d => d.kind === 'videoinput').forEach((d, i) => {
