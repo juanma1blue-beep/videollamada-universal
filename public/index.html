@@ -9,7 +9,6 @@
         .status-header { background: #17212b; padding: 6px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; gap: 8px; height: 35px; box-sizing: border-box; }
         
         #roomInput { width: 90px; background: #242f3d; color: #fff; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-family: monospace; font-size: 0.9em; }
-        
         .arrow { color: #228B22; font-size: 1.2em; font-weight: bold; }
         
         .btn-forest-green { 
@@ -40,7 +39,7 @@
 </head>
 <body>
     <div class="status-header">
-        <input type="text" id="roomInput" value="Cargando..." readonly>
+        <input type="text" id="roomInput" readonly>
         <span class="arrow">➜</span>
         <button class="btn-forest-green" onclick="copyRoomCode()">📋 Copiar</button>
         <span class="arrow">➜</span>
@@ -72,7 +71,7 @@
         </div>
     </div>
     <div class="bottom-panel">
-        <div id="consoleLog">Sistema V2.0 cargado.</div>
+        <div id="consoleLog">Sistema restaurado y sincronizado.</div>
         <div class="control-bar">
             <button class="ctrl-btn" onclick="toggleAudio()">🎙️</button>
             <button class="ctrl-btn" onclick="toggleVideo()">📷</button>
@@ -80,9 +79,8 @@
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        // Forzamos el código nada más abrir
-        const generatedCode = Math.random().toString(36).substring(2, 12);
-        document.getElementById('roomInput').value = generatedCode;
+        // Generación inmediata
+        document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 12);
 
         const socket = io();
         const state = { localStream: null, timerInterval: null, startTime: 0 };
@@ -91,7 +89,7 @@
             const el = document.getElementById('roomInput');
             el.select();
             document.execCommand('copy');
-            log("Código copiado: " + el.value);
+            log("Código copiado al portapapeles.");
         }
         function log(msg) { 
             const el = document.getElementById('consoleLog'); 
@@ -99,6 +97,7 @@
             el.scrollTop = el.scrollHeight; 
         }
         function confirmEnd() { if(confirm("¿Finalizar expedición?")) window.location.reload(); }
+        
         async function startCamera() {
             try {
                 state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -109,12 +108,12 @@
                     const diff = new Date(Date.now() - state.startTime);
                     document.getElementById('timer').innerText = diff.toISOString().substr(11, 8);
                 }, 1000);
-            } catch(err) { log("Error cámara: " + err.message); }
+            } catch(err) { log("Error: " + err.message); }
         }
+        
         async function safeExecute(func) { try { await func(); } catch(e) { log("Error: " + e.message); } }
         async function joinRoom() { 
-            const roomCode = document.getElementById('roomInput').value;
-            socket.emit('join-room', roomCode); 
+            socket.emit('join-room', document.getElementById('roomInput').value); 
             await startCamera(); 
         }
         function toggleAudio() { if (state.localStream) state.localStream.getAudioTracks()[0].enabled = !state.localStream.getAudioTracks()[0].enabled; }
@@ -122,7 +121,6 @@
         function saveName(id) {
             const name = document.getElementById('name'+id).value;
             sessionStorage.setItem('u'+id, name);
-            log("Nombre guardado: " + name);
         }
     </script>
 </body>
