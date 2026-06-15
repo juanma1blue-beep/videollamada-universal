@@ -2,59 +2,56 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Maestro</title>
+    <title>VideoChat Pro - Sistema Integrado</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; padding-bottom: 160px; }
-        .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
-        input, select { padding: 10px; border-radius: 8px; border: none; width: 60%; margin-bottom: 10px; }
-        .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; }
+        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
+        .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin: 10px; }
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
-        .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; transition: 0.3s; }
-        .talking { border: 3px solid #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.4); }
-        video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        /* Las bolitas de estado */
-        .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; color: #ff3b30; }
         
+        /* Contenedor de vídeo y bolitas visibles */
+        .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
+        video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        
+        /* Bolitas de estado - Visibilidad blindada */
+        .status-indicator { 
+            position: absolute; bottom: 15px; left: 15px; font-size: 2em; 
+            z-index: 100; color: #ff3b30; text-shadow: 0 0 5px #000; 
+        }
+
         #chatBox, #logBox { width: 100%; max-width: 350px; margin: 10px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
         #messages, #consoleLog { height: 80px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
         #consoleLog { color: #00ff00; font-family: monospace; }
-        .control-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #1e1e1e; padding: 15px 0; display: flex; justify-content: center; gap: 20px; z-index: 100; border-top: 1px solid #333; }
-        .control-bar button { background: #333; border: none; color: white; border-radius: 50%; width: 50px; height: 50px; font-size: 1.5em; cursor: pointer; }
-        .control-bar #btnEnd { background: #ff3b30; }
-        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin-top: 10px; }
+
+        .control-bar { position: fixed; bottom: 0; width: 100%; background: #1e1e1e; padding: 15px 0; display: flex; justify-content: center; gap: 20px; z-index: 200; border-top: 1px solid #333; }
+        .control-bar button { width: 50px; height: 50px; border-radius: 50%; border: none; background: #333; color: white; font-size: 1.5em; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="setup-box">
-        <input type="text" id="roomInput" placeholder="Código de sala">
-        <select id="qualitySelect">
-            <option value="low">Modo Expedición (Fluidez)</option>
-            <option value="high">Modo Exposición (Calidad)</option>
-        </select>
-        <br>
-        <button class="action-btn" onclick="joinRoom()">Conectar</button>
+        <input type="text" id="roomInput">
+        <button onclick="joinRoom()">Conectar</button>
         <div id="timer">00:00:00</div>
     </div>
 
     <div class="wrapper">
         <div class="video-box" id="localBox">
-            <div class="status-indicator" id="statusLocal">●</div>
+            <span class="status-indicator" id="statusLocal">●</span>
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
         <div class="video-box" id="remoteBox">
-            <div class="status-indicator" id="statusRemote">●</div>
+            <span class="status-indicator" id="statusRemote">●</span>
             <video id="remoteVideo" autoplay playsinline></video>
         </div>
     </div>
 
     <div id="chatBox">
         <div id="messages"></div>
-        <input type="text" id="chatInput" placeholder="Mensaje..." style="width: 70%;">
+        <input type="text" id="chatInput">
         <button onclick="sendMessage()">➤</button>
     </div>
 
     <div id="logBox">
-        <strong>Consola (Telemetría):</strong>
+        <strong>Telemetría:</strong>
         <div id="consoleLog"></div>
     </div>
 
@@ -67,27 +64,25 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let localStream, timerInterval, countAudio = 0, countVideo = 0;
+        let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
+        let countAudio = 0, countVideo = 0;
 
         function log(msg) {
             consoleLog.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
             consoleLog.scrollTop = consoleLog.scrollHeight;
         }
 
-        // Función para cambiar el estado visual de la "bolita"
-        function setStatusColor(color) {
-            document.getElementById('statusLocal').style.color = color;
-        }
-
-        window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
+        window.onload = () => { 
+            document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
+            document.getElementById('statusLocal').style.color = "#ff3b30"; // Bolita en rojo al inicio
+        };
 
         async function startCamera() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                document.getElementById('localVideo').srcObject = localStream;
-                setStatusColor("#00ff00"); // Verde: Todo OK
-                log("Sistema iniciado. Estado: Estable.");
-            } catch (err) { setStatusColor("#ff3b30"); log("Error: " + err); }
+            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('statusLocal').style.color = "#00ff00"; // Bolita verde al conectar
+            startTimer();
+            log("Cámara y Micro activos.");
         }
 
         function toggleAudio() {
@@ -104,24 +99,29 @@
             log("Cámara (Cambios: " + countVideo + ")");
         }
 
-        // Simulador de salud de red (Lógica autónoma)
-        socket.on('disconnect', () => {
-            setStatusColor("#ff3b30"); // Rojo al desconectar
-            log("Conexión perdida. Intentando reconectar...");
-        });
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                seconds++; if (seconds === 60) { seconds = 0; minutes++; }
+                if (minutes === 60) { minutes = 0; hours++; }
+                document.getElementById('timer').innerText = (hours<10?"0"+hours:hours)+":"+(minutes<10?"0"+minutes:minutes)+":"+(seconds<10?"0"+seconds:seconds);
+            }, 1000);
+        }
 
-        socket.on('connect', () => {
-            setStatusColor("#00ff00"); // Verde al conectar
-            log("Conectado al servidor.");
-        });
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            socket.emit('chat-message', input.value);
+            document.getElementById('messages').innerHTML += `<div>Tú: ${input.value}</div>`;
+            input.value = '';
+        }
 
         function joinRoom() { 
-            const room = document.getElementById('roomInput').value;
-            socket.emit('join-room', room);
-            log("Conectado a sala: " + room);
+            socket.emit('join-room', document.getElementById('roomInput').value); 
             startCamera(); 
         }
-        function endCall() { window.location.reload(); }
+
+        function endCall() { clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
+        
+        socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
     </script>
 </body>
 </html>
