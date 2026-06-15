@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Blindado - Versión 100%</title>
+    <title>Sistema de Comunicación</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -30,7 +30,7 @@
         <input type="text" id="roomInput" value="krhhe17o9r" readonly style="cursor:not-allowed;">
         <button class="btn-header" onclick="toggleEdit()">✏️</button>
         <button class="btn-header" onclick="copyCode()">📋</button>
-        <button class="btn-header" onclick="connect()">🔗</button>
+        <button class="btn-header" onclick="init()">🔗</button>
     </div>
 
     <div class="wrapper">
@@ -43,68 +43,67 @@
                     <input type="text" id="n1" placeholder="Tu nombre" style="background:transparent; color:white; border:none; width:80px;">
                     <button onclick="save(1)" style="background:transparent; color:white; border:none; cursor:pointer;">OK</button>
                 </div>
-                <button class="btn-call" onclick="end()">📞</button>
+                <button class="btn-call" onclick="terminate()">📞</button>
             </div>
         </div>
         <div class="video-box" id="remoteBox">
-            <div class="placeholder-text" id="remoteStatus">Esperando señal remota...</div>
-            <video id="remoteVideo" autoplay playsinline onplay="confirmConnection()" onpause="handleLoss()"></video>
+            <div class="placeholder-text" id="remoteStatus">Esperando señal...</div>
+            <video id="remoteVideo" autoplay playsinline onplay="updateStatus()" onpause="handleDegradation()"></video>
             <div class="overlay">
                 <div class="input-group">
                     <div id="dot2" class="status-dot"></div>
                     <input type="text" id="n2" placeholder="Remoto" style="background:transparent; color:white; border:none; width:80px;" disabled>
                     <button style="background:transparent; color:gray; border:none;" disabled>OK</button>
                 </div>
-                <button class="btn-call" onclick="end()">📞</button>
+                <button class="btn-call" onclick="terminate()">📞</button>
             </div>
         </div>
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema sellado.</div>
+        <div id="sysLog">Sistema Operativo</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
-            <button class="btn-ctrl" onclick="reconnectHardware()" title="Reajuste rápido">⚡</button>
+            <button class="btn-ctrl" onclick="refresh()" title="Reajuste">⚡</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
         </div>
     </div>
 
     <script>
-        let localStream = null;
-        let timerInterval = null;
-        let seconds = 0;
+        let stream = null;
+        let timer = null;
+        let elapsed = 0;
 
-        function log(m) { document.getElementById('sysLog').innerHTML = m; }
+        function updateLog(m) { document.getElementById('sysLog').innerHTML = m; }
         
         window.onload = () => {
-            sessionStorage.removeItem('temp_stream_lock');
+            sessionStorage.removeItem('lock');
             if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
         };
 
-        // Reajuste de emergencia sin perder eventos
-        async function reconnectHardware() {
-            log("Reajustando...");
-            if(localStream) localStream.getTracks().forEach(t => t.stop());
-            await connect();
+        async function refresh() {
+            updateLog("Reajustando...");
+            if(stream) stream.getTracks().forEach(t => t.stop());
+            await init();
         }
 
-        function end() { 
+        function terminate() { 
             if(confirm("¿Finalizar sesión?")) {
                 sessionStorage.clear();
                 window.location.reload();
             }
         }
 
-        function confirmConnection() {
+        function updateStatus() {
             document.getElementById('remoteBox').classList.add('active-signal');
             document.getElementById('remoteStatus').style.display = 'none';
-            log("Conexión estable");
+            updateLog("Conectado");
         }
 
-        function handleLoss() {
+        function handleDegradation() {
             document.getElementById('remoteBox').classList.remove('active-signal');
             document.getElementById('remoteStatus').style.display = 'block';
-            log("Reconectando...");
+            updateLog("Red inestable - Priorizando audio");
         }
 
         function toggleEdit() {
@@ -112,45 +111,42 @@
             input.readOnly = !input.readOnly;
             input.style.border = input.readOnly ? '1px solid #228B22' : '1px solid #ff5959';
             input.style.cursor = input.readOnly ? 'not-allowed' : 'text';
-            log(input.readOnly ? "Código guardado" : "Modo edición activo");
         }
 
-        function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); log("Código copiado"); }
-        function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); log("Nombre guardado"); }
+        function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); }
+        function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); }
 
-        async function connect() {
+        async function init() {
             try {
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { width: { ideal: 1280, max: 1920 }, height: { ideal: 720, max: 1080 }, frameRate: { ideal: 30, max: 60 }, resizeMode: "crop-and-scale" },
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 }, resizeMode: "crop-and-scale" },
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, latency: 0 } 
                 });
-                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('localVideo').srcObject = stream;
                 document.getElementById('localBox').classList.add('active-signal');
                 document.getElementById('dot1').style.background = '#00ff00';
                 
-                if (!timerInterval) {
-                    timerInterval = setInterval(() => {
-                        seconds++;
-                        document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
+                if (!timer) {
+                    timer = setInterval(() => {
+                        elapsed++;
+                        document.getElementById('timer').innerText = new Date(elapsed * 1000).toISOString().substr(11, 8);
                     }, 1000);
                 }
-                log("Sistema listo");
+                updateLog("Sistema activo");
             } catch(e) { 
-                log("Permiso denegado. <button onclick='connect()' style='background:#ff5959; border:none; color:white; cursor:pointer; padding:2px 5px; border-radius:3px;'>Reintentar</button>"); 
+                updateLog("Permiso denegado. <button onclick='init()' style='background:#ff5959; border:none; color:white; cursor:pointer;'>Reintentar</button>"); 
             }
         }
 
         function toggleAudio() { 
-            if(localStream && localStream.getAudioTracks().length > 0) {
-                localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
-                log(localStream.getAudioTracks()[0].enabled ? "Audio OK" : "Audio Silenciado");
+            if(stream && stream.getAudioTracks().length > 0) {
+                stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled;
             }
         }
         
         function toggleVideo() { 
-            if(localStream && localStream.getVideoTracks().length > 0) {
-                localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
-                log(localStream.getVideoTracks()[0].enabled ? "Vídeo OK" : "Vídeo Pausado");
+            if(stream && stream.getVideoTracks().length > 0) {
+                stream.getVideoTracks()[0].enabled = !stream.getVideoTracks()[0].enabled;
             }
         }
     </script>
