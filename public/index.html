@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Maestro</title>
+    <title>VideoChat Pro - Maestro</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; padding-bottom: 160px; }
         .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
@@ -12,6 +12,9 @@
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; transition: 0.3s; }
         .talking { border: 3px solid #00ff00; box-shadow: 0 0 20px rgba(0, 255, 0, 0.4); }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+        /* Las bolitas de estado */
+        .status-indicator { position: absolute; bottom: 10px; left: 10px; font-size: 1.5em; z-index: 20; color: #ff3b30; }
+        
         #chatBox, #logBox { width: 100%; max-width: 350px; margin: 10px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
         #messages, #consoleLog { height: 80px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
         #consoleLog { color: #00ff00; font-family: monospace; }
@@ -34,8 +37,14 @@
     </div>
 
     <div class="wrapper">
-        <div class="video-box" id="localBox"><video id="localVideo" autoplay playsinline muted></video></div>
-        <div class="video-box" id="remoteBox"><video id="remoteVideo" autoplay playsinline></video></div>
+        <div class="video-box" id="localBox">
+            <div class="status-indicator" id="statusLocal">●</div>
+            <video id="localVideo" autoplay playsinline muted></video>
+        </div>
+        <div class="video-box" id="remoteBox">
+            <div class="status-indicator" id="statusRemote">●</div>
+            <video id="remoteVideo" autoplay playsinline></video>
+        </div>
     </div>
 
     <div id="chatBox">
@@ -58,36 +67,33 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
-        let countAudio = 0, countVideo = 0;
+        let localStream, timerInterval, countAudio = 0, countVideo = 0;
 
         function log(msg) {
             consoleLog.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
             consoleLog.scrollTop = consoleLog.scrollHeight;
         }
 
-        // Generación robusta de ID
-        window.onload = () => {
-            document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9);
-        };
+        // Función para cambiar el estado visual de la "bolita"
+        function setStatusColor(color) {
+            document.getElementById('statusLocal').style.color = color;
+        }
+
+        window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
 
         async function startCamera() {
-            const constraints = document.getElementById('qualitySelect').value === 'high' 
-                ? { video: { width: 1280, height: 720 }, audio: true } 
-                : { video: { width: 640, height: 360 }, audio: true };
             try {
-                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
                 document.getElementById('localVideo').srcObject = localStream;
-                startTimer();
-                log("Cámara y Micro activos.");
-            } catch (err) { log("Error acceso: " + err); }
+                setStatusColor("#00ff00"); // Verde: Todo OK
+                log("Sistema iniciado. Estado: Estable.");
+            } catch (err) { setStatusColor("#ff3b30"); log("Error: " + err); }
         }
 
         function toggleAudio() {
             const t = localStream.getAudioTracks()[0];
             t.enabled = !t.enabled;
             countAudio++;
-            document.getElementById('btnAudio').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
             log("Micro (Cambios: " + countAudio + ")");
         }
 
@@ -95,33 +101,27 @@
             const t = localStream.getVideoTracks()[0];
             t.enabled = !t.enabled;
             countVideo++;
-            document.getElementById('btnVideo').style.backgroundColor = t.enabled ? "#333" : "#ff3b30";
             log("Cámara (Cambios: " + countVideo + ")");
         }
 
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                seconds++; if (seconds === 60) { seconds = 0; minutes++; }
-                if (minutes === 60) { minutes = 0; hours++; }
-                document.getElementById('timer').innerText = (hours<10?"0"+hours:hours)+":"+(minutes<10?"0"+minutes:minutes)+":"+(seconds<10?"0"+seconds:seconds);
-            }, 1000);
-        }
+        // Simulador de salud de red (Lógica autónoma)
+        socket.on('disconnect', () => {
+            setStatusColor("#ff3b30"); // Rojo al desconectar
+            log("Conexión perdida. Intentando reconectar...");
+        });
 
-        function sendMessage() {
-            const input = document.getElementById('chatInput');
-            socket.emit('chat-message', input.value);
-            document.getElementById('messages').innerHTML += `<div>Tú: ${input.value}</div>`;
-            input.value = '';
-        }
-        
-        socket.on('chat-message', (msg) => document.getElementById('messages').innerHTML += `<div>Otro: ${msg}</div>`);
-        socket.on('disconnect', () => { log("Reconectando..."); setTimeout(() => { socket.connect(); }, 5000); });
-        
+        socket.on('connect', () => {
+            setStatusColor("#00ff00"); // Verde al conectar
+            log("Conectado al servidor.");
+        });
+
         function joinRoom() { 
             const room = document.getElementById('roomInput').value;
-            if(room) { socket.emit('join-room', room); log("Conectado a sala: " + room); startCamera(); } 
+            socket.emit('join-room', room);
+            log("Conectado a sala: " + room);
+            startCamera(); 
         }
-        function endCall() { clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
+        function endCall() { window.location.reload(); }
     </script>
 </body>
 </html>
