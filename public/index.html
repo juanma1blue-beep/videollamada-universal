@@ -63,7 +63,7 @@
     <div class="footer">
         <div id="sysLog">Sistema Operativo</div>
         <div class="controls">
-            <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
+            <button class="btn-ctrl" onclick="atenderLlamada()">🎙️</button>
             <button class="btn-ctrl" onclick="refresh()" title="Reajuste">⚡</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
         </div>
@@ -73,6 +73,8 @@
         let stream = null;
         let timer = null;
         let elapsed = 0;
+        let alertaLlamada = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+        alertaLlamada.loop = true;
 
         function updateLog(m) { document.getElementById('sysLog').innerHTML = m; }
         
@@ -97,16 +99,23 @@
         function updateStatus() {
             document.getElementById('remoteBox').classList.add('active-signal');
             document.getElementById('remoteStatus').style.display = 'none';
-            // Sensor de Presencia Activado
-            document.title = "¡Conexión recibida!";
-            new Audio('https://actions.google.com/sounds/v1/notifications/beep_short.ogg').play().catch(()=>{});
+            document.title = "¡LLAMADA ENTRANTE!";
+            alertaLlamada.play().catch(()=>{});
+            updateLog("Llamada entrante...");
+        }
+
+        function atenderLlamada() {
+            alertaLlamada.pause();
+            alertaLlamada.currentTime = 0;
+            document.title = "Sistema de Comunicación";
             updateLog("Conectado");
+            if(stream && stream.getAudioTracks().length > 0) stream.getAudioTracks()[0].enabled = true;
         }
 
         function handleDegradation() {
             document.getElementById('remoteBox').classList.remove('active-signal');
             document.getElementById('remoteStatus').style.display = 'block';
-            updateLog("Red inestable - Priorizando audio");
+            updateLog("Red inestable");
         }
 
         function toggleEdit() {
@@ -138,12 +147,6 @@
                 updateLog("Sistema activo");
             } catch(e) { 
                 updateLog("Permiso denegado. <button onclick='init()' style='background:#ff5959; border:none; color:white; cursor:pointer;'>Reintentar</button>"); 
-            }
-        }
-
-        function toggleAudio() { 
-            if(stream && stream.getAudioTracks().length > 0) {
-                stream.getAudioTracks()[0].enabled = !stream.getAudioTracks()[0].enabled;
             }
         }
         
