@@ -1,47 +1,46 @@
-const socket = io();
 const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
+const timerDisplay = document.getElementById('timer');
+let seconds = 0, minutes = 0, hours = 0;
+let timerInterval;
 
-// Generación inmediata del código
-window.onload = function() {
-    const randomRoom = Math.random().toString(36).substring(2, 9);
-    document.getElementById('roomInput').value = randomRoom;
-    document.getElementById('roomDisplay').innerText = "Tu código: " + randomRoom;
-};
+// 1. Iniciar contador (00:00:00)
+function startTimer() {
+    timerInterval = setInterval(() => {
+        seconds++;
+        if (seconds === 60) { seconds = 0; minutes++; }
+        if (minutes === 60) { minutes = 0; hours++; }
+        timerDisplay.innerText = 
+            (hours < 10 ? "0" + hours : hours) + ":" + 
+            (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+            (seconds < 10 ? "0" + seconds : seconds);
+    }, 1000);
+}
 
+// 2. Audio Profesional (Anti-Eco / Anti-Grillo)
 async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ 
             video: true, 
             audio: {
-                echoCancellation: true,  // Obligatorio para eco
-                noiseSuppression: true, // Obligatorio para "grillo"
-                autoGainControl: true,
-                latency: 0 
-            } 
+                echoCancellation: { exact: true },
+                noiseSuppression: { exact: true },
+                autoGainControl: { exact: true },
+                sampleRate: 48000,
+                channelCount: 1
+            }
         });
         localVideo.srcObject = stream;
-        localVideo.muted = true; // Mute local para evitar latencia mental y eco
-    } catch (err) { console.error("Error:", err); }
+        localVideo.muted = true; // Fundamental: Silenciar salida local
+        startTimer(); // Iniciar contador al conectar
+    } catch (err) { alert("Error de audio: " + err.message); }
 }
-
-function joinRoom() {
-    const roomId = document.getElementById('roomInput').value;
-    socket.emit('join-room', roomId);
-}
-
-function toggleFS(id) { document.getElementById(id).requestFullscreen(); }
 
 function endCall() {
-    // Detiene todo el hardware y recarga
+    clearInterval(timerInterval);
     if(localVideo.srcObject) {
-        localVideo.srcObject.getTracks().forEach(t => t.stop());
+        localVideo.srcObject.getTracks().forEach(track => track.stop());
     }
     window.location.reload();
 }
-
-document.getElementById('volRemote').addEventListener('input', (e) => {
-    remoteVideo.volume = e.target.value;
-});
 
 startCamera();
