@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Blindado</title>
+    <title>Sistema Blindado y Reversible</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -61,7 +61,7 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema sellado.</div>
+        <div id="sysLog">Sistema sellado y reversible.</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="toggleAudio()">🎙️</button>
             <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
@@ -73,13 +73,11 @@
         let timerInterval = null;
         let seconds = 0;
 
-        function log(m) { document.getElementById('sysLog').innerText = m; }
+        function log(m) { document.getElementById('sysLog').innerHTML = m; }
         
-        // Sello de integridad: Limpieza al arrancar
         window.onload = () => {
-            sessionStorage.removeItem('temp_stream_lock'); // Sello de seguridad
+            sessionStorage.removeItem('temp_stream_lock');
             if(sessionStorage.getItem('n1')) document.getElementById('n1').value = sessionStorage.getItem('n1');
-            log("Sistema verificado");
         };
 
         function confirmConnection() {
@@ -109,7 +107,6 @@
         async function connect() {
             log("Iniciando...");
             try {
-                // Auditoría de hardware antes de abrir el flujo
                 localStream = await navigator.mediaDevices.getUserMedia({ 
                     video: true, 
                     audio: { echoCancellation: true, noiseSuppression: true } 
@@ -125,7 +122,9 @@
                     }, 1000);
                 }
                 log("Sesión segura");
-            } catch(e) { log("Error: Ajuste requerido"); }
+            } catch(e) { 
+                log("Permiso denegado. <button onclick='connect()' style='background:#ff5959; border:none; color:white; cursor:pointer; padding:2px 5px; border-radius:3px;'>Reintentar</button>"); 
+            }
         }
 
         function toggleAudio() { 
