@@ -4,26 +4,30 @@
     <meta charset="UTF-8">
     <title>VideoChat Pro</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
-        .controls-top { background: #1e1e1e; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
-        #timer { font-size: 1.5em; color: #00ff00; margin: 10px; font-family: monospace; }
-        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-        .video-box { width: 100%; max-width: 350px; background: #000; border-radius: 10px; overflow: hidden; }
+        body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding: 10px; }
+        .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        input { padding: 10px; border-radius: 8px; border: none; width: 60%; margin-bottom: 10px; }
+        .action-btn { padding: 10px 20px; border-radius: 8px; background: #0084ff; color: white; border: none; cursor: pointer; }
+        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
-        .end-btn { background: #ff3b30; color: white; border: none; padding: 15px 30px; border-radius: 25px; margin-top: 15px; cursor: pointer; }
+        #timer { font-size: 1.2em; color: #00ff00; font-family: monospace; margin: 10px 0; }
+        .end-call { background: #ff3b30; color: white; border: none; padding: 12px 25px; border-radius: 20px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="controls-top">
+    <div class="setup-box">
         <input type="text" id="roomInput" placeholder="Código de sala">
-        <button onclick="joinRoom()">Conectar</button>
+        <br>
+        <button class="action-btn" onclick="joinRoom()">Conectar</button>
         <div id="timer">00:00:00</div>
     </div>
+
     <div class="wrapper">
         <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
-    <button class="end-btn" onclick="endCall()">Finalizar</button>
+    <button class="end-call" onclick="endCall()">Finalizar Videollamada</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="script.js"></script>
