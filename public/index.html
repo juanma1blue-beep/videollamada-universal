@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema Inteligente</title>
+    <title>Sistema Resiliente</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
@@ -12,8 +12,7 @@
         .btn-header:active { background: #228B22; color: #fff; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #242f3d; transition: border 0.3s; }
-        /* Clase para cuando la conexión está activa */
-        .video-box.active-signal { border: 2px solid #228B22; }
+        .active-signal { border: 2px solid #228B22; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .placeholder-text { color: #555; font-size: 0.8em; position: absolute; }
         .overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; justify-content: space-between; z-index: 5; }
@@ -49,7 +48,7 @@
         </div>
         <div class="video-box" id="remoteBox">
             <div class="placeholder-text" id="remoteStatus">Esperando señal remota...</div>
-            <video id="remoteVideo" autoplay playsinline onplay="confirmConnection()"></video>
+            <video id="remoteVideo" autoplay playsinline onplay="confirmConnection()" onpause="handleLoss()"></video>
             <div class="overlay">
                 <div class="input-group">
                     <div id="dot2" class="status-dot"></div>
@@ -79,7 +78,13 @@
         function confirmConnection() {
             document.getElementById('remoteBox').classList.add('active-signal');
             document.getElementById('remoteStatus').style.display = 'none';
-            log("Señal remota sincronizada");
+            log("Conexión estable");
+        }
+
+        function handleLoss() {
+            document.getElementById('remoteBox').classList.remove('active-signal');
+            document.getElementById('remoteStatus').style.display = 'block';
+            log("Buscando señal...");
         }
 
         function toggleEdit() {
@@ -111,7 +116,7 @@
                         document.getElementById('timer').innerText = new Date(seconds * 1000).toISOString().substr(11, 8);
                     }, 1000);
                 }
-                log("Sistema activo");
+                log("Sistema en línea");
             } catch(e) { log("Error: Verifica hardware"); }
         }
 
