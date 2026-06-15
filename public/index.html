@@ -2,18 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Maestro Ordenado</title>
+    <title>VideoChat Pro - Sistema Maestro Verificado</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
         
-        /* Ajuste de orden: Flex-wrap y gap para que no se peguen */
+        /* Franja superior con respiración garantizada */
         .status-header { 
             display: flex; flex-wrap: wrap; justify-content: center; align-items: center;
-            background: #1e1e1e; padding: 20px; margin: 10px; border-radius: 12px; gap: 15px; 
+            background: #1e1e1e; padding: 25px; margin: 15px; border-radius: 15px; gap: 30px; 
         }
         
-        #timer { font-family: monospace; font-size: 1.5em; color: #00ff00; min-width: 100px; }
-        select { padding: 8px; border-radius: 8px; border: none; background: #333; color: white; }
+        /* Contador con espacio propio */
+        #timer { font-family: monospace; font-size: 1.8em; color: #00ff00; min-width: 120px; font-weight: bold; }
+        
+        /* Input y Select con margen de seguridad */
+        #roomInput { padding: 10px; border-radius: 8px; border: none; background: #333; color: white; text-align: center; }
+        select { padding: 10px; border-radius: 8px; border: none; background: #333; color: white; cursor: pointer; }
         
         .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 10px; }
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
@@ -30,9 +34,9 @@
 <body>
     <div class="status-header">
         <div id="timer">00:00:00</div>
-        <input type="text" id="roomInput" style="width: 80px; padding: 8px; border-radius: 8px; border: none;" readonly>
+        <input type="text" id="roomInput" readonly>
         <select id="videoSource"><option value="">Cámara...</option></select>
-        <button onclick="safeExecute(joinRoom)" style="padding: 8px 15px; border-radius: 8px; border: none; background: #0084ff; color: white; cursor: pointer;">Conectar</button>
+        <button onclick="safeExecute(joinRoom)" style="padding: 10px 20px; border-radius: 8px; border: none; background: #0084ff; color: white; cursor: pointer;">Conectar</button>
     </div>
 
     <div class="wrapper">
@@ -74,9 +78,9 @@
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoSelect = document.getElementById('videoSource');
             devices.filter(d => d.kind === 'videoinput').forEach(d => {
-                const option = document.createElement('option');
-                option.value = d.deviceId; option.text = d.label || 'Cámara';
-                videoSelect.appendChild(option);
+                const opt = document.createElement('option');
+                opt.value = d.deviceId; opt.text = d.label || 'Cámara';
+                videoSelect.appendChild(opt);
             });
         }
 
@@ -93,7 +97,7 @@
             document.getElementById('roomInput').value = room;
             localStorage.setItem('lastRoom', room);
             await getDevices();
-            log("Sistema inicializado.");
+            log("Sistema al 100%. Memoria cargada.");
         };
 
         async function startCamera() {
