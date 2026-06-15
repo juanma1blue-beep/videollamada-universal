@@ -2,20 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>VideoChat Pro - Sistema Verificado</title>
+    <title>VideoChat Pro - Sistema Maestro</title>
     <style>
         body { font-family: -apple-system, sans-serif; background: #121212; color: white; text-align: center; margin: 0; padding-bottom: 160px; }
-        .setup-box { background: #1e1e1e; padding: 15px; border-radius: 12px; margin: 10px; }
-        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        
+        /* Nueva Franja Superior para el contador */
+        .status-header { display: flex; justify-content: space-around; background: #1e1e1e; padding: 15px; margin: 10px; border-radius: 12px; }
+        #timer { font-family: monospace; font-size: 1.5em; color: #00ff00; }
+        
+        .wrapper { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 10px; }
         .video-box { width: 100%; max-width: 350px; position: relative; background: #000; border-radius: 12px; overflow: hidden; }
         video { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
         
-        /* Bolitas: Visibilidad forzada */
-        .status-indicator { 
-            position: absolute; bottom: 15px; left: 15px; font-size: 2em; 
-            z-index: 500; color: #ff3b30; text-shadow: 0 0 5px #000; 
-        }
-
+        .status-indicator { position: absolute; bottom: 15px; left: 15px; font-size: 2em; z-index: 500; color: #ff3b30; text-shadow: 0 0 5px #000; }
         #chatBox, #logBox { width: 100%; max-width: 350px; margin: 10px auto; background: #1e1e1e; border-radius: 12px; padding: 10px; text-align: left; }
         #messages, #consoleLog { height: 80px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
         #consoleLog { color: #00ff00; font-family: monospace; }
@@ -24,10 +23,10 @@
     </style>
 </head>
 <body>
-    <div class="setup-box">
-        <input type="text" id="roomInput" readonly>
-        <button onclick="joinRoom()">Conectar</button>
+    <div class="status-header">
         <div id="timer">00:00:00</div>
+        <input type="text" id="roomInput" style="width: 100px; padding: 5px;" readonly>
+        <button onclick="joinRoom()" style="padding: 5px 10px;">Conectar</button>
     </div>
 
     <div class="wrapper">
@@ -43,7 +42,7 @@
 
     <div id="chatBox">
         <div id="messages"></div>
-        <input type="text" id="chatInput">
+        <input type="text" id="chatInput" style="width: 70%; padding: 5px;">
         <button onclick="sendMessage()">➤</button>
     </div>
 
@@ -55,19 +54,13 @@
     <div class="control-bar">
         <button onclick="toggleAudio()">🎙️</button>
         <button onclick="toggleVideo()">📷</button>
-        <button id="btnEnd" onclick="endCall()" style="background:#ff3b30">❌</button>
+        <button onclick="endCall()" style="background:#ff3b30">❌</button>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        const state = { 
-            localStream: null, 
-            timerInterval: null, 
-            countAudio: 0, 
-            countVideo: 0,
-            seconds: 0, minutes: 0, hours: 0 
-        };
+        const state = { localStream: null, timerInterval: null, countAudio: 0, countVideo: 0, seconds: 0, minutes: 0, hours: 0 };
 
         function log(msg) {
             const entry = document.createElement('div');
@@ -88,10 +81,11 @@
                 state.timerInterval = setInterval(() => {
                     state.seconds++;
                     if (state.seconds === 60) { state.seconds = 0; state.minutes++; }
+                    if (state.minutes === 60) { state.minutes = 0; state.hours++; }
                     document.getElementById('timer').innerText = `${state.hours.toString().padStart(2,'0')}:${state.minutes.toString().padStart(2,'0')}:${state.seconds.toString().padStart(2,'0')}`;
                 }, 1000);
-                log("Sistema activo y validado.");
-            } catch (err) { log("Error: Acceso denegado."); }
+                log("Sistema iniciado.");
+            } catch (err) { log("Error de acceso."); }
         }
 
         function toggleAudio() {
