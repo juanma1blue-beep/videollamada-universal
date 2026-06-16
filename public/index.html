@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Proyecto Sanguino - Aikido Estable</title>
+    <title>Proyecto Sanguino - Aikido Telemetría</title>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; gap: 5px; align-items: center; }
@@ -12,7 +12,7 @@
         .video-box { flex: 1; position: relative; border: 1px solid #333; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .status { position: absolute; top: 10px; left: 10px; z-index: 10; font-size: 0.7em; }
-        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; transition: background 0.3s; }
         .chat-box { position: absolute; bottom: 10px; left: 10px; width: 250px; background: rgba(0,0,0,0.7); border: 1px solid #444; padding: 5px; z-index: 10; font-size: 0.8em; }
         .chat-input { width: 100%; background: #111; border: 1px solid #555; color: #ffd100; font-family: inherit; }
         input { background: #242f3d; color: white; border: 1px solid #228B22; padding: 5px; border-radius: 4px; font-size: 0.7em; }
@@ -47,12 +47,11 @@
 
     <script>
         const peer = new Peer();
-        let conn, localStream;
+        let conn, localStream, lastPingTime;
 
         peer.on('open', id => document.getElementById('myID').value = id);
-        peer.on('connection', c => { conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; setupChat(); });
+        peer.on('connection', c => { conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; setupChat(); iniciarTelemetria(); });
         
-        // --- MÓDULO DE VIGÍA (AIKIDO) ---
         function monitorConexion() {
             setInterval(() => {
                 if (conn && !conn.open) {
@@ -64,7 +63,35 @@
         }
         peer.on('open', () => monitorConexion());
 
-        // --- MÓDULO DE MEMORIA (PERSISTENCIA) ---
+        function iniciarTelemetria() {
+            setInterval(() => {
+                if (conn && conn.open) {
+                    lastPingTime = Date.now();
+                    conn.send({ type: 'ping' });
+                }
+            }, 3000);
+        }
+
+        function setupChat() {
+            conn.on('data', data => {
+                if (data && data.type === 'ping') {
+                    conn.send({ type: 'pong' });
+                } else if (data && data.type === 'pong') {
+                    const latency = Date.now() - lastPingTime;
+                    actualizarIndicadorLatencia(latency);
+                } else {
+                    log("Pareja", data);
+                }
+            });
+        }
+
+        function actualizarIndicadorLatencia(ms) {
+            const dot = document.getElementById('dotRemote');
+            if (ms < 100) dot.style.background = '#00ff00';
+            else if (ms < 300) dot.style.background = 'yellow';
+            else dot.style.background = 'red';
+        }
+
         window.onload = () => {
             let historial = JSON.parse(localStorage.getItem('chatHistory') || '[]');
             historial.forEach(item => renderizarMensaje(item.quien, item.msg));
@@ -86,11 +113,10 @@
             const peerId = document.getElementById('peerID').value;
             conn = peer.connect(peerId);
             setupChat();
+            iniciarTelemetria();
             const call = peer.call(peerId, localStream);
             call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
         }
-
-        function setupChat() { conn.on('data', data => log("Pareja", data)); }
 
         function log(quien, msg) {
             renderizarMensaje(quien, msg);
