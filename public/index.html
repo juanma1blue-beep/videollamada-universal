@@ -3,46 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Comunicación</title>
+    <title>Sistema</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; height: 40px; position: relative; }
-        #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; }
+        .header { background: #17212b; padding: 5px 10px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; height: 45px; }
         
-        .paypal-container { display: flex; align-items: center; gap: 5px; cursor: pointer; text-decoration: none; }
-        .paypal-text { font-size: 0.7em; color: #ffcc00; font-weight: bold; }
-        .paypal-logo { height: 25px; width: auto; border-radius: 4px; }
+        /* Izquierda: Código aleatorio */
+        #roomInput { width: 95px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.9em; }
         
+        /* Derecha: PayPal y botones */
+        .header-right { display: flex; align-items: center; gap: 8px; }
+        .paypal-link { display: flex; align-items: center; gap: 4px; text-decoration: none; color: #ffcc00; font-size: 0.75em; font-weight: bold; }
+        .paypal-logo { height: 24px; width: auto; border-radius: 3px; }
         .menu-btns { display: flex; gap: 5px; }
-        .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 4px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #242f3d; }
         .active-signal { border: 2px solid #228B22; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .weather-overlay { position: absolute; top: 10px; left: 0; right: 0; z-index: 20; text-align: center; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 20px; font-size: 0.9em; margin: 0 auto; width: fit-content; pointer-events: none; color: white; border: 1px solid rgba(255,255,255,0.1); }
+        .weather-overlay { position: absolute; top: 10px; left: 0; right: 0; z-index: 20; text-align: center; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 20px; font-size: 0.9em; color: white; border: 1px solid rgba(255,255,255,0.1); }
         .overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; justify-content: space-between; z-index: 5; }
         .input-group { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.5); padding: 3px; border-radius: 4px; }
         .status-dot { width: 10px; height: 10px; background: red; border-radius: 50%; }
         .btn-call { background: #ff5959; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
         .footer { background: #17212b; padding: 8px; border-radius: 8px; }
         .controls { display: flex; justify-content: space-evenly; }
-        .btn-ctrl { background: #242f3d; border: none; cursor: pointer; padding: 5px 15px; border-radius: 50%; font-size: 1.2em; }
+        .btn-ctrl { background: #242f3d; border: none; cursor: pointer; padding: 10px 20px; border-radius: 50%; font-size: 1.2em; }
     </style>
 </head>
 <body>
     <div class="header">
         <input type="text" id="roomInput" readonly>
         
-        <a href="https://paypal.me/@MarketEvolution" target="_blank" class="paypal-container">
-            <span class="paypal-text">Propinas aquí</span>
-            <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x65.jpg" alt="PayPal" class="paypal-logo">
-        </a>
-
-        <div class="menu-btns">
-            <button class="btn-header" onclick="toggleEdit()">✏️</button>
-            <button class="btn-header" onclick="copyCode()">📋</button>
-            <button class="btn-header" onclick="init()">🔗</button>
+        <div class="header-right">
+            <a href="https://paypal.me/@MarketEvolution" target="_blank" class="paypal-link">
+                Propinas
+                <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x65.jpg" alt="PayPal" class="paypal-logo">
+            </a>
+            <div class="menu-btns">
+                <button class="btn-header" onclick="toggleEdit()">✏️</button>
+                <button class="btn-header" onclick="copyCode()">📋</button>
+                <button class="btn-header" onclick="init()">🔗</button>
+            </div>
         </div>
     </div>
 
@@ -92,10 +95,8 @@
             let randomCode = "";
             for (let i = 0; i < 9; i++) randomCode += chars.charAt(Math.floor(Math.random() * chars.length));
             document.getElementById('roomInput').value = randomCode;
-            
             if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {});
-            updateWeather(); 
-            setInterval(updateWeather, 60000); 
+            updateWeather(); setInterval(updateWeather, 60000); 
         };
 
         async function updateWeather() {
