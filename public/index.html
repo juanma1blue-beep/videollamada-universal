@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Proyecto Sanguino - Operativa Total</title>
+    <title>Proyecto Sanguino - Élite 100%</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -17,8 +17,9 @@
         .chat-log { height: 60px; overflow-y: auto; background: rgba(0,0,0,0.85); border: 1px solid #444; font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; }
         .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; }
         .system-msg { color: #ffd100; font-weight: bold; }
+        /* Botones Azul Oscuro */
         .controls { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #111; border-top: 1px solid #333; }
-        button { background: #1a1a1a; border: 1px solid #228B22; color: #fff; padding: 15px 30px; border-radius: 5px; cursor: pointer; }
+        button { background: #003366; border: 1px solid #228B22; color: #fff; padding: 12px 20px; border-radius: 5px; cursor: pointer; }
         .btn-close { background: #8B0000; border: 1px solid #FF4500; }
         input { background: #111; color: #fff; border: 1px solid #228B22; padding: 5px; border-radius: 3px; }
     </style>
@@ -36,20 +37,20 @@
             <div class="chat-overlay"><div id="hist" class="chat-log"></div><input type="text" id="msgInput" class="chat-input" placeholder="Comando..." onkeypress="enviar(event)"></div>
         </div>
     </div>
-    <div class="controls"><button onclick="cambiarCamara()">📷</button><button class="btn-close" onclick="window.location.reload()">❌</button></div>
+    <div class="controls">
+        <button onclick="cambiarCamara()">📷</button>
+        <button onclick="enviarPropina()">🎁 Propinas</button>
+        <button class="btn-close" onclick="window.location.reload()">❌</button>
+    </div>
 
     <script>
         const peer = new Peer();
         let conn, localStream, useFront = true;
         
-        // Carga de estado persistente
         window.onload = () => { document.getElementById('valProtocolo').innerText = localStorage.getItem('prot') || 'SIN ASIGNAR'; };
         
         peer.on('open', id => document.getElementById('myID').value = id);
-        peer.on('connection', c => { 
-            conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; 
-            setupChat(); 
-        });
+        peer.on('connection', c => { conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; setupChat(); });
 
         function setupChat() {
             conn.on('data', data => {
@@ -65,14 +66,11 @@
             h.innerHTML += `<div class="${sys?'system-msg':''}"><b>${q}:</b> ${m}</div>`; h.scrollTop = h.scrollHeight;
         }
 
-        function iniciarSensor(stream) {
-            const ctx = new AudioContext(), src = ctx.createMediaStreamSource(stream), ana = ctx.createAnalyser();
-            src.connect(ana); ana.fftSize = 256;
-            setInterval(() => {
-                let data = new Uint8Array(ana.frequencyBinCount); ana.getByteFrequencyData(data);
-                let vol = data.reduce((a,b)=>a+b)/data.length;
-                document.getElementById('dotLocal').style.background = (vol > 30) ? '#00ccff' : '#00ff00';
-            }, 200);
+        function enviarPropina() {
+            if (conn?.open) {
+                conn.send("💰 Has recibido una propina.");
+                log("Sistema", "Propina enviada correctamente.", true);
+            } else alert("Conexión no establecida.");
         }
 
         function enviar(e) {
@@ -92,10 +90,8 @@
         async function conectar() {
             localStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:useFront?"user":"environment"}, audio:true});
             document.getElementById('localVideo').srcObject = localStream;
-            iniciarSensor(localStream);
             const call = peer.call(document.getElementById('peerID').value, localStream);
             call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
-            call.on('error', () => { setTimeout(conectar, 5000); log("VIGÍA", "Reconectando...", true); });
         }
 
         function cambiarCamara() { useFront = !useFront; conectar(); }
