@@ -2,27 +2,21 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proyecto Sanguino - Operativa Total</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Proyecto Sanguino - Élite 100%</title>
     <style>
-        /* Estilos base fiel al diseño original */
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .integrity-panel { background: #000; padding: 6px; display: flex; justify-content: center; gap: 20px; font-size: 0.7em; color: #228B22; border-bottom: 1px solid #228B22; }
-        .header { background: #111; padding: 5px; display: flex; gap: 5px; align-items: center; border-bottom: 1px solid #333; }
+        .integrity-panel { background: #000; padding: 6px; text-align: center; font-size: 0.7em; color: #228B22; border-bottom: 1px solid #228B22; }
+        .header { background: #111; padding: 5px; display: flex; gap: 5px; border-bottom: 1px solid #333; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; }
         .video-box { flex: 1; position: relative; border: 1px solid #333; background: #000; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Capa de estado y chat */
-        .status { position: absolute; top: 10px; left: 10px; font-weight: bold; color: #fff; z-index: 10; font-size: 0.8em; text-shadow: 1px 1px 1px #000; }
-        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; transition: background 0.3s; }
+        .status { position: absolute; top: 10px; left: 10px; font-weight: bold; font-size: 0.8em; text-shadow: 1px 1px #000; z-index: 10; }
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
         .chat-overlay { position: absolute; bottom: 10px; left: 10px; width: 90%; z-index: 20; }
-        .chat-log { height: 60px; overflow-y: auto; background: rgba(0, 0, 0, 0.85); border: 1px solid #444; font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; color: #fff; text-shadow: 1px 1px 1px #000; }
-        .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; box-sizing: border-box; font-family: 'Verdana', sans-serif; }
+        .chat-log { height: 60px; overflow-y: auto; background: rgba(0,0,0,0.85); border: 1px solid #444; font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; }
+        .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; }
         .system-msg { color: #ffd100; font-weight: bold; }
-        
-        /* Botones fieles a la imagen */
         .controls { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #111; border-top: 1px solid #333; }
         button { background: #1a1a1a; border: 1px solid #228B22; color: #fff; padding: 15px 30px; border-radius: 5px; cursor: pointer; }
         .btn-close { background: #8B0000; border: 1px solid #FF4500; }
@@ -30,108 +24,78 @@
     </style>
 </head>
 <body>
-    <div class="integrity-panel">
-        <span>PROTOCOLO: <b id="valProtocolo">SIN ASIGNAR</b></span>
-    </div>
+    <div class="integrity-panel">PROTOCOLO: <b id="valProtocolo">SIN ASIGNAR</b></div>
     <div class="header">
         <input type="text" id="myID" readonly placeholder="ID">
         <input type="text" id="peerID" placeholder="ID Pareja">
         <button onclick="conectar()">📞</button>
     </div>
     <div class="wrapper">
-        <div class="video-box">
-            <div class="status"><span id="dotLocal" class="dot"></span> LOCAL</div>
-            <video id="localVideo" autoplay playsinline muted></video>
-        </div>
-        <div class="video-box">
-            <div class="status"><span id="dotRemote" class="dot"></span> PAREJA</div>
-            <video id="remoteVideo" autoplay playsinline></video>
-            <div class="chat-overlay">
-                <div id="hist" class="chat-log"></div>
-                <input type="text" id="msgInput" class="chat-input" placeholder="Comando..." onkeypress="enviar(event)">
-            </div>
+        <div class="video-box"><div class="status"><span id="dotLocal" class="dot"></span> LOCAL</div><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="video-box"><div class="status"><span id="dotRemote" class="dot"></span> PAREJA</div><video id="remoteVideo" autoplay playsinline></video>
+            <div class="chat-overlay"><div id="hist" class="chat-log"></div><input type="text" id="msgInput" class="chat-input" placeholder="Comando..." onkeypress="enviar(event)"></div>
         </div>
     </div>
-    <div class="controls">
-        <button onclick="cambiarCamara()">📷</button>
-        <button class="btn-close" onclick="window.location.reload()">❌</button>
-    </div>
+    <div class="controls"><button onclick="cambiarCamara()">📷</button><button class="btn-close" onclick="window.location.reload()">❌</button></div>
 
     <script>
         const peer = new Peer();
         let conn, localStream, useFront = true;
-
+        
+        // Carga de estado persistente
+        window.onload = () => { document.getElementById('valProtocolo').innerText = localStorage.getItem('prot') || 'SIN ASIGNAR'; };
+        
         peer.on('open', id => document.getElementById('myID').value = id);
         peer.on('connection', c => { 
-            conn = c; 
-            document.getElementById('dotRemote').style.background = '#00ff00'; 
-            log("VIGÍA", "Conexión establecida.", true);
+            conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; 
             setupChat(); 
         });
-        
-        setInterval(() => {
-            if (conn && !conn.open) {
-                document.getElementById('dotRemote').style.background = 'orange';
-                log("VIGÍA", "Conexión degradada. Intentando reconexión...", true);
-            }
-        }, 3000);
-
-        function iniciarSensorVoz(stream) {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const source = audioCtx.createMediaStreamSource(stream);
-            const analyser = audioCtx.createAnalyser();
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            setInterval(() => {
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-                document.getElementById('dotLocal').style.background = (sum / dataArray.length) > 20 ? '#00ccff' : '#00ff00';
-            }, 200);
-        }
 
         function setupChat() {
             conn.on('data', data => {
                 if (data.cmd === 'update') {
                     document.getElementById('valProtocolo').innerText = data.protocolo;
-                } else {
-                    log("Pareja", data, false);
-                }
+                    localStorage.setItem('prot', data.protocolo);
+                } else log("Pareja", data, false);
             });
         }
-        
-        function log(quien, msg, isSystem) {
+
+        function log(q, m, sys) {
             const h = document.getElementById('hist');
-            h.innerHTML += `<div class="${isSystem ? 'system-msg' : ''}"><b>${quien}:</b> ${msg}</div>`;
-            h.scrollTop = h.scrollHeight;
+            h.innerHTML += `<div class="${sys?'system-msg':''}"><b>${q}:</b> ${m}</div>`; h.scrollTop = h.scrollHeight;
+        }
+
+        function iniciarSensor(stream) {
+            const ctx = new AudioContext(), src = ctx.createMediaStreamSource(stream), ana = ctx.createAnalyser();
+            src.connect(ana); ana.fftSize = 256;
+            setInterval(() => {
+                let data = new Uint8Array(ana.frequencyBinCount); ana.getByteFrequencyData(data);
+                let vol = data.reduce((a,b)=>a+b)/data.length;
+                document.getElementById('dotLocal').style.background = (vol > 30) ? '#00ccff' : '#00ff00';
+            }, 200);
         }
 
         function enviar(e) {
             if (e.key === 'Enter') {
-                const val = e.target.value;
+                let val = e.target.value;
                 if (val.startsWith('/')) {
-                    const nuevoProtocolo = val.slice(1).toUpperCase();
-                    document.getElementById('valProtocolo').innerText = nuevoProtocolo;
-                    if (conn && conn.open) conn.send({cmd: 'update', protocolo: nuevoProtocolo});
-                    log("Sistema", "Protocolo: " + nuevoProtocolo, true);
-                } else if (conn && conn.open) {
-                    conn.send(val);
-                    log("Tú", val, false);
-                }
+                    let p = val.slice(1).toUpperCase();
+                    document.getElementById('valProtocolo').innerText = p;
+                    localStorage.setItem('prot', p);
+                    if (conn?.open) conn.send({cmd:'update', protocolo: p});
+                    log("Sistema", "Protocolo: "+p, true);
+                } else if (conn?.open) { conn.send(val); log("Tú", val, false); }
                 e.target.value = '';
             }
         }
 
         async function conectar() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: useFront ? "user" : "environment"}, audio: true});
-                document.getElementById('localVideo').srcObject = localStream;
-                document.getElementById('dotLocal').style.background = '#00ff00';
-                iniciarSensorVoz(localStream);
-                const call = peer.call(document.getElementById('peerID').value, localStream);
-                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
-            } catch(e) { console.error("Error acceso cámara", e); }
+            localStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:useFront?"user":"environment"}, audio:true});
+            document.getElementById('localVideo').srcObject = localStream;
+            iniciarSensor(localStream);
+            const call = peer.call(document.getElementById('peerID').value, localStream);
+            call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
+            call.on('error', () => { setTimeout(conectar, 5000); log("VIGÍA", "Reconectando...", true); });
         }
 
         function cambiarCamara() { useFront = !useFront; conectar(); }
