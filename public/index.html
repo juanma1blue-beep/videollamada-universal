@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sistema de Comunicación</title>
+    <title>Sistema Aikido</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
         #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        /* ID Aleatorio visual */
-        #sessionID { position: absolute; top: 40px; right: 10px; font-size: 0.7em; color: #555; z-index: 100; }
+        #sessionID { position: absolute; top: 45px; right: 10px; font-size: 0.8em; color: #00ff00; z-index: 100; font-family: monospace; font-weight: bold; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #242f3d; }
         .active-signal { border: 2px solid #228B22; }
@@ -27,7 +26,7 @@
     </style>
 </head>
 <body>
-    <div id="sessionID">ID: --</div>
+    <div id="sessionID">SID: --</div>
     <div class="header">
         <input type="text" id="roomInput" value="krhhe17o9r" readonly>
         <button class="btn-header" onclick="toggleEdit()">✏️</button>
@@ -64,7 +63,7 @@
     </div>
 
     <div class="footer">
-        <div id="sysLog">Sistema Operativo</div>
+        <div id="sysLog">Sistema en armonía</div>
         <div class="controls">
             <button class="btn-ctrl" onclick="atenderLlamada()">🎙️</button>
             <button class="btn-ctrl" onclick="refresh()" title="Reajuste">⚡</button>
@@ -73,18 +72,9 @@
     </div>
 
     <script>
-        // Generar ID Aleatorio
-        const sid = Math.floor(Math.random() * 1000000);
-        document.getElementById('sessionID').innerText = "Session: " + sid;
-
         let stream = null, timer = null, elapsed = 0;
         let alertaLlamada = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
         alertaLlamada.loop = true;
-
-        // WakeLock para evitar apagado de pantalla
-        if ('wakeLock' in navigator) {
-            navigator.wakeLock.request('screen').catch(() => {});
-        }
 
         function updateLog(m) { document.getElementById('sysLog').innerHTML = m; }
 
@@ -100,19 +90,27 @@
                         document.getElementById('weatherTempL').innerText = temp;
                         document.getElementById('weatherIconR').innerText = icon;
                         document.getElementById('weatherTempR').innerText = temp;
-                        updateLog("Clima al día");
-                    }, (err) => { updateLog("Ubicación pendiente..."); }, { enableHighAccuracy: true });
+                        updateLog("Clima sincronizado");
+                    }, (err) => { updateLog("Esperando flujo GPS..."); }, { enableHighAccuracy: true });
                 }
-            } catch (e) {}
+            } catch (e) { setTimeout(updateWeather, 5000); }
         }
 
         window.onload = () => { 
+            // Generador de ID Aikido (Números, Vocales, Símbolos)
+            const chars = "AEIOU0123456789!@#$%^&*";
+            let randomSid = "";
+            for (let i = 0; i < 8; i++) randomSid += chars.charAt(Math.floor(Math.random() * chars.length));
+            document.getElementById('sessionID').innerText = "SID: " + randomSid;
+            
+            // WakeLock para estabilidad 24/7
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').catch(() => {});
+            
             updateWeather(); 
             setInterval(updateWeather, 60000); 
-            updateLog("Sistema iniciado [" + sid + "]");
+            updateLog("Sistema en armonía [" + randomSid + "]");
         };
 
-        // ... (resto de funciones inalteradas) ...
         function updateStatus() { document.getElementById('remoteBox').classList.add('active-signal'); document.getElementById('remoteStatus').style.display = 'none'; document.title = "¡LLAMADA!"; alertaLlamada.play().catch(()=>{}); updateLog("Llamando..."); }
         function atenderLlamada() { alertaLlamada.pause(); alertaLlamada.currentTime = 0; document.title = "Sistema"; updateLog("Conectado"); if(stream && stream.getAudioTracks().length > 0) stream.getAudioTracks()[0].enabled = true; }
         function handleDegradation() { document.getElementById('remoteBox').classList.remove('active-signal'); document.getElementById('remoteStatus').style.display = 'block'; }
