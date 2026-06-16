@@ -7,16 +7,17 @@
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { background: #17212b; padding: 5px; display: grid; grid-template-columns: 90px 1fr 90px; align-items: center; border-radius: 8px; height: 55px; flex-shrink: 0; }
-        #roomInput { width: 85px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.85em; }
+        /* Ajuste de columnas: Columna central más amplia para el botón */
+        .header { background: #17212b; padding: 5px; display: grid; grid-template-columns: 80px 1fr 100px; align-items: center; border-radius: 8px; height: 55px; flex-shrink: 0; gap: 5px; }
+        #roomInput { width: 100%; background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.8em; box-sizing: border-box; }
         
-        /* Botón Propinas: Texto puro, sin iconos para evitar bugs */
-        .header-center { display: flex; justify-content: center; align-items: center; }
-        .btn-tip { background: #ffcc00; color: #000; padding: 8px 20px; border-radius: 6px; font-size: 0.9em; font-weight: 800; text-decoration: none; border: none; cursor: pointer; transition: transform 0.1s, background 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-transform: uppercase; }
+        /* Botón Propinas optimizado para que no se desborde */
+        .header-center { display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .btn-tip { background: #ffcc00; color: #000; padding: 6px 10px; border-radius: 6px; font-size: 0.75em; font-weight: 900; text-decoration: none; border: none; cursor: pointer; transition: transform 0.1s, background 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); text-transform: uppercase; white-space: nowrap; }
         .btn-tip:active { transform: scale(0.96); background: #e6b800; }
         
         .menu-btns { display: flex; gap: 4px; justify-content: flex-end; }
-        .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 5px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
+        .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 5px 6px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.85em; }
         
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #242f3d; }
