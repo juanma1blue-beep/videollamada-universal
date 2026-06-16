@@ -2,112 +2,114 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Proyecto Sanguino - Control Total</title>
+    <title>Proyecto Sanguino - Base Maestra</title>
     <style>
-        body { margin: 0; background: #0e1621; color: white; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: grid; grid-template-columns: 80px 1fr 60px; gap: 5px; align-items: center; }
-        input { background: #242f3d; color: white; border: 1px solid #228B22; padding: 5px; border-radius: 4px; font-size: 0.7em; }
-        .btn-act { background: #228B22; color: white; border: none; padding: 5px; border-radius: 4px; cursor: pointer; }
-        .btn-tip { background: #ffcc00; color: #000; padding: 5px; border-radius: 4px; text-decoration: none; text-align: center; font-weight: 900; }
-        .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; }
-        .video-box { flex: 1; position: relative; border: 2px solid #242f3d; overflow: hidden; background: #000; }
-        .status { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 10px; font-size: 0.7em; }
-        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
-        .chat-box { position: absolute; bottom: 10px; left: 10px; width: 200px; background: rgba(0,0,0,0.7); border: 1px solid #444; padding: 5px; z-index: 10; font-size: 0.75em; }
-        .chat-history { height: 50px; overflow-y: auto; margin-bottom: 5px; }
-        .chat-input { width: 100%; background: #111; border: 1px solid #555; color: #ffd100; font-family: inherit; }
-        .footer { height: 50px; display: flex; justify-content: space-around; align-items: center; background: #17212b; }
+        .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 2px; }
+        .video-box { flex: 1; position: relative; border: 1px solid #333; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Animación estilo WoW */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .msg-item { animation: fadeIn 0.3s ease-out; padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .chat-container { position: absolute; bottom: 10px; left: 10px; width: 90%; z-index: 20; }
+        .chat-log { background: rgba(0,0,0,0.85); height: 70px; overflow-y: auto; padding: 5px; font-size: 0.85em; border-left: 2px solid #ffd100; }
+        .chat-input { width: 100%; background: #111; border: 1px solid #555; color: #ffd100; padding: 5px; font-family: inherit; }
+        
+        .controls { height: 50px; display: flex; justify-content: space-around; align-items: center; background: #111; }
+        button { background: #242f3d; border: 1px solid #228B22; color: white; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="header">
-        <input type="text" id="myID" readonly placeholder="Cargando ID...">
+        <input type="text" id="myID" readonly placeholder="ID Local">
         <div style="display:flex; gap:2px;">
             <input type="text" id="peerID" placeholder="ID Pareja">
-            <button class="btn-act" onclick="iniciarLlamada()">📞</button>
+            <button onclick="iniciarConexion()">📞</button>
         </div>
-        <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">💶</a>
+        <a href="https://paypal.me/MarketEvolution" target="_blank" style="background:#ffcc00; padding:5px; border-radius:4px; text-align:center; font-weight:bold; color:#000; text-decoration:none;">💶</a>
     </div>
 
     <div class="wrapper">
         <div class="video-box">
-            <div class="status"><span id="dotLocal" class="dot"></span> LOCAL</div>
             <video id="localVideo" autoplay playsinline muted></video>
-            <div class="chat-box">
-                <div id="histLocal" class="chat-history"></div>
-                <input type="text" class="chat-input" placeholder="Susurrar..." onkeypress="enviar(event)">
-            </div>
         </div>
         <div class="video-box">
-            <div class="status"><span id="dotRemote" class="dot"></span> PAREJA</div>
             <video id="remoteVideo" autoplay playsinline></video>
-            <div class="chat-box">
-                <div id="histRemote" class="chat-history"></div>
-                <input type="text" class="chat-input" placeholder="Susurrar..." onkeypress="enviar(event)">
+            <div class="chat-container">
+                <div id="chatLog" class="chat-log"></div>
+                <input type="text" id="chatInput" class="chat-input" placeholder="Susurrar..." onkeypress="manejarEnvio(event)">
             </div>
         </div>
     </div>
 
-    <div class="footer">
-        <button onclick="cambiarCamara()">📷</button>
-        <button onclick="window.location.reload()" style="background:red;">❌</button>
+    <div class="controls">
+        <button onclick="window.location.reload()">🔄 Reiniciar</button>
+        <button onclick="colgar()" style="background:#cc0000; border:none;">❌ Colgar</button>
     </div>
 
     <script>
         const peer = new Peer();
-        let conn, localStream, useFront = true;
+        let conn, currentStream;
 
         peer.on('open', id => document.getElementById('myID').value = id);
         peer.on('connection', c => { conn = c; setupChat(); });
         peer.on('call', call => {
-            init().then(s => { 
-                call.answer(s); 
-                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
+            navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(s => {
+                call.answer(s);
+                currentStream = s;
+                document.getElementById('localVideo').srcObject = s;
+                call.on('stream', remoteS => document.getElementById('remoteVideo').srcObject = remoteS);
             });
         });
 
-        async function init() {
-            localStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: useFront ? "user" : "environment"}, audio: true});
-            document.getElementById('localVideo').srcObject = localStream;
-            document.getElementById('dotLocal').style.background = '#00ff00';
-            return localStream;
+        function setupChat() {
+            conn.on('data', data => logMessage("Pareja", data));
         }
 
-        async function iniciarLlamada() {
-            const stream = await init();
+        function logMessage(sender, msg) {
+            const log = document.getElementById('chatLog');
+            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            log.innerHTML += `<div class="msg-item"><span style="color:#888">[${time}]</span> <b>${sender}:</b> ${msg}</div>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        function manejarEnvio(e) {
+            if (e.key === 'Enter') {
+                const input = e.target;
+                const msg = input.value;
+                if (!msg) return;
+
+                if (msg.startsWith('/')) {
+                    logMessage("Sistema", "Comando ejecutado: " + msg);
+                    input.value = '';
+                } else if (conn && conn.open) {
+                    conn.send(msg);
+                    logMessage("Tú", msg);
+                    input.value = '';
+                } else {
+                    alert("⚠️ Canal de datos no activo");
+                }
+            }
+        }
+
+        function iniciarConexion() {
             const peerId = document.getElementById('peerID').value;
             conn = peer.connect(peerId);
             setupChat();
-            const call = peer.call(peerId, stream);
-            call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
+            navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(s => {
+                currentStream = s;
+                document.getElementById('localVideo').srcObject = s;
+                const call = peer.call(peerId, s);
+                call.on('stream', remoteS => document.getElementById('remoteVideo').srcObject = remoteS);
+            });
         }
 
-        function setupChat() {
-            conn.on('data', data => mostrarMensaje("Pareja: " + data));
-        }
-
-        function mostrarMensaje(texto) {
-            const hL = document.getElementById('histLocal');
-            const hR = document.getElementById('histRemote');
-            const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const msg = `<div><span style="color:#888">[${time}]</span> ${texto}</div>`;
-            hL.innerHTML += msg; hR.innerHTML += msg;
-            hL.scrollTop = hL.scrollHeight; hR.scrollTop = hR.scrollHeight;
-        }
-
-        function enviar(e) {
-            if (e.key === 'Enter') {
-                if (conn && conn.open) {
-                    conn.send(e.target.value);
-                    mostrarMensaje("Tú: " + e.target.value);
-                    e.target.value = '';
-                } else { alert("Conexión no activa"); }
-            }
-        }
-        
-        function cambiarCamara() { useFront = !useFront; init(); }
+        function colgar() { window.location.reload(); }
     </script>
 </body>
 </html>
