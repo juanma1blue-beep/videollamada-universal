@@ -4,66 +4,86 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Sistema Finalizado</title>
+    <title>Sistema</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Header Inteligente y Equilibrado */
-        .header { background: #17212b; padding: 5px; display: grid; grid-template-columns: 1fr 100px 90px; align-items: center; border-radius: 8px; height: 50px; flex-shrink: 0; gap: 5px; }
-        #statusDisplay { background: #242f3d; color: #00ff00; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.75em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: none; }
-        
-        .btn-tip { background: #ffcc00; color: #000; padding: 6px 8px; border-radius: 6px; font-size: 0.7em; font-weight: 900; text-transform: uppercase; text-decoration: none; text-align: center; cursor: pointer; white-space: nowrap; }
-        .menu-btns { display: flex; gap: 4px; justify-content: flex-end; }
-        .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 5px 6px; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
+        .header { background: #17212b; padding: 4px; display: grid; grid-template-columns: 80px 1fr 60px; align-items: center; border-radius: 8px; height: 50px; flex-shrink: 0; gap: 4px; }
+        #myID { background: #242f3d; color: #00ff00; border: none; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.7em; }
+        .conn-area { display: flex; gap: 2px; }
+        #peerID { background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; width: 100%; font-size: 0.7em; }
+        .btn-act { background: #228B22; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.7em; font-weight: bold; }
+        .btn-tip { background: #ffcc00; color: #000; padding: 4px; border-radius: 4px; font-size: 0.6em; font-weight: 900; text-transform: uppercase; text-decoration: none; text-align: center; cursor: pointer; }
         
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
-        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; border: 2px solid #242f3d; display: flex; align-items: center; justify-content: center; }
+        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; border: 2px solid #242f3d; }
         video { width: 100%; height: 100%; object-fit: cover; }
+        
+        /* Footer de control */
+        .footer { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #17212b; border-radius: 8px; flex-shrink: 0; }
+        .btn-ctrl { background: #242f3d; border: 1px solid #228B22; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1.2em; }
+        .btn-hang { background: #ff5959; border: none; }
     </style>
 </head>
 <body>
     <div class="header">
-        <input type="text" id="statusDisplay" placeholder="Esperando ID..." readonly>
-        <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">Propinas</a>
-        <div class="menu-btns">
-            <button class="btn-header" onclick="conectar()">🔗</button>
-            <button class="btn-header" onclick="copyID()">📋</button>
+        <input type="text" id="myID" readonly placeholder="Cargando...">
+        <div class="conn-area">
+            <input type="text" id="peerID" placeholder="ID Pareja">
+            <button class="btn-act" onclick="llamar()">📞</button>
         </div>
+        <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">$$</a>
     </div>
+    
     <div class="wrapper">
         <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
 
+    <div class="footer">
+        <button class="btn-ctrl" onclick="cambiarCamara()">📷</button>
+        <button class="btn-ctrl btn-hang" onclick="colgar()">❌</button>
+    </div>
+
     <script>
         const peer = new Peer();
-        let localStream;
+        let localStream, currentCall, useFront = true;
 
-        peer.on('open', id => { document.getElementById('statusDisplay').value = "ID: " + id; });
+        peer.on('open', id => { document.getElementById('myID').value = id; });
 
-        async function conectar() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-                
-                peer.on('call', call => {
-                    call.answer(localStream);
-                    call.on('stream', stream => {
-                        document.getElementById('remoteVideo').srcObject = stream;
-                        document.getElementById('statusDisplay').value = "EN LÍNEA";
-                        document.getElementById('statusDisplay').style.color = "#ffcc00";
-                    });
-                });
-            } catch(e) {
-                alert("Error de cámara/micrófono: Por favor, autoriza los permisos en el navegador.");
-            }
+        async function init() {
+            localStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: useFront ? "user" : "environment" }, 
+                audio: true 
+            });
+            document.getElementById('localVideo').srcObject = localStream;
         }
 
-        function copyID() {
-            const el = document.getElementById('statusDisplay');
-            el.select();
-            document.execCommand('copy');
+        function llamar() {
+            init().then(() => {
+                const call = peer.call(document.getElementById('peerID').value, localStream);
+                currentCall = call;
+                call.on('stream', stream => document.getElementById('remoteVideo').srcObject = stream);
+            });
+        }
+
+        peer.on('call', call => {
+            init().then(() => {
+                currentCall = call;
+                call.answer(localStream);
+                call.on('stream', stream => document.getElementById('remoteVideo').srcObject = stream);
+            });
+        });
+
+        function cambiarCamara() {
+            useFront = !useFront;
+            init(); // Reinicia con la nueva cámara
+        }
+
+        function colgar() {
+            if(currentCall) currentCall.close();
+            window.location.reload(); // Restaura el sistema limpiamente
         }
     </script>
 </body>
