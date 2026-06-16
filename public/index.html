@@ -77,21 +77,24 @@
         function updateLog(m) { document.getElementById('sysLog').innerHTML = m; }
 
         async function updateWeather() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                    const { latitude, longitude } = pos.coords;
-                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&_=${Date.now()}`);
-                    const data = await res.json();
-                    const code = data.current.weather_code;
-                    let icon = code >= 95 ? '🌩️' : (code >= 80 ? '⛈️' : (code >= 71 ? '❄️' : (code >= 51 ? '🌧️' : '☀️')));
-                    const temp = Math.round(data.current.temperature_2m) + '°C';
-                    
-                    document.getElementById('weatherIconL').innerText = icon;
-                    document.getElementById('weatherTempL').innerText = temp;
-                    document.getElementById('weatherIconR').innerText = icon;
-                    document.getElementById('weatherTempR').innerText = temp;
-                }, null, { enableHighAccuracy: true });
-            }
+            try {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        const { latitude, longitude } = pos.coords;
+                        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&_=${Date.now()}`);
+                        const data = await res.json();
+                        const code = data.current.weather_code;
+                        let icon = code >= 95 ? '🌩️' : (code >= 80 ? '⛈️' : (code >= 71 ? '❄️' : (code >= 51 ? '🌧️' : '☀️')));
+                        const temp = Math.round(data.current.temperature_2m) + '°C';
+                        
+                        document.getElementById('weatherIconL').innerText = icon;
+                        document.getElementById('weatherTempL').innerText = temp;
+                        document.getElementById('weatherIconR').innerText = icon;
+                        document.getElementById('weatherTempR').innerText = temp;
+                        updateLog("Clima sincronizado");
+                    }, (err) => { updateLog("Ubicación pendiente..."); setTimeout(updateWeather, 5000); }, { enableHighAccuracy: true });
+                }
+            } catch (e) { setTimeout(updateWeather, 5000); }
         }
 
         window.onload = () => { 
