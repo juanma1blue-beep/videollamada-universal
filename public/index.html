@@ -7,15 +7,14 @@
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        /* Header con grid expandido para mejor gestión del espacio */
         .header { background: #17212b; padding: 5px; display: grid; grid-template-columns: 90px 1fr 90px; align-items: center; border-radius: 8px; height: 55px; flex-shrink: 0; }
         #roomInput { width: 85px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.85em; }
         
-        /* Botón de Propinas agrandado y optimizado */
+        /* Botón Propinas con isotipo circular (doble P) */
         .header-center { display: flex; justify-content: center; align-items: center; }
-        .btn-tip { background: #ffcc00; color: #000; padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px; border: none; cursor: pointer; transition: transform 0.1s, background 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-tip { background: #ffcc00; color: #000; padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 6px; border: none; cursor: pointer; transition: transform 0.1s, background 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .btn-tip:active { transform: scale(0.96); background: #e6b800; }
-        .paypal-logo { height: 20px; width: auto; pointer-events: none; }
+        .paypal-logo { height: 22px; width: 22px; pointer-events: none; }
         
         .menu-btns { display: flex; gap: 4px; justify-content: flex-end; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 5px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
@@ -41,7 +40,7 @@
         <input type="text" id="roomInput" readonly>
         <div class="header-center">
             <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">
-                Propinas: <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDQgMjgxIj48cGF0aCBkPSJNMjQ0IDE0MmMwIDU1LTQxIDk4LTk4IDk4aC0zM2wtNiA0MWMtMSAxMCAyIDE0IDggMTQgMjUgMCA0NS0xMyA1My0zNiAxMy0zOSA0OC01NCA3Ni01NCA0OSAwIDg4LTQ0IDg4LTk5IDAtNTYtNDAtMTAxLTg4LTEwMUg4OUM0MCAwIDAgNDUgMCAxMDF2MTgwYzAgMTEgNiAxOCAxOCAxOCAyMyAwIDQzLTEzIDUxLTM2bDEyLTg1aDIxYzU3IDAgOTggNDMgOTggOTl6IiBmaWxsPSIjMDAzMDg3Ii8+PC9zdmc+" alt="PayPal" class="paypal-logo">
+                Propinas: <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5zZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiMwMDMwODciIGQ9Ik01MTIgMjU2YzAgMTQxLjM4NS0xMTQuNjE1IDI1Ni0yNTYgMjU2UzAgMzk3LjM4NSAwIDI1NiAxMTQuNjE1IDAgMjU2IDBjMTQxLjM4NSAwIDI1NiAxMTQuNjE1IDI1NiAyNTZ6bS0xNDEuNjE1IDBDMzQ1LjM4NSAyMDUuNTE2IDMwOS40NDYgMTcxLjU3MiAyNTYgMTcxLjU3MmMtNTMuNDQ2IDAtODkuMzg1IDMzLjk0NC04OS4zODUgODQuNDI4IDAgNTAuNDg0IDM1LjkzOSA4NC40MjggODkuMzg1IDg0LjQyOCA1My40NDYgMCA4OS4zODUtMzMuOTQ0IDg5LjM4NS04NC40Mjh6Ii8+PHBhdGggZmlsbD0iI0ZGRkZGRiIgZD0iTTI3NC4wMTkgMjE0LjgyNmMxMy4yIDAgMjMuOTIgNS42IDMwLjYyIDEzLjYgOC44IDkuNiAxMy4yIDIzLjIgMTMuMiA0MS42IDAgMTguNC00LjQgMzIuOC0xMy4yIDQzLjYtNi42IDguOC0xNi40IDEzLjYtMjkuNiAxMy42SDI1Mmw2LjggMzIuNEMyNTkuOCAyNjguMiAyNTIuNCAyNDIgMjQyIDIzNC4yIDI1MiAyMTkuOCAyNjIuOCAyMTQuODMgMjc0LjAxOSAyMTQuODJ6bS0yNS44IDQyLjZjLTUuNCAwLTkuMiAxLjgtMTEuNiA1LjQtMi4yIDMuMi0zLjIgNy44LTMuMiAxNC4yIDAgNi40IDEgMTEgMy4yIDE0LjIgMi40IDMuNiA2LjIgNS40IDExLjYgNS40aDEwLjRjNi40IDAgMTAuNi0xLjggMTIuOC01LjQgMi4yLTMuMiAzLjItNy44IDMuMi0xNC4yIDAtNi40LTEgMTEtMy4yLTE0LjItMi4yLTMuNi02LjQtNS40LTEyLjgtNS40aC0xMC40eiIvPjwvc3ZnPg==" alt="PayPal" class="paypal-logo">
             </a>
         </div>
         <div class="menu-btns">
