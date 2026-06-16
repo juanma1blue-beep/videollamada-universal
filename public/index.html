@@ -3,71 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>Sistema Activo</title>
+    <title>Sistema de Comunicación</title>
     <style>
-        /* Estilos optimizados para evitar sobrecarga de renderizado */
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; }
         #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #242f3d; }
+        .active-signal { border: 2px solid #228B22; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .weather-overlay { position: absolute; top: 10px; left: 10px; z-index: 20; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 15px; font-size: 0.9em; border: 1px solid rgba(255,255,255,0.1); }
+        .weather-overlay { position: absolute; top: 10px; left: 0; right: 0; z-index: 20; text-align: center; background: rgba(0,0,0,0.5); padding: 4px 10px; border-radius: 20px; font-size: 0.9em; margin: 0 auto; width: fit-content; pointer-events: none; color: white; border: 1px solid rgba(255,255,255,0.1); }
         .overlay { position: absolute; bottom: 8px; left: 8px; right: 8px; display: flex; align-items: center; justify-content: space-between; z-index: 5; }
+        .input-group { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.5); padding: 3px; border-radius: 4px; }
+        .status-dot { width: 10px; height: 10px; background: red; border-radius: 50%; }
         .btn-call { background: #ff5959; border: none; color: white; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
         .footer { background: #17212b; padding: 8px; border-radius: 8px; }
-        #sysLog { color: #00ff00; font-family: monospace; font-size: 0.9em; height: 20px; }
+        #sysLog { color: #00ff00; font-family: monospace; font-size: 0.9em; margin-bottom: 8px; height: 20px; }
+        .controls { display: flex; justify-content: space-evenly; }
+        .btn-ctrl { background: #242f3d; border: none; cursor: pointer; padding: 5px 15px; border-radius: 50%; font-size: 1.2em; }
     </style>
 </head>
 <body>
     <div class="header">
         <input type="text" id="roomInput" value="krhhe17o9r" readonly>
-        <button class="btn-header" onclick="init()">CONECTAR</button>
+        <button class="btn-header" onclick="toggleEdit()">✏️</button>
+        <button class="btn-header" onclick="copyCode()">📋</button>
+        <button class="btn-header" onclick="init()">🔗</button>
     </div>
+
     <div class="wrapper">
         <div class="video-box" id="localBox">
-            <div class="weather-overlay" id="wL">🌤️ --°C</div>
+            <div class="weather-overlay"><span id="weatherIconL">🌤️</span> <span id="weatherTempL">--°C</span></div>
+            <div id="timer" style="position:absolute; top:5px; left:5px; color:#00ff00; font-family:monospace; font-weight:bold; z-index:10;">00:00:00</div>
             <video id="localVideo" autoplay playsinline muted></video>
-            <div class="overlay"><button class="btn-call" onclick="window.location.reload()">SALIR</button></div>
+            <div class="overlay">
+                <div class="input-group">
+                    <div id="dot1" class="status-dot"></div>
+                    <input type="text" id="n1" placeholder="Nombre" style="background:transparent; color:white; border:none; width:80px;">
+                    <button onclick="save(1)" style="background:transparent; color:white; border:none; cursor:pointer;">OK</button>
+                </div>
+                <button class="btn-call" onclick="terminate()">📞</button>
+            </div>
+        </div>
+        <div class="video-box" id="remoteBox">
+            <div class="weather-overlay"><span id="weatherIconR">🌤️</span> <span id="weatherTempR">--°C</span></div>
+            <div id="remoteStatus" style="color:#555; font-size:0.8em; position:absolute;">Esperando señal...</div>
+            <video id="remoteVideo" autoplay playsinline onplay="updateStatus()" onpause="handleDegradation()"></video>
+            <div class="overlay">
+                <div class="input-group">
+                    <div id="dot2" class="status-dot"></div>
+                    <input type="text" id="n2" placeholder="Remoto" style="background:transparent; color:white; border:none; width:80px;" disabled>
+                </div>
+                <button class="btn-call" onclick="terminate()">📞</button>
+            </div>
         </div>
     </div>
+
     <div class="footer">
-        <div id="sysLog">Sistema listo...</div>
+        <div id="sysLog">Sistema Operativo</div>
+        <div class="controls">
+            <button class="btn-ctrl" onclick="atenderLlamada()">🎙️</button>
+            <button class="btn-ctrl" onclick="refresh()" title="Reajuste">⚡</button>
+            <button class="btn-ctrl" onclick="toggleVideo()">📷</button>
+        </div>
     </div>
 
     <script>
-        // Función de clima con fuerza bruta para evitar caché
+        let stream = null, timer = null, elapsed = 0;
+        let alertaLlamada = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+        alertaLlamada.loop = true;
+
+        function updateLog(m) { document.getElementById('sysLog').innerHTML = m; }
+
         async function updateWeather() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
-                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current=temperature_2m,weather_code&_=${Date.now()}`;
-                    const res = await fetch(url);
+                    const { latitude, longitude } = pos.coords;
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code&_=${Date.now()}`);
                     const data = await res.json();
-                    document.getElementById('wL').innerText = (data.current.weather_code >= 51 ? '🌧️' : '☀️') + " " + Math.round(data.current.temperature_2m) + "°C";
-                    document.getElementById('sysLog').innerText = "Clima actualizado en tiempo real";
-                });
-            }
-        }
-
-        // Evento de inicio forzado
-        async function init() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = stream;
-                document.getElementById('sysLog').innerText = "Cámara activa. Sistema estable.";
-            } catch(e) { 
-                document.getElementById('sysLog').innerText = "Error: Permisos bloqueados.";
+                    const code = data.current.weather_code;
+                    let icon = code >= 95 ? '🌩️' : (code >= 80 ? '⛈️' : (code >= 71 ? '❄️' : (code >= 51 ? '🌧️' : '☀️')));
+                    const temp = Math.round(data.current.temperature_2m) + '°C';
+                    
+                    document.getElementById('weatherIconL').innerText = icon;
+                    document.getElementById('weatherTempL').innerText = temp;
+                    document.getElementById('weatherIconR').innerText = icon;
+                    document.getElementById('weatherTempR').innerText = temp;
+                }, null, { enableHighAccuracy: true });
             }
         }
 
         window.onload = () => { 
             updateWeather(); 
-            setInterval(updateWeather, 30000); // Refresco agresivo cada 30s
+            setInterval(updateWeather, 60000); 
+            updateLog("Sistema iniciado");
         };
+
+        function updateStatus() { document.getElementById('remoteBox').classList.add('active-signal'); document.getElementById('remoteStatus').style.display = 'none'; document.title = "¡LLAMADA!"; alertaLlamada.play().catch(()=>{}); updateLog("Llamando..."); }
+        function atenderLlamada() { alertaLlamada.pause(); alertaLlamada.currentTime = 0; document.title = "Sistema"; updateLog("Conectado"); if(stream && stream.getAudioTracks().length > 0) stream.getAudioTracks()[0].enabled = true; }
+        function handleDegradation() { document.getElementById('remoteBox').classList.remove('active-signal'); document.getElementById('remoteStatus').style.display = 'block'; }
+        function terminate() { if(confirm("¿Finalizar?")) { sessionStorage.clear(); window.location.reload(); } }
+        function save(id) { sessionStorage.setItem('n'+id, document.getElementById('n'+id).value); }
+        function copyCode() { document.getElementById('roomInput').select(); document.execCommand('copy'); }
+        function toggleEdit() { document.getElementById('roomInput').readOnly = !document.getElementById('roomInput').readOnly; }
+        
+        async function init() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = stream;
+                document.getElementById('localBox').classList.add('active-signal');
+                document.getElementById('dot1').style.background = '#00ff00';
+                if(!timer) timer = setInterval(() => { elapsed++; document.getElementById('timer').innerText = new Date(elapsed * 1000).toISOString().substr(11, 8); }, 1000);
+                updateLog("Sistema Activo");
+            } catch(e) { updateLog("Permisos denegados"); }
+        }
+        function toggleVideo() { if(stream) stream.getVideoTracks()[0].enabled = !stream.getVideoTracks()[0].enabled; }
+        async function refresh() { if(stream) stream.getTracks().forEach(t => t.stop()); await init(); }
     </script>
 </body>
 </html>
