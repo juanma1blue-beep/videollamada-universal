@@ -4,103 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Sistema Final</title>
+    <title>Sistema Final con Chat</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
+        /* Estructura */
         .header { background: #17212b; padding: 4px; display: grid; grid-template-columns: 80px 1fr 60px; align-items: center; border-radius: 8px; height: 50px; flex-shrink: 0; gap: 4px; }
-        #myID { background: #242f3d; color: #00ff00; border: none; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.7em; }
-        .conn-area { display: flex; gap: 2px; }
-        #peerID { background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; width: 100%; font-size: 0.7em; }
-        .btn-act { background: #228B22; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.7em; font-weight: bold; }
-        .btn-tip { background: #ffcc00; color: #000; padding: 4px; border-radius: 4px; font-size: 0.8em; font-weight: 900; text-decoration: none; text-align: center; cursor: pointer; }
-        
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
+        
+        /* Video + Chat WoW */
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; border: 2px solid #242f3d; }
-        .status-badge { position: absolute; top: 10px; left: 10px; z-index: 10; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 20px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: red; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
+        /* Capa Chat WoW integrada */
+        .chat-box { position: absolute; bottom: 10px; left: 10px; width: 220px; background: rgba(0,0,0,0.6); border: 1px solid #444; padding: 6px; z-index: 10; font-size: 0.75em; border-radius: 2px; }
+        .chat-history { height: 50px; overflow-y: auto; margin-bottom: 4px; color: #fff; text-shadow: 1px 1px 1px #000; }
+        .chat-input { width: 100%; background: #111; border: 1px solid #555; color: #ffd100; padding: 2px; font-family: inherit; }
+
         .footer { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #17212b; border-radius: 8px; flex-shrink: 0; }
-        .btn-ctrl { background: #242f3d; border: 1px solid #228B22; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1.2em; }
-        .btn-hang { background: #ff5959; border: none; }
+        .btn-ctrl { background: #242f3d; border: 1px solid #228B22; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="header">
         <input type="text" id="myID" readonly placeholder="Cargando...">
-        <div class="conn-area">
-            <input type="text" id="peerID" placeholder="ID Pareja">
-            <button class="btn-act" onclick="llamar()">📞</button>
+        <div class="conn-area" style="display:flex; gap:2px;">
+            <input type="text" id="peerID" placeholder="ID Pareja" style="width:100%; background:#242f3d; color:white; border:1px solid #228B22; border-radius:4px; font-size:0.7em;">
+            <button class="btn-ctrl" onclick="llamar()" style="padding:2px 8px;">📞</button>
         </div>
-        <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">💶</a>
+        <a href="https://paypal.me/MarketEvolution" target="_blank" style="background:#ffcc00; color:#000; padding:4px; border-radius:4px; text-align:center; text-decoration:none; font-weight:900;">💶</a>
     </div>
     
     <div class="wrapper">
         <div class="video-box">
-            <div class="status-badge"><div id="dotLocal" class="dot"></div><span>LOCAL</span></div>
             <video id="localVideo" autoplay playsinline muted></video>
+            <div class="chat-box">
+                <div id="historyLocal" class="chat-history"></div>
+                <input type="text" class="chat-input" placeholder="Susurrar..." onkeypress="enviarMensaje(event, 'historyLocal')">
+            </div>
         </div>
         <div class="video-box">
-            <div class="status-badge"><div id="dotRemote" class="dot"></div><span>PAREJA</span></div>
             <video id="remoteVideo" autoplay playsinline></video>
+            <div class="chat-box">
+                <div id="historyRemote" class="chat-history"></div>
+                <input type="text" class="chat-input" placeholder="Susurrar..." onkeypress="enviarMensaje(event, 'historyRemote')">
+            </div>
         </div>
-    </div>
-
-    <div class="footer">
-        <button class="btn-ctrl" onclick="cambiarCamara()">📷</button>
-        <button class="btn-ctrl btn-hang" onclick="colgar()">❌</button>
     </div>
 
     <script>
         const peer = new Peer();
-        let localStream, currentCall, useFront = true;
+        let conn;
 
-        peer.on('open', id => { document.getElementById('myID').value = id; });
-
-        async function init() {
-            localStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: useFront ? "user" : "environment" }, 
-                audio: true 
-            });
-            document.getElementById('localVideo').srcObject = localStream;
-            document.getElementById('dotLocal').style.background = '#00ff00';
-        }
+        peer.on('open', id => document.getElementById('myID').value = id);
+        peer.on('connection', c => { conn = c; setupChat(); });
 
         function llamar() {
-            init().then(() => {
-                const call = peer.call(document.getElementById('peerID').value, localStream);
-                currentCall = call;
-                call.on('stream', stream => {
-                    document.getElementById('remoteVideo').srcObject = stream;
-                    document.getElementById('dotRemote').style.background = '#00ff00';
-                });
-            });
+            conn = peer.connect(document.getElementById('peerID').value);
+            setupChat();
         }
 
-        peer.on('call', call => {
-            init().then(() => {
-                currentCall = call;
-                call.answer(localStream);
-                call.on('stream', stream => {
-                    document.getElementById('remoteVideo').srcObject = stream;
-                    document.getElementById('dotRemote').style.background = '#00ff00';
-                });
-            });
-        });
-
-        function cambiarCamara() {
-            useFront = !useFront;
-            init();
+        function setupChat() {
+            conn.on('data', data => mostrarMensaje("Pareja: " + data));
         }
 
-        function colgar() {
-            if(currentCall) currentCall.close();
-            if(localStream) localStream.getTracks().forEach(t => t.stop());
-            document.getElementById('dotLocal').style.background = 'red';
-            document.getElementById('dotRemote').style.background = 'red';
-            document.getElementById('remoteVideo').srcObject = null;
+        function enviarMensaje(e, targetId) {
+            if (e.key === 'Enter') {
+                const msg = e.target.value;
+                if (conn) conn.send(msg);
+                mostrarMensaje("Tú: " + msg);
+                e.target.value = '';
+            }
+        }
+
+        function mostrarMensaje(text) {
+            const h = document.getElementById('historyLocal');
+            const h2 = document.getElementById('historyRemote');
+            [h, h2].forEach(el => {
+                el.innerHTML += `<div>${text}</div>`;
+                el.scrollTop = el.scrollHeight;
+            });
         }
     </script>
 </body>
