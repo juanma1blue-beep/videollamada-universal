@@ -1,145 +1,39 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Sistema WoW Corregido</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #17212b; padding: 4px; display: grid; grid-template-columns: 80px 1fr 60px; align-items: center; border-radius: 8px; height: 50px; flex-shrink: 0; gap: 4px; }
-        #myID { background: #242f3d; color: #00ff00; border: none; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.7em; }
-        .conn-area { display: flex; gap: 2px; }
-        #peerID { background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; width: 100%; font-size: 0.7em; }
-        .btn-act { background: #228B22; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.7em; font-weight: bold; }
-        .btn-tip { background: #ffcc00; color: #000; padding: 4px; border-radius: 4px; font-size: 0.8em; font-weight: 900; text-decoration: none; text-align: center; }
-        
-        .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
-        .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; border: 2px solid #242f3d; }
-        
-        .status-badge { position: absolute; top: 10px; left: 10px; z-index: 10; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 20px; font-size: 0.7em; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background: red; }
-        
-        .chat-box { position: absolute; bottom: 10px; left: 10px; width: 220px; background: rgba(0,0,0,0.7); border: 1px solid #444; padding: 6px; z-index: 10; font-size: 0.75em; border-radius: 2px; }
-        .chat-history { height: 50px; overflow-y: auto; margin-bottom: 4px; color: #fff; text-shadow: 1px 1px 1px #000; }
-        .chat-input { width: 100%; background: #111; border: 1px solid #555; color: #ffd100; padding: 2px; font-family: inherit; }
-
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .footer { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #17212b; border-radius: 8px; flex-shrink: 0; }
-        .btn-ctrl { background: #242f3d; border: 1px solid #228B22; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
-        .btn-hang { background: #ff5959; border: none; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <input type="text" id="myID" readonly placeholder="ID Local">
-        <div class="conn-area">
-            <input type="text" id="peerID" placeholder="ID Pareja">
-            <button class="btn-act" onclick="llamar()">📞</button>
-        </div>
-        <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">💶</a>
-    </div>
-    
-    <div class="wrapper">
-        <div class="video-box">
-            <div class="status-badge"><div id="dotLocal" class="dot"></div><span>LOCAL</span></div>
-            <video id="localVideo" autoplay playsinline muted></video>
-            <div class="chat-box">
-                <div id="historyLocal" class="chat-history"></div>
-                <input type="text" class="chat-input" id="inputLocal" placeholder="Susurrar..." onkeypress="manejarEnvio(event, 'local')">
-            </div>
-        </div>
-        <div class="video-box">
-            <div class="status-badge"><div id="dotRemote" class="dot"></div><span>PAREJA</span></div>
-            <video id="remoteVideo" autoplay playsinline></video>
-            <div class="chat-box">
-                <div id="historyRemote" class="chat-history"></div>
-                <input type="text" class="chat-input" id="inputRemote" placeholder="Susurrar..." onkeypress="manejarEnvio(event, 'remote')">
-            </div>
-        </div>
-    </div>
-
-    <div class="footer">
-        <button class="btn-ctrl" onclick="cambiarCamara()">📷</button>
-        <button class="btn-ctrl btn-hang" onclick="colgar()">❌</button>
-    </div>
-
-    <script>
-        const peer = new Peer();
-        let localStream, currentCall, conn, useFront = true;
-
-        peer.on('open', id => document.getElementById('myID').value = id);
-
-        // Recibir conexión de datos
-        peer.on('connection', c => {
-            conn = c;
-            conn.on('data', data => mostrarMensaje("Pareja: " + data));
-            conn.on('open', () => console.log("Canal de datos abierto"));
-        });
-
-        // Recibir llamada de video
-        peer.on('call', call => {
-            init().then(stream => {
-                call.answer(stream);
-                currentCall = call;
-                call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
-            });
-        });
-
-        async function init() {
-            localStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: useFront ? "user" : "environment" }, audio: true 
-            });
-            document.getElementById('localVideo').srcObject = localStream;
-            document.getElementById('dotLocal').style.background = '#00ff00';
-            return localStream;
-        }
-
-        async function llamar() {
-            const peerId = document.getElementById('peerID').value;
-            const stream = await init();
-            currentCall = peer.call(peerId, stream);
-            currentCall.on('stream', s => {
-                document.getElementById('remoteVideo').srcObject = s;
-                document.getElementById('dotRemote').style.background = '#00ff00';
-            });
+        // Función corregida para mostrar mensajes con hora y consistencia
+        function mostrarMensaje(texto, esPropio) {
+            const ahora = new Date();
+            const hora = ahora.getHours().toString().padStart(2, '0');
+            const min = ahora.getMinutes().toString().padStart(2, '0');
+            const timestamp = `[${hora}:${min}] `;
             
-            // Conectar canal de datos
-            conn = peer.connect(peerId);
-            conn.on('data', data => mostrarMensaje("Pareja: " + data));
+            const hL = document.getElementById('historyLocal');
+            const hR = document.getElementById('historyRemote');
+            
+            // Creamos el nodo del mensaje
+            const mensajeHTML = `<div style="margin-bottom: 2px;">
+                                    <span style="color: #888;">${timestamp}</span>
+                                    <span style="color: ${esPropio ? '#ffd100' : '#fff'};">${texto}</span>
+                                 </div>`;
+            
+            // Lo añadimos a ambos historiales para mantener la simetría
+            hL.innerHTML += mensajeHTML;
+            hR.innerHTML += mensajeHTML;
+            
+            hL.scrollTop = hL.scrollHeight;
+            hR.scrollTop = hR.scrollHeight;
         }
 
-        function manejarEnvio(e, source) {
+        // Manejador de envío mejorado
+        function manejarEnvio(e) {
             if (e.key === 'Enter') {
                 const msg = e.target.value;
+                if (!msg) return;
+
                 if (conn && conn.open) {
-                    conn.send(msg);
-                    mostrarMensaje("Tú: " + msg);
+                    conn.send(msg); // Enviamos al otro
+                    mostrarMensaje("Tú: " + msg, true); // Mostramos lo nuestro
                     e.target.value = '';
                 } else {
-                    alert("Aún no hay conexión activa con la pareja.");
+                    alert("⚠️ Canal de datos no abierto. Espera a que la conexión sea estable.");
                 }
             }
         }
-
-        function mostrarMensaje(text) {
-            const hL = document.getElementById('historyLocal');
-            const hR = document.getElementById('historyRemote');
-            [hL, hR].forEach(el => {
-                el.innerHTML += `<div>${text}</div>`;
-                el.scrollTop = el.scrollHeight;
-            });
-        }
-
-        function cambiarCamara() { useFront = !useFront; init(); }
-        
-        function colgar() {
-            if(currentCall) currentCall.close();
-            if(localStream) localStream.getTracks().forEach(t => t.stop());
-            document.getElementById('dotLocal').style.background = 'red';
-            document.getElementById('dotRemote').style.background = 'red';
-        }
-    </script>
-</body>
-</html>
