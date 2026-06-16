@@ -6,11 +6,15 @@
     <title>Sistema de Comunicación</title>
     <style>
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: center; border-radius: 8px; gap: 5px; height: 35px; position: relative; }
-        /* Código original posicionado a la izquierda */
-        #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; position: absolute; left: 5px; }
+        .header { background: #17212b; padding: 5px; display: flex; align-items: center; justify-content: space-between; border-radius: 8px; height: 40px; position: relative; }
+        #roomInput { width: 90px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 3px; border-radius: 4px; text-align: center; font-weight: bold; }
+        
+        .paypal-container { display: flex; align-items: center; gap: 5px; cursor: pointer; text-decoration: none; }
+        .paypal-text { font-size: 0.7em; color: #ffcc00; font-weight: bold; }
+        .paypal-logo { height: 25px; width: auto; border-radius: 4px; }
+        
+        .menu-btns { display: flex; gap: 5px; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 2px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .menu-btns { display: flex; gap: 5px; margin-left: auto; }
         
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid #242f3d; }
@@ -29,6 +33,12 @@
 <body>
     <div class="header">
         <input type="text" id="roomInput" readonly>
+        
+        <a href="https://paypal.me/@MarketEvolution" target="_blank" class="paypal-container">
+            <span class="paypal-text">Propinas aquí</span>
+            <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x65.jpg" alt="PayPal" class="paypal-logo">
+        </a>
+
         <div class="menu-btns">
             <button class="btn-header" onclick="toggleEdit()">✏️</button>
             <button class="btn-header" onclick="copyCode()">📋</button>
@@ -78,7 +88,6 @@
         alertaLlamada.loop = true;
 
         window.onload = () => { 
-            // Generador aleatorio: Números, Vocales y Símbolos en el input izquierdo
             const chars = "AEIOU0123456789!@#$%^&*";
             let randomCode = "";
             for (let i = 0; i < 9; i++) randomCode += chars.charAt(Math.floor(Math.random() * chars.length));
