@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Proyecto Sanguino - Élite 100%</title>
+    <title>Proyecto Sanguino - Operativa Total</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -19,7 +19,7 @@
         .system-msg { color: #ffd100; font-weight: bold; }
         /* Botones Azul Oscuro */
         .controls { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #111; border-top: 1px solid #333; }
-        button { background: #003366; border: 1px solid #228B22; color: #fff; padding: 12px 20px; border-radius: 5px; cursor: pointer; }
+        button { background: #002244; border: 1px solid #228B22; color: #fff; padding: 12px 20px; border-radius: 5px; cursor: pointer; }
         .btn-close { background: #8B0000; border: 1px solid #FF4500; }
         input { background: #111; color: #fff; border: 1px solid #228B22; padding: 5px; border-radius: 3px; }
     </style>
@@ -39,7 +39,7 @@
     </div>
     <div class="controls">
         <button onclick="cambiarCamara()">📷</button>
-        <button onclick="enviarPropina()">🎁 Propinas</button>
+        <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">🎁 Propinas</button>
         <button class="btn-close" onclick="window.location.reload()">❌</button>
     </div>
 
@@ -64,13 +64,6 @@
         function log(q, m, sys) {
             const h = document.getElementById('hist');
             h.innerHTML += `<div class="${sys?'system-msg':''}"><b>${q}:</b> ${m}</div>`; h.scrollTop = h.scrollHeight;
-        }
-
-        function enviarPropina() {
-            if (conn?.open) {
-                conn.send("💰 Has recibido una propina.");
-                log("Sistema", "Propina enviada correctamente.", true);
-            } else alert("Conexión no establecida.");
         }
 
         function enviar(e) {
