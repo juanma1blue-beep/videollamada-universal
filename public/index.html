@@ -12,11 +12,12 @@
         
         .header-center { display: flex; justify-content: center; align-items: center; padding-top: 3px; }
         
-        /* Efecto Botón Presionado (Click) */
+        /* Botón Propinas con logo blindado */
         .btn-tip { background: #ffcc00; color: #000; padding: 4px 10px; border-radius: 4px; font-size: 0.75em; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 5px; border: none; cursor: pointer; transition: transform 0.1s, background 0.1s; }
         .btn-tip:active { transform: scale(0.95); background: #e6b800; }
         
-        .paypal-logo { height: 15px; width: auto; pointer-events: none; }
+        /* Logo incrustado directamente (no da error) */
+        .paypal-logo { height: 16px; width: auto; pointer-events: none; }
         
         .menu-btns { display: flex; gap: 4px; justify-content: flex-end; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 4px 6px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
@@ -42,7 +43,8 @@
         <input type="text" id="roomInput" readonly>
         <div class="header-center">
             <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">
-                Propinas: <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x65.jpg" alt="PayPal" class="paypal-logo">
+                Propinas: 
+                <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNDQgMjgxIj48cGF0aCBkPSJNMjQ0IDE0MmMwIDU1LTQxIDk4LTk4IDk4aC0zM2wtNiA0MWMtMSAxMCAyIDE0IDggMTQgMjUgMCA0NS0xMyA1My0zNiAxMy0zOSA0OC01NCA3Ni01NCA0OSAwIDg4LTQ0IDg4LTk5IDAtNTYtNDAtMTAxLTg4LTEwMUg4OUM0MCAwIDAgNDUgMCAxMDF2MTgwYzAgMTEgNiAxOCAxOCAxOCAyMyAwIDQzLTEzIDUxLTM2bDEyLTg1aDIxYzU3IDAgOTggNDMgOTggOTl6IiBmaWxsPSIjMDAzMDg3Ii8+PC9zdmc+" alt="PayPal" class="paypal-logo">
             </a>
         </div>
         <div class="menu-btns">
