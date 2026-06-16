@@ -11,10 +11,10 @@
         /* Izquierda: Código aleatorio */
         #roomInput { width: 95px; background: #242f3d; color: white; border: 1px solid #228B22; padding: 4px; border-radius: 4px; text-align: center; font-weight: bold; font-size: 0.9em; }
         
-        /* Derecha: PayPal y botones */
+        /* Derecha: Botón Propinas limpio */
         .header-right { display: flex; align-items: center; gap: 8px; }
-        .paypal-link { display: flex; align-items: center; gap: 4px; text-decoration: none; color: #ffcc00; font-size: 0.75em; font-weight: bold; }
-        .paypal-logo { height: 24px; width: auto; border-radius: 3px; }
+        .btn-tip { background: #ffcc00; color: #000; padding: 5px 10px; border-radius: 4px; font-size: 0.75em; font-weight: bold; text-decoration: none; cursor: pointer; border: none; }
+        
         .menu-btns { display: flex; gap: 5px; }
         .btn-header { background: #242f3d; color: #228B22; border: 1px solid #228B22; padding: 4px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         
@@ -37,10 +37,8 @@
         <input type="text" id="roomInput" readonly>
         
         <div class="header-right">
-            <a href="https://paypal.me/@MarketEvolution" target="_blank" class="paypal-link">
-                Propinas
-                <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x65.jpg" alt="PayPal" class="paypal-logo">
-            </a>
+            <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-tip">Propinas aquí</a>
+            
             <div class="menu-btns">
                 <button class="btn-header" onclick="toggleEdit()">✏️</button>
                 <button class="btn-header" onclick="copyCode()">📋</button>
