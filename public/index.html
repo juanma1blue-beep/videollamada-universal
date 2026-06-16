@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Proyecto Sanguino - Élite Operativa</title>
+    <title>Proyecto Sanguino - Control Táctico</title>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .integrity-panel { background: #000; padding: 4px; display: flex; justify-content: space-around; font-size: 0.65em; color: #228B22; border-bottom: 1px solid #228B22; }
+        .integrity-panel { background: #000; padding: 6px; display: flex; justify-content: center; gap: 20px; font-size: 0.7em; color: #228B22; border-bottom: 1px solid #228B22; }
         .header { background: #111; padding: 5px; display: flex; gap: 5px; align-items: center; border-bottom: 1px solid #333; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; }
-        .video-box { flex: 1; position: relative; border: 1px solid #333; overflow: hidden; background: #000; }
+        .video-box { flex: 1; position: relative; border: 1px solid #333; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .status { position: absolute; top: 10px; left: 10px; font-weight: bold; color: #fff; z-index: 10; font-size: 0.8em; text-shadow: 1px 1px 1px #000; }
         .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; transition: background 0.2s; }
@@ -26,8 +26,7 @@
 </head>
 <body>
     <div class="integrity-panel">
-        <span>STOCK: <b id="valStock">0</b></span>
-        <span>ESTADO: <b id="valEstado">EN ESPERA</b></span>
+        <span>PROTOCOLO: <b id="valProtocolo">SIN ASIGNAR</b></span>
     </div>
     <div class="header">
         <input type="text" id="myID" readonly placeholder="ID">
@@ -60,7 +59,6 @@
         peer.on('open', id => document.getElementById('myID').value = id);
         peer.on('connection', c => { conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; setupChat(); });
         
-        // --- SENSOR DE AUDIO TÁCTICO ---
         function iniciarSensorVoz(stream) {
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const source = audioCtx.createMediaStreamSource(stream);
@@ -68,21 +66,18 @@
             source.connect(analyser);
             analyser.fftSize = 256;
             const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            
             setInterval(() => {
                 analyser.getByteFrequencyData(dataArray);
                 let sum = 0;
                 for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-                const volume = sum / dataArray.length;
-                document.getElementById('dotLocal').style.background = volume > 20 ? '#00ccff' : '#00ff00';
+                document.getElementById('dotLocal').style.background = (sum / dataArray.length) > 20 ? '#00ccff' : '#00ff00';
             }, 200);
         }
 
         function setupChat() {
             conn.on('data', data => {
                 if (data.cmd === 'update') {
-                    document.getElementById('valStock').innerText = data.stock;
-                    document.getElementById('valEstado').innerText = data.estado;
+                    document.getElementById('valProtocolo').innerText = data.protocolo;
                 } else {
                     log("Pareja", data, false);
                 }
@@ -91,24 +86,18 @@
         
         function log(quien, msg, isSystem) {
             const h = document.getElementById('hist');
-            const cl = isSystem ? 'system-msg' : '';
-            h.innerHTML += `<div class="${cl}"><b>${quien}:</b> ${msg}</div>`;
+            h.innerHTML += `<div class="${isSystem ? 'system-msg' : ''}"><b>${quien}:</b> ${msg}</div>`;
             h.scrollTop = h.scrollHeight;
-        }
-
-        function sincronizarEstado(stock, estado) {
-            document.getElementById('valStock').innerText = stock;
-            document.getElementById('valEstado').innerText = estado;
-            if (conn && conn.open) conn.send({cmd: 'update', stock, estado});
         }
 
         function enviar(e) {
             if (e.key === 'Enter') {
                 const val = e.target.value;
                 if (val.startsWith('/')) {
-                    const params = val.slice(1).split(' ');
-                    if (params[0] === 'prod') { sincronizarEstado('PRODUCCIÓN', 'ACTIVO'); log("Sistema", "Estado actualizado a PROD", true); }
-                    else if (params[0] === 'espera') { sincronizarEstado('0', 'EN ESPERA'); log("Sistema", "Estado actualizado a ESPERA", true); }
+                    const nuevoProtocolo = val.slice(1).toUpperCase();
+                    document.getElementById('valProtocolo').innerText = nuevoProtocolo;
+                    if (conn && conn.open) conn.send({cmd: 'update', protocolo: nuevoProtocolo});
+                    log("Sistema", "Protocolo: " + nuevoProtocolo, true);
                 } else if (conn && conn.open) {
                     conn.send(val);
                     log("Tú", val, false);
@@ -122,7 +111,7 @@
                 localStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: useFront ? "user" : "environment"}, audio: true});
                 document.getElementById('localVideo').srcObject = localStream;
                 document.getElementById('dotLocal').style.background = '#00ff00';
-                iniciarSensorVoz(localStream); // Activación del sensor
+                iniciarSensorVoz(localStream);
                 const call = peer.call(document.getElementById('peerID').value, localStream);
                 call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
             } catch(e) { console.error("Error acceso cámara", e); }
