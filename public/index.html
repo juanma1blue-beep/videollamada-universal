@@ -13,6 +13,12 @@
         video { width: 100%; height: 100%; object-fit: cover; }
         .status { position: absolute; top: 10px; left: 10px; font-weight: bold; color: #fff; z-index: 10; }
         .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
+        
+        /* CHAT ESTRATO AIKIDO (Flotante) */
+        .chat-overlay { position: absolute; bottom: 70px; left: 10px; width: 90%; z-index: 20; }
+        .chat-log { height: 80px; overflow-y: auto; background: rgba(0,0,0,0.6); font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; }
+        .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; box-sizing: border-box; }
+        
         .controls { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #111; }
         button { background: #1a1a1a; border: 1px solid #228B22; color: #fff; padding: 10px 20px; border-radius: 5px; }
         .btn-close { background: #8B0000; border: 1px solid #FF4500; }
@@ -37,6 +43,10 @@
         <div class="video-box">
             <div class="status"><span id="dotRemote" class="dot"></span> PAREJA</div>
             <video id="remoteVideo" autoplay playsinline></video>
+            <div class="chat-overlay">
+                <div id="hist" class="chat-log"></div>
+                <input type="text" id="msgInput" class="chat-input" placeholder="Susurrar..." onkeypress="enviar(event)">
+            </div>
         </div>
     </div>
     <div class="controls">
@@ -49,8 +59,27 @@
         let conn, localStream, useFront = true;
 
         peer.on('open', id => document.getElementById('myID').value = id);
-        peer.on('connection', c => { conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; });
+        peer.on('connection', c => { conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; setupChat(); });
         
+        function setupChat() { conn.on('data', data => log("Pareja", data)); }
+        
+        function log(quien, msg) {
+            const h = document.getElementById('hist');
+            h.innerHTML += `<div><b>${quien}:</b> ${msg}</div>`;
+            h.scrollTop = h.scrollHeight;
+        }
+
+        function enviar(e) {
+            if (e.key === 'Enter') {
+                const val = e.target.value;
+                if (conn && conn.open) {
+                    conn.send(val);
+                    log("Tú", val);
+                    e.target.value = '';
+                }
+            }
+        }
+
         async function conectar() {
             localStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: useFront ? "user" : "environment"}, audio: true});
             document.getElementById('localVideo').srcObject = localStream;
