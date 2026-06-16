@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Sistema WoW Integral</title>
+    <title>Sistema WoW Corregido</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: sans-serif; background: #0e1621; color: white; margin: 0; padding: 4px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        
         .header { background: #17212b; padding: 4px; display: grid; grid-template-columns: 80px 1fr 60px; align-items: center; border-radius: 8px; height: 50px; flex-shrink: 0; gap: 4px; }
         #myID { background: #242f3d; color: #00ff00; border: none; padding: 4px; border-radius: 4px; text-align: center; font-size: 0.7em; }
         .conn-area { display: flex; gap: 2px; }
@@ -19,12 +18,10 @@
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; gap: 4px; overflow: hidden; }
         .video-box { flex: 1; background: #000; border-radius: 8px; position: relative; overflow: hidden; border: 2px solid #242f3d; }
         
-        /* Bolitas de estado */
         .status-badge { position: absolute; top: 10px; left: 10px; z-index: 10; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 20px; font-size: 0.7em; }
         .dot { width: 10px; height: 10px; border-radius: 50%; background: red; }
         
-        /* Chat WoW */
-        .chat-box { position: absolute; bottom: 10px; left: 10px; width: 220px; background: rgba(0,0,0,0.6); border: 1px solid #444; padding: 6px; z-index: 10; font-size: 0.75em; border-radius: 2px; }
+        .chat-box { position: absolute; bottom: 10px; left: 10px; width: 220px; background: rgba(0,0,0,0.7); border: 1px solid #444; padding: 6px; z-index: 10; font-size: 0.75em; border-radius: 2px; }
         .chat-history { height: 50px; overflow-y: auto; margin-bottom: 4px; color: #fff; text-shadow: 1px 1px 1px #000; }
         .chat-input { width: 100%; background: #111; border: 1px solid #555; color: #ffd100; padding: 2px; font-family: inherit; }
 
@@ -36,7 +33,7 @@
 </head>
 <body>
     <div class="header">
-        <input type="text" id="myID" readonly placeholder="Cargando...">
+        <input type="text" id="myID" readonly placeholder="ID Local">
         <div class="conn-area">
             <input type="text" id="peerID" placeholder="ID Pareja">
             <button class="btn-act" onclick="llamar()">📞</button>
@@ -50,7 +47,7 @@
             <video id="localVideo" autoplay playsinline muted></video>
             <div class="chat-box">
                 <div id="historyLocal" class="chat-history"></div>
-                <input type="text" class="chat-input" placeholder="Susurrar..." onkeypress="enviarMensaje(event, 'historyLocal')">
+                <input type="text" class="chat-input" id="inputLocal" placeholder="Susurrar..." onkeypress="manejarEnvio(event, 'local')">
             </div>
         </div>
         <div class="video-box">
@@ -58,7 +55,7 @@
             <video id="remoteVideo" autoplay playsinline></video>
             <div class="chat-box">
                 <div id="historyRemote" class="chat-history"></div>
-                <input type="text" class="chat-input" placeholder="Susurrar..." onkeypress="enviarMensaje(event, 'historyRemote')">
+                <input type="text" class="chat-input" id="inputRemote" placeholder="Susurrar..." onkeypress="manejarEnvio(event, 'remote')">
             </div>
         </div>
     </div>
@@ -70,75 +67,78 @@
 
     <script>
         const peer = new Peer();
-        let localStream, currentCall, useFront = true, conn;
+        let localStream, currentCall, conn, useFront = true;
 
         peer.on('open', id => document.getElementById('myID').value = id);
-        
+
+        // Recibir conexión de datos
+        peer.on('connection', c => {
+            conn = c;
+            conn.on('data', data => mostrarMensaje("Pareja: " + data));
+            conn.on('open', () => console.log("Canal de datos abierto"));
+        });
+
+        // Recibir llamada de video
         peer.on('call', call => {
-            currentCall = call;
-            call.answer(localStream);
-            call.on('stream', stream => {
-                document.getElementById('remoteVideo').srcObject = stream;
-                document.getElementById('dotRemote').style.background = '#00ff00';
+            init().then(stream => {
+                call.answer(stream);
+                currentCall = call;
+                call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
             });
         });
 
-        peer.on('connection', c => { conn = c; setupChat(); });
-
         async function init() {
             localStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: useFront ? "user" : "environment" }, 
-                audio: true 
+                video: { facingMode: useFront ? "user" : "environment" }, audio: true 
             });
             document.getElementById('localVideo').srcObject = localStream;
             document.getElementById('dotLocal').style.background = '#00ff00';
+            return localStream;
         }
 
-        function llamar() {
-            init().then(() => {
-                currentCall = peer.call(document.getElementById('peerID').value, localStream);
-                conn = peer.connect(document.getElementById('peerID').value);
-                setupChat();
-                currentCall.on('stream', stream => {
-                    document.getElementById('remoteVideo').srcObject = stream;
-                    document.getElementById('dotRemote').style.background = '#00ff00';
-                });
+        async function llamar() {
+            const peerId = document.getElementById('peerID').value;
+            const stream = await init();
+            currentCall = peer.call(peerId, stream);
+            currentCall.on('stream', s => {
+                document.getElementById('remoteVideo').srcObject = s;
+                document.getElementById('dotRemote').style.background = '#00ff00';
             });
-        }
-
-        function setupChat() {
+            
+            // Conectar canal de datos
+            conn = peer.connect(peerId);
             conn.on('data', data => mostrarMensaje("Pareja: " + data));
         }
 
-        function enviarMensaje(e, targetId) {
+        function manejarEnvio(e, source) {
             if (e.key === 'Enter') {
                 const msg = e.target.value;
-                if (conn) conn.send(msg);
-                mostrarMensaje("Tú: " + msg);
-                e.target.value = '';
+                if (conn && conn.open) {
+                    conn.send(msg);
+                    mostrarMensaje("Tú: " + msg);
+                    e.target.value = '';
+                } else {
+                    alert("Aún no hay conexión activa con la pareja.");
+                }
             }
         }
 
         function mostrarMensaje(text) {
-            const h = document.getElementById('historyLocal');
-            const h2 = document.getElementById('historyRemote');
-            [h, h2].forEach(el => {
+            const hL = document.getElementById('historyLocal');
+            const hR = document.getElementById('historyRemote');
+            [hL, hR].forEach(el => {
                 el.innerHTML += `<div>${text}</div>`;
                 el.scrollTop = el.scrollHeight;
             });
         }
 
-        function cambiarCamara() {
-            useFront = !useFront;
-            init();
-        }
-
+        function cambiarCamara() { useFront = !useFront; init(); }
+        
         function colgar() {
             if(currentCall) currentCall.close();
             if(localStream) localStream.getTracks().forEach(t => t.stop());
             document.getElementById('dotLocal').style.background = 'red';
             document.getElementById('dotRemote').style.background = 'red';
-            document.getElementById('remoteVideo').srcObject = null;
         }
     </script>
 </body>
