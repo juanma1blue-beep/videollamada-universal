@@ -4,29 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Proyecto Sanguino - Élite 100%</title>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
-        /* Panel de Control de Calidad Superior */
+        body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .integrity-panel { background: #000; padding: 4px; display: flex; justify-content: space-around; font-size: 0.65em; color: #228B22; border-bottom: 1px solid #228B22; }
         .header { background: #111; padding: 5px; display: flex; gap: 5px; align-items: center; border-bottom: 1px solid #333; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; }
         .video-box { flex: 1; position: relative; border: 1px solid #333; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        
-        /* Etiquetas Originales */
-        .status { position: absolute; top: 10px; left: 10px; font-weight: bold; color: #fff; z-index: 10; font-size: 0.8em; }
+        .status { position: absolute; top: 10px; left: 10px; font-weight: bold; color: #fff; z-index: 10; font-size: 0.8em; text-shadow: 1px 1px 1px #000; }
         .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
         
-        /* Chat Integrado dentro del video */
         .chat-overlay { position: absolute; bottom: 10px; left: 10px; width: 90%; z-index: 20; }
-        .chat-log { height: 60px; overflow-y: auto; background: rgba(0,0,0,0.7); font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; }
-        .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; box-sizing: border-box; }
+        .chat-log { height: 60px; overflow-y: auto; background: rgba(0, 0, 0, 0.85); border: 1px solid #444; font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; color: #fff; text-shadow: 1px 1px 1px #000; }
+        .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; box-sizing: border-box; font-family: 'Verdana', sans-serif; }
+        .system-msg { color: #ffd100; font-weight: bold; }
         
-        /* Botones Originales */
         .controls { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #111; border-top: 1px solid #333; }
-        button { background: #1a1a1a; border: 1px solid #228B22; color: #fff; padding: 15px 30px; border-radius: 5px; }
+        button { background: #1a1a1a; border: 1px solid #228B22; color: #fff; padding: 15px 30px; border-radius: 5px; cursor: pointer; }
         .btn-close { background: #8B0000; border: 1px solid #FF4500; }
-        input { background: #111; color: #fff; border: 1px solid #228B22; padding: 5px; }
+        input { background: #111; color: #fff; border: 1px solid #228B22; padding: 5px; border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -40,11 +37,11 @@
         <button onclick="conectar()">📞</button>
     </div>
     <div class="wrapper">
-        <div class="video-box" id="boxLocal">
+        <div class="video-box">
             <div class="status"><span id="dotLocal" class="dot"></span> LOCAL</div>
             <video id="localVideo" autoplay playsinline muted></video>
         </div>
-        <div class="video-box" id="boxRemote">
+        <div class="video-box">
             <div class="status"><span id="dotRemote" class="dot"></span> PAREJA</div>
             <video id="remoteVideo" autoplay playsinline></video>
             <div class="chat-overlay">
@@ -71,13 +68,18 @@
                     document.getElementById('valStock').innerText = data.stock;
                     document.getElementById('valEstado').innerText = data.estado;
                 } else {
-                    const h = document.getElementById('hist');
-                    h.innerHTML += `<div><b>Pareja:</b> ${data}</div>`;
-                    h.scrollTop = h.scrollHeight;
+                    log("Pareja", data, false);
                 }
             });
         }
         
+        function log(quien, msg, isSystem) {
+            const h = document.getElementById('hist');
+            const cl = isSystem ? 'system-msg' : '';
+            h.innerHTML += `<div class="${cl}"><b>${quien}:</b> ${msg}</div>`;
+            h.scrollTop = h.scrollHeight;
+        }
+
         function sincronizarEstado(stock, estado) {
             document.getElementById('valStock').innerText = stock;
             document.getElementById('valEstado').innerText = estado;
@@ -89,24 +91,24 @@
                 const val = e.target.value;
                 if (val.startsWith('/')) {
                     const params = val.slice(1).split(' ');
-                    if (params[0] === 'prod') sincronizarEstado('PRODUCCIÓN', 'ACTIVO');
-                    if (params[0] === 'espera') sincronizarEstado('0', 'EN ESPERA');
+                    if (params[0] === 'prod') { sincronizarEstado('PRODUCCIÓN', 'ACTIVO'); log("Sistema", "Estado actualizado a PROD", true); }
+                    else if (params[0] === 'espera') { sincronizarEstado('0', 'EN ESPERA'); log("Sistema", "Estado actualizado a ESPERA", true); }
                 } else if (conn && conn.open) {
                     conn.send(val);
-                    const h = document.getElementById('hist');
-                    h.innerHTML += `<div><b>Tú:</b> ${val}</div>`;
-                    h.scrollTop = h.scrollHeight;
+                    log("Tú", val, false);
                 }
                 e.target.value = '';
             }
         }
 
         async function conectar() {
-            localStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: useFront ? "user" : "environment"}, audio: true});
-            document.getElementById('localVideo').srcObject = localStream;
-            document.getElementById('dotLocal').style.background = '#00ff00';
-            const call = peer.call(document.getElementById('peerID').value, localStream);
-            call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: useFront ? "user" : "environment"}, audio: true});
+                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('dotLocal').style.background = '#00ff00';
+                const call = peer.call(document.getElementById('peerID').value, localStream);
+                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
+            } catch(e) { console.error("Error acceso cámara", e); }
         }
 
         function cambiarCamara() { useFront = !useFront; conectar(); }
