@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <title>Proyecto Sanguino - Élite 100%</title>
+    <title>Proyecto Sanguino - Élite Operativa</title>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .integrity-panel { background: #000; padding: 4px; display: flex; justify-content: space-around; font-size: 0.65em; color: #228B22; border-bottom: 1px solid #228B22; }
@@ -13,13 +13,11 @@
         .video-box { flex: 1; position: relative; border: 1px solid #333; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .status { position: absolute; top: 10px; left: 10px; font-weight: bold; color: #fff; z-index: 10; font-size: 0.8em; text-shadow: 1px 1px 1px #000; }
-        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
-        
+        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; transition: background 0.2s; }
         .chat-overlay { position: absolute; bottom: 10px; left: 10px; width: 90%; z-index: 20; }
         .chat-log { height: 60px; overflow-y: auto; background: rgba(0, 0, 0, 0.85); border: 1px solid #444; font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; color: #fff; text-shadow: 1px 1px 1px #000; }
         .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; box-sizing: border-box; font-family: 'Verdana', sans-serif; }
         .system-msg { color: #ffd100; font-weight: bold; }
-        
         .controls { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #111; border-top: 1px solid #333; }
         button { background: #1a1a1a; border: 1px solid #228B22; color: #fff; padding: 15px 30px; border-radius: 5px; cursor: pointer; }
         .btn-close { background: #8B0000; border: 1px solid #FF4500; }
@@ -62,6 +60,24 @@
         peer.on('open', id => document.getElementById('myID').value = id);
         peer.on('connection', c => { conn = c; document.getElementById('dotRemote').style.background = '#00ff00'; setupChat(); });
         
+        // --- SENSOR DE AUDIO TÁCTICO ---
+        function iniciarSensorVoz(stream) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const source = audioCtx.createMediaStreamSource(stream);
+            const analyser = audioCtx.createAnalyser();
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            
+            setInterval(() => {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for(let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                const volume = sum / dataArray.length;
+                document.getElementById('dotLocal').style.background = volume > 20 ? '#00ccff' : '#00ff00';
+            }, 200);
+        }
+
         function setupChat() {
             conn.on('data', data => {
                 if (data.cmd === 'update') {
@@ -106,6 +122,7 @@
                 localStream = await navigator.mediaDevices.getUserMedia({video: {facingMode: useFront ? "user" : "environment"}, audio: true});
                 document.getElementById('localVideo').srcObject = localStream;
                 document.getElementById('dotLocal').style.background = '#00ff00';
+                iniciarSensorVoz(localStream); // Activación del sensor
                 const call = peer.call(document.getElementById('peerID').value, localStream);
                 call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
             } catch(e) { console.error("Error acceso cámara", e); }
