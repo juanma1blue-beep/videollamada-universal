@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v2.6 [Intercambio Seguro]</title>
+    <title>Sistema Sanguino v2.9 [Final]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
@@ -12,20 +12,14 @@
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
         
-        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; }
+        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; transition: 0.2s; }
+        button:hover { background: #003366; }
+        
         .btn-call { background: #228B22; border: 2px solid #fff; }
+        .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
         
-        #helpPanel { 
-            background: #001a33; 
-            color: #fff; 
-            padding: 15px; 
-            border-radius: 8px; 
-            font-size: 0.95em; 
-            border: 2px solid #228B22; 
-            margin-top: 10px;
-            line-height: 1.5;
-        }
+        #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; font-size: 0.95em; border: 2px solid #228B22; margin-top: 10px; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -42,22 +36,23 @@
         </div>
         
         <div class="panel">
-            <h3>CABECERA</h3>
+            <h3>CENTRO DE CONTROL</h3>
             <div id="myIDDisplay" style="font-size:1.2em; font-weight:bold; border:2px solid #228B22; padding:15px; text-align:center; cursor:pointer;" onclick="copyID()">CARGANDO...</div>
-            <input type="text" id="peerID" placeholder="Pega aquí el ID de tu pareja">
+            <input type="text" id="peerID" placeholder="Pega aquí el ID de tu socio">
             
             <button class="btn-call" onclick="App.llamar()">LLAMAR</button>
 
             <div id="helpPanel">
                 <strong>¿CÓMO CONECTAR?</strong><br>
                 1. Comparte tu ID con tu pareja.<br>
-                2. Pide a tu pareja que te pase su ID.<br>
-                3. Pega su ID arriba y pulsa <b>LLAMAR</b>.
+                2. Pega el ID de tu pareja arriba.<br>
+                3. Pulsa <b>LLAMAR</b> y espera a que acepte.
             </div>
         </div>
 
         <div class="panel">
             <h3>ACCIONES</h3>
+            <button class="btn-tip" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">DEJAR PROPINA</button>
             <button class="btn-red" onclick="window.location.reload()">FINALIZAR</button>
         </div>
     </div>
@@ -94,7 +89,7 @@
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado al portapapeles."); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
     </script>
 </body>
 </html>
