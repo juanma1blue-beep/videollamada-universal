@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v2.1 [AutoSync]</title>
+    <title>Sistema Sanguino v2.2 [AutoSync + Ayuda]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; transition: filter 0.3s; }
@@ -15,13 +15,24 @@
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
         #peerID { width: 100%; padding: 15px; box-sizing: border-box; background: #111; color: #fff; border: 2px solid #228B22; font-size: 1.1em; text-align: center; border-radius: 8px; }
-        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; }
+        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; transition: 0.2s; }
+        button:hover { background: #003366; }
         .btn-sync { background: #228B22; border-color: #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
         .chat-log { height: 120px; overflow-y: auto; font-size: 0.85em; border: 1px solid #333; padding: 10px; background: #000; }
+        
+        /* Instrucciones discretas */
+        #helpPanel { position: fixed; bottom: 10px; left: 10px; background: #002244; color: #fff; padding: 10px; border-radius: 8px; font-size: 0.75em; border: 1px solid #228B22; opacity: 0.85; max-width: 250px; z-index: 100; pointer-events: none; }
     </style>
 </head>
 <body>
+
+    <div id="helpPanel">
+        <strong>Cómo conectar:</strong><br>
+        1. Pulsa <b>SYNC</b> para enviar tu ID.<br>
+        2. Recibirás el ID del socio auto-configurado.<br>
+        3. Si falla, usa <b>CONECTAR MANUAL</b>.
+    </div>
 
     <div class="camera-layer">
         <div class="cam-box">
@@ -59,18 +70,21 @@
         const App = {
             peer: new Peer(),
             conectar: async () => {
-                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                document.getElementById('localVideo').srcObject = stream;
-                const call = App.peer.call(document.getElementById('peerID').value, stream);
-                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                    document.getElementById('localVideo').srcObject = stream;
+                    const call = App.peer.call(document.getElementById('peerID').value, stream);
+                    call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
+                    App.log("Llamada iniciada.");
+                } catch(e) { App.log("Error: " + e.message); }
             },
             enviarID: () => {
-                const targetID = prompt("Introduce el ID del socio para enviarle el tuyo:");
+                const targetID = prompt("Introduce el ID del socio:");
                 if (targetID) {
                     const conn = App.peer.connect(targetID);
                     conn.on('open', () => {
                         conn.send(document.getElementById('myIDDisplay').innerText);
-                        alert("ID enviado correctamente.");
+                        App.log("ID enviado correctamente.");
                     });
                 }
             },
@@ -80,12 +94,12 @@
         App.peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 document.getElementById('peerID').value = data;
-                App.log("ID recibido: " + data);
+                App.log("ID recibido y configurado: " + data);
             });
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
         function ajustarAudio(t, v) { document.getElementById(t === 'local' ? 'localVideo' : 'remoteVideo').volume = v; }
         function toggleNightMode() { document.body.classList.toggle('night-mode'); }
     </script>
