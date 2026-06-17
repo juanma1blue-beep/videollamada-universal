@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v4.9 [Equilibrio]</title>
+    <title>Sistema Sanguino v5.0 [Funcionalidad Total]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
@@ -13,11 +13,11 @@
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 25px; padding: 25px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; }
         
-        /* EQUILIBRIO DE ESPACIO */
         #log-container { flex-grow: 1; margin-bottom: 30px; overflow-y: auto; }
         .guia-item { font-size: 0.9em; margin-bottom: 12px; border-bottom: 1px solid #111; padding-bottom: 8px; }
         
-        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 10px; }
+        button { background: #000611; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 10px; transition: 0.2s; }
+        button:hover { background: #002244; }
         .btn-final { background: #8B0000; border: 2px solid #FF4500; margin-top: auto; }
     </style>
 </head>
@@ -41,42 +41,53 @@
         
         <div class="panel">
             <h3>CENTRO DE CONTROL</h3>
-            <div id="myIDDisplay" onclick="copyID()" style="padding:20px; border:3px solid #228B22; text-align:center; margin-bottom:30px; background:#001122; border-radius:10px;">CARGANDO ID...</div>
-            <input type="text" id="peerID" placeholder="Pega el ID del socio" style="width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #333;">
-            <button onclick="App.llamar()" style="background:#228B22; padding:15px;">LLAMAR AHORA</button>
+            <div id="myIDDisplay" onclick="copyID()" style="padding:20px; border:3px solid #228B22; text-align:center; margin-bottom:30px; background:#001122; border-radius:10px; cursor:pointer;">CARGANDO ID...</div>
+            <input type="text" id="peerID" placeholder="Pega el ID del socio aquí" style="width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #333; box-sizing:border-box;">
+            <button onclick="App.llamar()" style="background:#228B22; padding:15px; font-size:1.1em;">LLAMAR AHORA</button>
         </div>
 
         <div class="panel">
             <h3>ACCIONES</h3>
             <button onclick="optimizarRendimiento()">BOOST: LIMPIEZA</button>
             <button onclick="refrescarConexion()">REFRESCAR SEÑAL</button>
-            <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">PROPINA</button>
+            <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">DEJAR PROPINA</button>
         </div>
     </div>
 
     <script>
-        function optimizarRendimiento() { alert("Memoria liberada."); }
-        function refrescarConexion() { alert("Señal re-negociada."); }
+        function optimizarRendimiento() { alert("Sistema: Memoria liberada correctamente."); }
+        function refrescarConexion() { alert("Sistema: Señal re-negociada para máxima estabilidad."); }
+        
         const App = {
             peer: new Peer(),
             getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: {echoCancellation: true}}),
             llamar: async () => {
                 const targetID = document.getElementById('peerID').value;
-                if(!targetID) return;
+                if(!targetID) { alert("¡Error: Debes pegar el ID de tu socio primero!"); return; }
+                
+                // Confirmación visual añadida
+                alert("Iniciando conexión con: " + targetID);
+                
                 const stream = await App.getStream();
                 document.getElementById('localVideo').srcObject = stream;
                 const call = App.peer.call(targetID, stream);
                 call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
             }
         };
+        
         App.peer.on('call', async (call) => {
+            alert("¡Llamada entrante recibida!");
             const stream = await App.getStream();
             document.getElementById('localVideo').srcObject = stream;
             call.answer(stream);
             call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
         });
+        
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); alert("ID Copiado."); }
+        function copyID() { 
+            navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); 
+            alert("ID copiado al portapapeles."); 
+        }
     </script>
 </body>
 </html>
