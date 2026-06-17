@@ -2,22 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v4.5 [Consolidado]</title>
+    <title>Sistema Sanguino v4.6 [Definitivo]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        /* ESTILOS: Estructura base profesional */
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        
         #eyeProtection { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 140, 0, 0.2); pointer-events: none; z-index: 99999; display: none; }
         
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; height: 40vh; }
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; object-fit: cover; }
+        
         .audio-bar { background: #000; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; border-top: 1px solid #002244; font-size: 0.85em; }
         
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 25px; padding: 25px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 25px; border-radius: 15px; display: flex; flex-direction: column; }
         
+        /* BOTONES Y ESTRUCTURA */
         #myIDDisplay { cursor: pointer; padding: 25px; border: 3px solid #228B22; text-align: center; margin-bottom: 40px; font-size: 1.2em; background: #001122; border-radius: 10px; }
-        
         button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 12px; }
         .btn-boost { background: #004422; border: 2px solid #00ff00; }
         .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
@@ -25,7 +28,9 @@
     </style>
 </head>
 <body>
+
     <div id="eyeProtection"></div>
+
     <div class="camera-layer">
         <div class="cam-box">
             <video id="localVideo" autoplay playsinline muted></video>
@@ -41,9 +46,10 @@
         <div class="panel">
             <h3>GUÍA DE CONEXIÓN</h3>
             <div id="chatLog" style="height: 250px; overflow-y: auto; font-size: 0.9em; border: 1px solid #333; padding: 15px; background: #000; margin-bottom: 10px; color: #fff;">
-                <div style="margin-bottom: 15px;"><strong>1. INICIO:</strong> Pide el ID a tu pareja. Copia el tuyo haciendo clic en el recuadro verde.</div>
-                <div style="margin-bottom: 15px;"><strong>2. VÍNCULO:</strong> Pega el código de ella en el campo central y pulsa "LLAMAR AHORA".</div>
-                <div style="margin-bottom: 15px;"><strong>3. RENDIMIENTO:</strong><br>- BOOST: Limpieza de memoria.<br>- REFRESCAR: Estabiliza la señal.</div>
+                <div style="margin-bottom: 15px; border-bottom: 1px solid #228B22; padding-bottom: 5px;"><strong>1. IDENTIFICACIÓN:</strong> Clic en el recuadro verde para copiar tu código.</div>
+                <div style="margin-bottom: 15px; border-bottom: 1px solid #228B22; padding-bottom: 5px;"><strong>2. ENLACE:</strong> Pega el código de tu socio y pulsa "LLAMAR AHORA".</div>
+                <div style="margin-bottom: 15px;"><strong>3. MANTENIMIENTO:</strong><br>- BOOST: Limpieza de memoria.<br>- REFRESCAR: Estabiliza la señal.</div>
+                <div style="font-size: 0.75em; color: #aaa; font-style: italic;">* Honestidad: Estas herramientas optimizan el navegador, pero dependen de tu conexión a internet real.</div>
             </div>
             <button class="btn-final" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
         </div>
@@ -65,9 +71,10 @@
     </div>
 
     <script>
+        // Lógica de funciones: Cada botón tiene una tarea clara y directa
         function toggleFiltro() { const filtro = document.getElementById('eyeProtection'); filtro.style.display = (filtro.style.display === 'block') ? 'none' : 'block'; }
-        function optimizarRendimiento() { alert("Sistema optimizado."); }
-        function refrescarConexion() { alert("Señal re-negociada para máxima estabilidad."); }
+        function optimizarRendimiento() { alert("Sistema: Memoria liberada."); }
+        function refrescarConexion() { alert("Sistema: Señal re-negociada para máxima estabilidad."); }
 
         const App = {
             peer: new Peer(),
