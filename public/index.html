@@ -2,18 +2,17 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>INTERFAZ DE COMUNICACIÓN V14.0</title>
+    <title>INTERFAZ DE COMUNICACIÓN V15.0</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #050505; color: #eee; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        /* Estilos optimizados para una experiencia fluida */
+        body { margin: 0; background: #050505; color: #eee; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 40vh; }
         .cam-box { border: 1px solid #222; background: #000; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         video { width: 100%; flex-grow: 1; object-fit: cover; }
         .nombre-tag { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; font-size: 0.8em; border: 1px solid #1a1a1a; color: #00ff00; }
         
-        /* MODAL DE AMISTADES */
-        .modal { display: none; position: fixed; top: 20%; left: 30%; width: 40%; background: #111; border: 2px solid #333; border-radius: 10px; padding: 20px; z-index: 100; box-shadow: 0 0 20px #000; }
-        
+        .modal { display: none; position: fixed; top: 15%; left: 35%; width: 30%; background: #0a0a0a; border: 1px solid #333; border-radius: 10px; padding: 20px; z-index: 100; box-shadow: 0 0 30px #000; }
         .interface-layer { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; padding: 15px; flex-grow: 1; }
         .panel { border: 1px solid #1a1a1a; background: #0a0a0a; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; }
         h3 { margin: 0 0 10px 0; font-size: 0.9em; text-transform: uppercase; color: #666; border-bottom: 1px solid #222; padding-bottom: 5px; }
@@ -21,19 +20,20 @@
         button { background: #111; color: #eee; border: 1px solid #333; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-bottom: 8px; font-size: 0.85em; transition: 0.2s; }
         button:hover { border-color: #555; }
         .btn-call { background: #002211; border-color: #008844; }
-        .btn-final { background: #440000; border-color: #880000; margin-top: auto; }
-        input { padding: 8px; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        .amigo-row { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
 
     <div id="ventanaAmistades" class="modal">
         <h3>Lista de Amistades</h3>
-        <input type="text" placeholder="Buscar en lista...">
-        <div id="listaContenido" style="height: 150px; overflow-y: auto; border: 1px solid #222; margin: 10px 0;">
-            <p style="padding:10px; font-size:0.8em; color:#666;">No hay amistades registradas.</p>
+        <div id="listaContenido">
+            <div class="amigo-row">
+                <span>Pareja (ID guardado)</span>
+                <button onclick="llamarPareja()" style="width: auto; background: #004422;">CONECTAR</button>
+            </div>
         </div>
-        <button onclick="toggleAmistades()">CERRAR</button>
+        <button onclick="toggleAmistades()" style="margin-top:20px;">CERRAR</button>
     </div>
 
     <div class="camera-layer">
@@ -44,53 +44,50 @@
     <div class="interface-layer">
         <div class="panel">
             <h3>Gestión de Contactos</h3>
-            <input type="text" id="busqueda" placeholder="Buscar Contacto por Código...">
-            <button style="background: #003366; border: 1px solid #0055aa;">ENVIAR SOLICITUD</button>
-            <button onclick="toggleAmistades()" style="background: #222;">ABRIR LISTADO AMISTADES</button>
-            <button class="btn-final" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
+            <input type="text" id="nuevoID" placeholder="Pegar nuevo ID socio...">
+            <button onclick="guardarFavorito()">AÑADIR A FAVORITOS</button>
+            <button onclick="toggleAmistades()" style="background: #222;">VER LISTADO AMISTADES</button>
         </div>
         
         <div class="panel">
             <h3>Centro de Control</h3>
-            <input type="text" id="nombreInput" placeholder="Nombre en cámara">
-            <button onclick="guardarNombre()">GUARDAR IDENTIDAD</button>
             <div id="myIDDisplay" onclick="copyID()" style="padding:15px; border:1px solid #228B22; text-align:center; margin-bottom:15px; background:#000; border-radius:4px; cursor:pointer; font-family:monospace; color:#228B22;">CARGANDO ID...</div>
-            <input type="text" id="peerID" placeholder="ID del socio">
-            <button class="btn-call" onclick="App.llamar()">LLAMAR AHORA</button>
+            <button class="btn-call" onclick="App.llamar()">LLAMAR ID MANUAL</button>
         </div>
 
         <div class="panel">
             <h3>Acciones Rápidas</h3>
-            <button onclick="alert('Optimizando...');">BOOST: LIMPIEZA</button>
-            <button onclick="alert('Renegociando...');">REFRESCAR SEÑAL</button>
-            <button onclick="alert('Protección activa.');">PROTECCIÓN VISUAL</button>
+            <button onclick="window.location.reload()">REINICIAR SISTEMA</button>
             <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">APOYAR PROYECTO</button>
         </div>
     </div>
 
     <script>
+        // Función para guardar ID de pareja en local
+        function guardarFavorito() {
+            const id = document.getElementById('nuevoID').value;
+            if(id) { localStorage.setItem('parejaID', id); alert("Pareja guardada en favoritos."); }
+        }
+        function llamarPareja() {
+            const id = localStorage.getItem('parejaID');
+            if(id) { document.getElementById('peerID').value = id; App.llamar(id); }
+        }
         function toggleAmistades() {
             const modal = document.getElementById('ventanaAmistades');
             modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
         }
-        function guardarNombre() {
-            const nom = document.getElementById('nombreInput').value;
-            if(nom) { localStorage.setItem('nombreSanguino', nom); document.getElementById('miNombre').innerText = nom; }
-        }
+        
         const App = {
             peer: new Peer(),
-            getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: true}),
-            llamar: async () => {
-                const targetID = document.getElementById('peerID').value;
-                if(!targetID) return alert("Error: ID socio vacío.");
-                const stream = await App.getStream();
+            llamar: async (id) => {
+                const targetID = id || document.getElementById('peerID').value;
+                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
                 document.getElementById('localVideo').srcObject = stream;
                 const call = App.peer.call(targetID, stream);
                 call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
             }
         };
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); alert("ID copiado."); }
     </script>
 </body>
 </html>
