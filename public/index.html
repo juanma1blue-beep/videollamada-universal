@@ -2,28 +2,37 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v3.5 [Audio Bidireccional]</title>
+    <title>Sistema Sanguino v3.6 [Protección Visual]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; transition: 0.5s; }
+        
+        /* Capa de Filtro Azul (Oculta por defecto) */
+        #eyeProtection { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 140, 0, 0.2); pointer-events: none; z-index: 9999; display: none; }
+        
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 40vh; }
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; object-fit: cover; }
         .audio-bar { background: rgba(0, 0, 0, 0.85); padding: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 0.8em; border-top: 1px solid #002244; }
         input[type=range] { width: 50%; cursor: pointer; accent-color: #228B22; }
+        
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
+        
         #myIDDisplay { font-size: 1.3em; font-weight: bold; border: 2px solid #228B22; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 25px; background: #001122; }
+        
         button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; }
         .btn-call { background: #228B22; border: 2px solid #fff; }
         .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
+        .btn-blue { background: #1a1a4a; border: 2px solid #00ffff; }
+        
         #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #228B22; font-size: 0.9em; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="camera-layer">
+    <div id="eyeProtection"></div> <div class="camera-layer">
         <div class="cam-box">
             <video id="localVideo" autoplay playsinline muted></video>
             <div class="audio-bar">TU MICRO: <input type="range" min="0" max="1" step="0.1" value="1" oninput="ajustarAudio('localVideo', this.value)"></div>
@@ -52,15 +61,22 @@
         </div>
         <div class="panel">
             <h3>ACCIONES</h3>
+            <button class="btn-blue" onclick="toggleFiltro()">PROTECCIÓN VISUAL</button>
             <button class="btn-tip" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">DEJAR PROPINA</button>
             <button class="btn-red" onclick="window.location.reload()">FINALIZAR</button>
         </div>
     </div>
 
     <script>
+        // Función de Filtro Azul
+        function toggleFiltro() {
+            const filtro = document.getElementById('eyeProtection');
+            filtro.style.display = (filtro.style.display === 'block') ? 'none' : 'block';
+            App.log("Filtro visual cambiado.");
+        }
+
         const App = {
             peer: new Peer(),
-            // Captura de audio y video con alta prioridad
             getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: {echoCancellation: true, noiseSuppression: true}}),
             llamar: async () => {
                 const targetID = document.getElementById('peerID').value;
@@ -84,7 +100,7 @@
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("Código copiado."); }
     </script>
 </body>
 </html>
