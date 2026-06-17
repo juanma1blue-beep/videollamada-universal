@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v3.1</title>
+    <title>Sistema Sanguino v3.2 [Diseño Equilibrado]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
@@ -15,12 +15,11 @@
         #myIDDisplay { font-size: 1.3em; font-weight: bold; border: 2px solid #228B22; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 25px; background: #001122; }
         
         button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; }
-        .btn-call { background: #228B22; border: 2px solid #fff; }
+        .btn-call { background: #228B22; border: 2px solid #fff; margin-top: 5px; }
         .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
         
-        /* Instrucciones simplificadas */
-        #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #228B22; font-size: 0.9em; }
+        #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #228B22; font-size: 0.9em; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -40,7 +39,7 @@
             <h3>CENTRO DE CONTROL</h3>
             <div id="myIDDisplay" onclick="copyID()">CARGANDO...</div>
             
-            <input type="text" id="peerID" placeholder="Pega el código de tu socio aquí" style="padding: 10px; width: 100%; box-sizing: border-box;">
+            <input type="text" id="peerID" placeholder="Pega el código de tu socio aquí" style="padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; border-radius: 5px;">
             
             <button class="btn-call" onclick="App.llamar()">LLAMAR</button>
 
