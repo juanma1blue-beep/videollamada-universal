@@ -2,13 +2,20 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v3.2 [Diseño Equilibrado]</title>
+    <title>Sistema Sanguino v3.3 [Control Total]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 40vh; }
+        
+        /* Contenedor de cámara con control integrado */
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        video { width: 100%; height: 85%; object-fit: cover; }
+        video { width: 100%; flex-grow: 1; object-fit: cover; }
+        
+        /* Barra de control de audio integrada */
+        .audio-bar { background: rgba(0, 0, 0, 0.8); padding: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 0.75em; border-top: 1px solid #002244; }
+        input[type=range] { width: 70%; cursor: pointer; accent-color: #228B22; }
+
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
         
@@ -25,8 +32,14 @@
 <body>
 
     <div class="camera-layer">
-        <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
-        <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
+        <div class="cam-box">
+            <video id="localVideo" autoplay playsinline muted></video>
+            <div class="audio-bar">TU MICRO: <input type="range" min="0" max="1" step="0.1" value="0.8" oninput="ajustarAudio('localVideo', this.value)"></div>
+        </div>
+        <div class="cam-box">
+            <video id="remoteVideo" autoplay playsinline></video>
+            <div class="audio-bar">AUDIO SOCIO: <input type="range" min="0" max="1" step="0.1" value="0.8" oninput="ajustarAudio('remoteVideo', this.value)"></div>
+        </div>
     </div>
 
     <div class="interface-layer">
@@ -38,9 +51,7 @@
         <div class="panel">
             <h3>CENTRO DE CONTROL</h3>
             <div id="myIDDisplay" onclick="copyID()">CARGANDO...</div>
-            
             <input type="text" id="peerID" placeholder="Pega el código de tu socio aquí" style="padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; border-radius: 5px;">
-            
             <button class="btn-call" onclick="App.llamar()">LLAMAR</button>
 
             <div id="helpPanel">
@@ -77,6 +88,8 @@
             },
             log: (msg) => { document.getElementById('chatLog').innerHTML += `<div>> ${msg}</div>`; }
         };
+
+        function ajustarAudio(id, val) { document.getElementById(id).volume = val; }
 
         App.peer.on('connection', (conn) => {
             conn.on('data', (data) => {
