@@ -8,12 +8,10 @@
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .hud { transition: opacity 0.5s ease; }
         .integrity-panel { background: #000; padding: 6px; text-align: center; font-size: 0.7em; color: #228B22; border-bottom: 1px solid #228B22; }
-        /* Dashboard de colores */
         #dashboard { padding: 5px; font-weight: bold; border-radius: 3px; margin-top: 5px; display: inline-block; }
         .estado-verde { background: #006600; color: #fff; }
         .estado-amarillo { background: #cc9900; color: #000; }
         .estado-rojo { background: #8B0000; color: #fff; }
-        
         .header { background: #111; padding: 5px; display: flex; gap: 5px; border-bottom: 1px solid #333; }
         .wrapper { display: flex; flex-direction: column; flex-grow: 1; }
         .video-box { flex: 1; position: relative; border: 1px solid #333; background: #000; overflow: hidden; }
@@ -33,17 +31,17 @@
 <body>
     <div class="hud integrity-panel">
         PROTOCOLO: <b id="valProtocolo">SIN ASIGNAR</b><br>
-        <div id="dashboard" class="estado-verde">ESTADO: LISTO</div>
+        <div id="dashboard" class="estado-rojo">ESTADO: ESPERANDO ID</div>
     </div>
     <div class="hud header">
-        <input type="text" id="myID" readonly placeholder="ID">
+        <input type="text" id="myID" readonly placeholder="Cargando ID...">
         <input type="text" id="peerID" placeholder="ID Pareja">
         <button onclick="conectar()">📞</button>
     </div>
     <div class="wrapper">
         <div class="video-box"><div class="status"><span id="dotLocal" class="dot"></span> LOCAL</div><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="video-box"><div class="status"><span id="dotRemote" class="dot"></span> PAREJA</div><video id="remoteVideo" autoplay playsinline></video>
-            <div class="hud chat-overlay"><div id="hist" class="chat-log"></div><input type="text" id="msgInput" class="chat-input" placeholder="Comando..." onkeypress="enviar(event)"></div>
+            <div class="hud chat-overlay"><div id="hist" class="chat-log"></div><input type="text" id="msgInput" class="chat-input" placeholder="Comando (ej: /RECOLECCION RECOLECTANDO)" onkeypress="enviar(event)"></div>
         </div>
     </div>
     <div class="hud controls">
@@ -74,13 +72,15 @@
         };
 
         App.initHUD();
-
+        App.peer.on('open', id => document.getElementById('myID').value = id);
+        
         App.peer.on('connection', c => { 
             App.conn = c; 
+            document.getElementById('dotRemote').style.background = '#00ff00';
             c.on('data', data => {
                 if (data.cmd === 'update') {
                     document.getElementById('valProtocolo').innerText = data.protocolo;
-                    App.updateDashboard(data.estado || "LISTO");
+                    App.updateDashboard(data.estado);
                 }
             });
         });
@@ -89,23 +89,22 @@
             if (e.key === 'Enter') {
                 const val = e.target.value;
                 if (val.startsWith('/')) {
-                    const [cmd, estado] = val.slice(1).split(' ');
-                    const p = cmd.toUpperCase();
-                    const e = estado ? estado.toUpperCase() : "LISTO";
+                    const parts = val.slice(1).split(' ');
+                    const p = parts[0].toUpperCase();
+                    const st = parts[1] ? parts[1].toUpperCase() : "LISTO";
                     document.getElementById('valProtocolo').innerText = p;
-                    App.updateDashboard(e);
-                    if (App.conn?.open) App.conn.send({cmd:'update', protocolo: p, estado: e});
+                    App.updateDashboard(st);
+                    if (App.conn?.open) App.conn.send({cmd:'update', protocolo: p, estado: st});
                 }
                 e.target.value = '';
             }
         }
         
-        // Función conectar simplificada manteniendo el blindaje
         async function conectar() {
             const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
             document.getElementById('localVideo').srcObject = stream;
             const call = App.peer.call(document.getElementById('peerID').value, stream);
-            call.on('stream', st => document.getElementById('remoteVideo').srcObject = st);
+            call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
         }
     </script>
 </body>
