@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v2.5 [Ultra Fácil]</title>
+    <title>Sistema Sanguino v2.6 [Intercambio Seguro]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
@@ -16,16 +16,15 @@
         .btn-call { background: #228B22; border: 2px solid #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
         
-        /* Instrucciones Ultra Fácil */
         #helpPanel { 
             background: #001a33; 
             color: #fff; 
             padding: 15px; 
             border-radius: 8px; 
-            font-size: 1em; 
+            font-size: 0.95em; 
             border: 2px solid #228B22; 
             margin-top: 10px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
     </style>
 </head>
@@ -45,15 +44,15 @@
         <div class="panel">
             <h3>CABECERA</h3>
             <div id="myIDDisplay" style="font-size:1.2em; font-weight:bold; border:2px solid #228B22; padding:15px; text-align:center; cursor:pointer;" onclick="copyID()">CARGANDO...</div>
-            <input type="text" id="peerID" placeholder="ID de tu socio aquí">
+            <input type="text" id="peerID" placeholder="Pega aquí el ID de tu pareja">
             
             <button class="btn-call" onclick="App.llamar()">LLAMAR</button>
 
             <div id="helpPanel">
-                <strong>PASOS PARA LLAMAR:</strong><br>
-                1. Escribe el ID de tu socio arriba.<br>
-                2. Pulsa el botón verde <b>LLAMAR</b>.<br>
-                3. Cuando el otro acepte, la llamada empieza sola.
+                <strong>¿CÓMO CONECTAR?</strong><br>
+                1. Comparte tu ID con tu pareja.<br>
+                2. Pide a tu pareja que te pase su ID.<br>
+                3. Pega su ID arriba y pulsa <b>LLAMAR</b>.
             </div>
         </div>
 
@@ -68,11 +67,11 @@
             peer: new Peer(),
             llamar: () => {
                 const targetID = document.getElementById('peerID').value;
-                if(!targetID) { alert("Escribe el ID arriba primero."); return; }
+                if(!targetID) { alert("¡Pide el ID de tu pareja primero!"); return; }
                 const conn = App.peer.connect(targetID);
                 conn.on('open', () => {
                     conn.send({tipo: 'LLAMADA', de: App.peer.id});
-                    App.log("Llamando...");
+                    App.log("Llamando a: " + targetID);
                 });
             },
             conectar: async (id) => {
@@ -87,7 +86,7 @@
         App.peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 if(data.tipo === 'LLAMADA') {
-                    if(confirm("Llamada de: " + data.de + ". ¿Aceptar?")) {
+                    if(confirm("Llamada entrante de: " + data.de + ". ¿Aceptar?")) {
                         App.conectar(data.de);
                     }
                 }
@@ -95,7 +94,7 @@
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado al portapapeles."); }
     </script>
 </body>
 </html>
