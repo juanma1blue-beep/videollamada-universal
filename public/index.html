@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v2.9 [Final]</title>
+    <title>Sistema Sanguino v3.0 [Estabilidad Recuperada]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
@@ -10,8 +10,20 @@
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; height: 85%; object-fit: cover; }
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
-        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
         
+        /* Ajuste de Espaciado del ID */
+        #myIDDisplay { 
+            font-size: 1.3em; 
+            font-weight: bold; 
+            border: 2px solid #228B22; 
+            padding: 20px; 
+            text-align: center; 
+            cursor: pointer; 
+            margin-bottom: 20px; /* Aquí recuperamos la separación */
+            background: #001122;
+        }
+
         button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; transition: 0.2s; }
         button:hover { background: #003366; }
         
@@ -19,7 +31,7 @@
         .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
         
-        #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; font-size: 0.95em; border: 2px solid #228B22; margin-top: 10px; line-height: 1.5; }
+        #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; font-size: 0.9em; border: 2px solid #228B22; line-height: 1.5; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -37,8 +49,9 @@
         
         <div class="panel">
             <h3>CENTRO DE CONTROL</h3>
-            <div id="myIDDisplay" style="font-size:1.2em; font-weight:bold; border:2px solid #228B22; padding:15px; text-align:center; cursor:pointer;" onclick="copyID()">CARGANDO...</div>
-            <input type="text" id="peerID" placeholder="Pega aquí el ID de tu socio">
+            <div id="myIDDisplay" onclick="copyID()">CARGANDO...</div>
+            
+            <input type="text" id="peerID" placeholder="Pega aquí el ID de tu pareja" style="padding: 10px; width: 100%; box-sizing: border-box;">
             
             <button class="btn-call" onclick="App.llamar()">LLAMAR</button>
 
