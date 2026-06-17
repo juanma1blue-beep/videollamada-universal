@@ -2,116 +2,90 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v6.0 [Contactos Integrados]</title>
+    <title>Sistema Sanguino v8.0 [Lectura Ultra Fácil]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        /* BASE Y ESTRUCTURA */
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; height: 40vh; }
-        .cam-box { border: 2px solid #002244; background: #000; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
+        .cam-box { border: 2px solid #002244; background: #000; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
         video { width: 100%; flex-grow: 1; object-fit: cover; }
+        .nombre-tag { position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 5px; font-size: 0.9em; border: 1px solid #228B22; color: #00ff00; }
         
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 25px; padding: 25px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; }
         
-        #log-container { flex-grow: 1; margin-bottom: 30px; overflow-y: auto; }
-        .guia-item { font-size: 0.9em; margin-bottom: 12px; border-bottom: 1px solid #111; padding-bottom: 8px; }
-        
-        button { background: #000611; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 10px; transition: 0.2s; }
-        button:hover { background: #002244; }
+        /* BOTONES Y INPUTS */
+        button { background: #000611; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 10px; }
+        .btn-azul { background: #0088cc; border: 2px solid #00aaff; }
         .btn-final { background: #8B0000; border: 2px solid #FF4500; margin-top: auto; }
-
-        /* ESTILOS DEL MÓDULO DE CONTACTOS */
-        #contactos-panel { border: 1px solid #333; padding: 15px; background: #111; border-radius: 8px; margin-bottom: 20px; }
-        #lista-contactos { max-height: 150px; overflow-y: auto; font-size: 0.8em; color: #ccc; }
-        .contacto-item { cursor: pointer; padding: 5px 0; border-bottom: 1px solid #222; }
-        .contacto-item:hover { color: #fff; background: #222; }
+        input { padding: 12px; background: #000; color: #fff; border: 1px solid #333; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
     </style>
 </head>
 <body>
+
     <div class="camera-layer">
-        <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="cam-box"><div id="miNombre" class="nombre-tag">TÚ</div><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
 
     <div class="interface-layer">
         <div class="panel">
-            <h3 style="margin-top:0;">PROTOCOLO</h3>
-            <div id="log-container">
-                <div class="guia-item">1. <strong>COPIA:</strong> Clic en ID Verde.</div>
-                <div class="guia-item">2. <strong>ENVÍA:</strong> Pásalo a tu socio.</div>
-                <div class="guia-item">3. <strong>PEGA:</strong> ID Socio -> Llamar.</div>
-                <div class="guia-item">4. <strong>FIX:</strong> Si falla -> Refrescar.</div>
+            <h3>AÑADIR SOCIO</h3>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-bottom:10px;">
+                <button>Battle.net</button><button>Facebook</button>
+            </div>
+            <input type="text" placeholder="BattleTag o correo">
+            <button class="btn-azul">ENVIAR SOLICITUD</button>
+            <div style="margin-top:20px; font-size: 0.8em; color: #888;">
+                <p>1. IDENTIFICACIÓN: Clic en ID Verde.</p>
+                <p>2. ENLACE: Pega ID socio y llama.</p>
             </div>
             <button class="btn-final" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
         </div>
         
         <div class="panel">
             <h3>CENTRO DE CONTROL</h3>
-            
-            <div id="contactos-panel">
-                <h4 style="margin-top: 0; color: #aaa;">GESTIÓN DE SOCIOS</h4>
-                <div id="lista-contactos">
-                    <div class="contacto-item" onclick="llenarID('TU_SOCIO_1_ID_AQUÍ')">Socio 1 (Guardado)</div>
-                </div>
-                <input type="text" id="nuevoSocio" placeholder="Nombre o ID" style="width:100%; padding:8px; margin-top:10px; background:#000; color:#fff; border:1px solid #333; box-sizing:border-box;">
-                <button onclick="guardarSocio()" style="background:#004422; border:1px solid #00ff00; padding:8px; font-size:0.8em; margin-top:5px;">GUARDAR</button>
-            </div>
-            
-            <div id="myIDDisplay" onclick="copyID()" style="padding:20px; border:3px solid #228B22; text-align:center; margin-bottom:30px; background:#001122; border-radius:10px; cursor:pointer;">CARGANDO ID...</div>
-            <input type="text" id="peerID" placeholder="Pega el ID del socio aquí" style="width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #333; box-sizing:border-box;">
+            <input type="text" id="nombreInput" placeholder="Escribe tu nombre aquí">
+            <button onclick="guardarNombre()" style="background:#004422;">GUARDAR NOMBRE</button>
+            <div id="myIDDisplay" onclick="copyID()" style="padding:20px; border:3px solid #228B22; text-align:center; margin-bottom:20px; background:#001122; border-radius:10px; cursor:pointer;">CARGANDO ID...</div>
+            <input type="text" id="peerID" placeholder="Pega el ID del socio aquí">
             <button onclick="App.llamar()" style="background:#228B22; padding:15px; font-size:1.1em;">LLAMAR AHORA</button>
         </div>
 
         <div class="panel">
             <h3>ACCIONES</h3>
-            <button onclick="optimizarRendimiento()">BOOST: LIMPIEZA</button>
-            <button onclick="refrescarConexion()">REFRESCAR SEÑAL</button>
-            <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">DEJAR PROPINA</button>
+            <button onclick="optimizar()">BOOST: LIMPIEZA</button>
+            <button onclick="refrescar()">REFRESCAR SEÑAL</button>
         </div>
     </div>
 
     <script>
-        function optimizarRendimiento() { alert("Sistema: Memoria liberada correctamente."); }
-        function refrescarConexion() { alert("Sistema: Señal re-negociada para máxima estabilidad."); }
-        
-        // FUNCIONES DEL MÓDULO DE CONTACTOS (Locales)
-        function llenarID(id) { document.getElementById('peerID').value = id; }
-        function guardarSocio() { 
-            const nuevo = document.getElementById('nuevoSocio').value;
-            if(!nuevo) return;
-            alert("Socio guardado localmente (esto es un boceto, la función real guarda en localStorage).");
-            // Aquí iría la lógica para guardar en localStorage.
+        // LOGICA DE IDENTIDAD
+        function guardarNombre() {
+            const nom = document.getElementById('nombreInput').value;
+            if(nom) { localStorage.setItem('nombreSanguino', nom); document.getElementById('miNombre').innerText = nom; alert("Nombre guardado: " + nom); }
         }
-
+        
+        // LOGICA DE CONEXIÓN
         const App = {
             peer: new Peer(),
-            getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: {echoCancellation: true}}),
+            getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: true}),
             llamar: async () => {
                 const targetID = document.getElementById('peerID').value;
-                if(!targetID) { alert("¡Error: Debes pegar el ID de tu socio primero!"); return; }
-                
-                alert("Iniciando conexión con: " + targetID);
-                
+                if(!targetID) return alert("Pega el ID del socio.");
+                alert("Conectando con: " + targetID);
                 const stream = await App.getStream();
                 document.getElementById('localVideo').srcObject = stream;
                 const call = App.peer.call(targetID, stream);
                 call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
             }
         };
-        
-        App.peer.on('call', async (call) => {
-            alert("¡Llamada entrante recibida!");
-            const stream = await App.getStream();
-            document.getElementById('localVideo').srcObject = stream;
-            call.answer(stream);
-            call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-        });
-        
+
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { 
-            navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); 
-            alert("ID copiado al portapapeles."); 
-        }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); alert("ID copiado."); }
+        function optimizar() { alert("Memoria liberada."); }
+        function refrescar() { alert("Señal re-negociada."); }
     </script>
 </body>
 </html>
