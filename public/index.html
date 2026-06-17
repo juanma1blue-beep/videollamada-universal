@@ -2,39 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v3.4 [Equilibrio Final]</title>
+    <title>Sistema Sanguino v3.5 [Audio Bidireccional]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 40vh; }
-        
-        /* Contenedor de cámara con control centrado */
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; object-fit: cover; }
-        
-        /* Barra de control de audio - Equilibrada */
-        .audio-bar { 
-            background: rgba(0, 0, 0, 0.85); 
-            padding: 10px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 15px;
-            font-size: 0.8em; 
-            border-top: 1px solid #002244; 
-        }
+        .audio-bar { background: rgba(0, 0, 0, 0.85); padding: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; font-size: 0.8em; border-top: 1px solid #002244; }
         input[type=range] { width: 50%; cursor: pointer; accent-color: #228B22; }
-
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
-        
         #myIDDisplay { font-size: 1.3em; font-weight: bold; border: 2px solid #228B22; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 25px; background: #001122; }
-        
         button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; }
-        .btn-call { background: #228B22; border: 2px solid #fff; margin-top: 5px; }
+        .btn-call { background: #228B22; border: 2px solid #fff; }
         .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
-        
         #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #228B22; font-size: 0.9em; margin-top: 10px; }
     </style>
 </head>
@@ -43,11 +26,11 @@
     <div class="camera-layer">
         <div class="cam-box">
             <video id="localVideo" autoplay playsinline muted></video>
-            <div class="audio-bar">TU MICRO: <input type="range" min="0" max="1" step="0.1" value="0.8" oninput="ajustarAudio('localVideo', this.value)"></div>
+            <div class="audio-bar">TU MICRO: <input type="range" min="0" max="1" step="0.1" value="1" oninput="ajustarAudio('localVideo', this.value)"></div>
         </div>
         <div class="cam-box">
             <video id="remoteVideo" autoplay playsinline></video>
-            <div class="audio-bar">AUDIO SOCIO: <input type="range" min="0" max="1" step="0.1" value="0.8" oninput="ajustarAudio('remoteVideo', this.value)"></div>
+            <div class="audio-bar">AUDIO SOCIO: <input type="range" min="0" max="1" step="0.1" value="1" oninput="ajustarAudio('remoteVideo', this.value)"></div>
         </div>
     </div>
 
@@ -56,20 +39,17 @@
             <h3>LOG</h3>
             <div id="chatLog" style="height: 120px; overflow-y: auto; font-size: 0.8em; border: 1px solid #333; padding: 5px;"></div>
         </div>
-        
         <div class="panel">
             <h3>CENTRO DE CONTROL</h3>
             <div id="myIDDisplay" onclick="copyID()">CARGANDO...</div>
             <input type="text" id="peerID" placeholder="Pega el código de tu socio aquí" style="padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 15px; border-radius: 5px;">
             <button class="btn-call" onclick="App.llamar()">LLAMAR</button>
-
             <div id="helpPanel">
-                1. <b>COPIA</b> tu código de arriba.<br>
-                2. <b>ENVÍA</b> tu código a tu socio.<br>
-                3. <b>PEGA</b> el código de tu socio y llama.
+                1. <b>COPIA</b> tu ID.<br>
+                2. <b>ENVÍA</b> tu ID a tu socio.<br>
+                3. <b>PEGA</b> el ID de tu socio y llama.
             </div>
         </div>
-
         <div class="panel">
             <h3>ACCIONES</h3>
             <button class="btn-tip" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">DEJAR PROPINA</button>
@@ -80,41 +60,31 @@
     <script>
         const App = {
             peer: new Peer(),
-            llamar: () => {
+            // Captura de audio y video con alta prioridad
+            getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: {echoCancellation: true, noiseSuppression: true}}),
+            llamar: async () => {
                 const targetID = document.getElementById('peerID').value;
                 if(!targetID) { alert("¡Pide el ID de tu socio primero!"); return; }
-                const conn = App.peer.connect(targetID);
-                conn.on('open', () => {
-                    conn.send({tipo: 'LLAMADA', de: App.peer.id});
-                    App.log("Llamando...");
-                });
-            },
-            conectar: async (id) => {
-                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                const stream = await App.getStream();
                 document.getElementById('localVideo').srcObject = stream;
-                const call = App.peer.call(id, stream);
+                const call = App.peer.call(targetID, stream);
                 call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
+                App.log("Llamando...");
             },
             log: (msg) => { document.getElementById('chatLog').innerHTML += `<div>> ${msg}</div>`; }
         };
 
-        function ajustarAudio(id, val) { 
-            const videoElem = document.getElementById(id);
-            if(videoElem) videoElem.volume = val; 
-        }
+        function ajustarAudio(id, val) { const v = document.getElementById(id); if(v) v.volume = val; }
 
-        App.peer.on('connection', (conn) => {
-            conn.on('data', (data) => {
-                if(data.tipo === 'LLAMADA') {
-                    if(confirm("Llamada recibida de " + data.de + ". ¿Aceptar?")) {
-                        App.conectar(data.de);
-                    }
-                }
-            });
+        App.peer.on('call', async (call) => {
+            const stream = await App.getStream();
+            document.getElementById('localVideo').srcObject = stream;
+            call.answer(stream);
+            call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("Código copiado."); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
     </script>
 </body>
 </html>
