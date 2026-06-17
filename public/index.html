@@ -2,16 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V23.0 [Integración Total]</title>
+    <title>SISTEMA V24.0 [Integración Definitiva]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; }
+        :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --verde-ok: #008844; }
         body { margin: 0; background: var(--fondo); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .main-layout { display: grid; grid-template-columns: 1fr 350px; height: 100vh; }
         .video-zone { display: grid; grid-template-rows: 1fr 1fr; gap: 15px; padding: 20px; }
         .cam-container { border: 2px solid var(--azul); border-radius: 15px; overflow: hidden; position: relative; background: #000; }
         
-        /* CHAT RESTAURADO */
         .chat-zone { border-left: 2px solid var(--azul); background: #0a0a0a; display: flex; flex-direction: column; }
         #chatBox { flex-grow: 1; padding: 15px; overflow-y: auto; font-size: 0.9em; border-bottom: 1px solid var(--azul); }
         .chat-input-area { padding: 15px; background: rgba(0,30,98,0.1); }
@@ -23,8 +22,11 @@
         
         button { background: var(--azul); color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 8px; transition: 0.3s; }
         button:hover { background: var(--granada); }
-        .btn-call { background: #008844 !important; }
-        .btn-end { background: var(--granada) !important; }
+        
+        .btn-green { background: var(--verde-ok) !important; }
+        .btn-pay { background: var(--granada) !important; } /* Estética integrada */
+        .btn-end { background: #444 !important; } /* Finalizar llamada más neutro para no confundir */
+        
         .modal { display: none; position: fixed; top: 25%; left: 30%; width: 40%; background: var(--azul); padding: 25px; border-radius: 15px; z-index: 100; border: 2px solid var(--granada); }
     </style>
 </head>
@@ -48,7 +50,8 @@
             
             <div class="chat-input-area">
                 <input type="text" id="msgInput" placeholder="Escribe un mensaje..." style="width:100%; padding:10px; border-radius:5px; border:1px solid var(--azul); background:#000; color:#fff; margin-bottom:5px;">
-                <button onclick="enviarMensaje()">ENVIAR MENSAJE</button>
+                <button class="btn-green" onclick="enviarMensaje()">ENVIAR MENSAJE</button>
+                <button class="btn-pay" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">ENVIAR PROPINA PAYPAL</button>
             </div>
 
             <div class="panel-control">
@@ -56,9 +59,8 @@
                 <div id="myIDDisplay" class="id-box" onclick="copyID()">GENERANDO...</div>
                 
                 <input type="text" id="peerID" class="session-input" placeholder="PEGA EL CÓDIGO AQUÍ...">
-                <button class="btn-call" onclick="App.llamar()">ESTABLECER SESIÓN</button>
+                <button class="btn-green" onclick="App.llamar()">ESTABLECER SESIÓN</button>
                 <button onclick="toggleAmistades()">+ AÑADIR USUARIO</button>
-                <button style="background:#008844;" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">APOYAR PROYECTO</button>
                 <button class="btn-end" onclick="location.reload()">FINALIZAR LLAMADA</button>
             </div>
         </div>
