@@ -2,117 +2,88 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Proyecto Sanguino - Transmisión Élite</title>
+    <title>Market Evolution - Comando Élite</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .hud { transition: opacity 0.5s ease; }
-        .integrity-panel { background: #000; padding: 6px; text-align: center; font-size: 0.7em; color: #228B22; border-bottom: 1px solid #228B22; }
-        #dashboard { padding: 5px; font-weight: bold; border-radius: 3px; margin-top: 5px; display: inline-block; }
-        .estado-verde { background: #006600; color: #fff; }
-        .estado-amarillo { background: #cc9900; color: #000; }
-        .estado-rojo { background: #8B0000; color: #fff; }
+        body { margin: 0; background: #0a0a0a; color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { background: #111; padding: 5px; display: flex; gap: 5px; border-bottom: 1px solid #333; }
-        
-        /* Estilo base de botones - Azul Oscuro */
-        button { background: #002244; border: 1px solid #228B22; color: #fff; padding: 12px 20px; border-radius: 5px; cursor: pointer; }
-        
-        /* Ajuste específico para el botón de llamada - Icono Negro */
-        #btnLlamar { color: #000; } 
-        
-        .wrapper { display: flex; flex-direction: column; flex-grow: 1; }
-        .video-box { flex: 1; position: relative; border: 1px solid #333; background: #000; overflow: hidden; }
+        /* Layout Superior: Cámaras */
+        .camera-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 40vh; }
+        .cam-box { border: 2px solid #002244; background: #000; position: relative; border-radius: 8px; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .status { position: absolute; top: 10px; left: 10px; font-weight: bold; font-size: 0.8em; z-index: 10; }
-        .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: red; }
-        .chat-overlay { position: absolute; bottom: 10px; left: 10px; width: 90%; z-index: 20; }
-        .chat-log { height: 60px; overflow-y: auto; background: rgba(0,0,0,0.85); border: 1px solid #444; font-size: 0.7em; padding: 5px; margin-bottom: 5px; border-radius: 4px; }
-        .chat-input { width: 100%; background: #111; border: 1px solid #228B22; color: #ffd100; padding: 5px; }
-        .system-msg { color: #ffd100; font-weight: bold; }
-        .controls { height: 60px; display: flex; justify-content: space-around; align-items: center; background: #111; border-top: 1px solid #333; }
+        .indicator { position: absolute; bottom: 10px; right: 10px; width: 20px; height: 20px; border-radius: 50%; background: #002244; }
+
+        /* Layout Inferior: Mando */
+        .control-panel { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; padding: 0 10px 10px 10px; flex-grow: 1; }
+        .panel { background: #111; border: 1px solid #002244; border-radius: 8px; padding: 15px; }
         
-        .btn-close { background: #8B0000; border: 1px solid #FF4500; }
-        input { background: #111; color: #fff; border: 1px solid #228B22; padding: 5px; border-radius: 3px; }
+        /* Botones Azul Oscuro */
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { background: #002244; color: #fff; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        input { background: #000; color: #fff; border: 1px solid #002244; padding: 10px; width: 90%; margin-bottom: 10px; }
+        
+        #log { font-size: 0.8em; color: #aaa; height: 100px; overflow-y: auto; }
+        .system-status { text-align: center; color: #002244; font-weight: bold; padding-top: 5px; }
     </style>
 </head>
 <body>
-    <div class="hud integrity-panel">
-        PROTOCOLO: <b id="valProtocolo">SIN ASIGNAR</b><br>
-        <div id="dashboard" class="estado-rojo">ESTADO: ESPERANDO ID</div>
+
+    <div class="camera-grid">
+        <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video><div id="dotLocal" class="indicator"></div></div>
+        <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video><div id="dotRemote" class="indicator"></div></div>
     </div>
-    <div class="hud header">
-        <input type="text" id="myID" readonly placeholder="Cargando ID...">
-        <input type="text" id="peerID" placeholder="ID Pareja">
-        <button id="btnLlamar" onclick="conectar()">📞</button> </div>
-    <div class="wrapper">
-        <div class="video-box"><div class="status"><span id="dotLocal" class="dot"></span> LOCAL</div><video id="localVideo" autoplay playsinline muted></video></div>
-        <div class="video-box"><div class="status"><span id="dotRemote" class="dot"></span> PAREJA</div><video id="remoteVideo" autoplay playsinline></video>
-            <div class="hud chat-overlay"><div id="hist" class="chat-log"></div><input type="text" id="msgInput" class="chat-input" placeholder="Comando (ej: /RECOLECCION RECOLECTANDO)" onkeypress="enviar(event)"></div>
+
+    <div class="control-panel">
+        <div class="panel">
+            <h3>CABECERA DE MANDO</h3>
+            <input type="text" id="myID" readonly placeholder="Generando ID...">
+            <input type="text" id="peerID" placeholder="Introduce el ID de tu socio aquí">
+            <div class="btn-group">
+                <button onclick="conectar()">CONECTAR</button>
+                <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">PROPINAS</button>
+                <button onclick="window.location.reload()" style="background: #8B0000;">CERRAR</button>
+            </div>
+        </div>
+        <div class="panel">
+            <h3>REGISTRO DE OPERACIONES</h3>
+            <div id="log">Sistema iniciado... esperando conexión.</div>
         </div>
     </div>
-    <div class="hud controls">
-        <button onclick="cambiarCamara()">📷</button>
-        <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">🎁 Propinas</button>
-        <button class="btn-close" onclick="window.location.reload()">❌</button>
-    </div>
+    <div class="system-status">● ESTADO DEL SISTEMA: OPERATIVO (AZUL OSCURO)</div>
 
     <script>
         const App = {
             peer: new Peer(),
             conn: null,
-            initHUD: () => {
-                let timer;
-                const huds = document.querySelectorAll('.hud');
-                document.onmousemove = () => {
-                    huds.forEach(el => el.style.opacity = '1');
-                    clearTimeout(timer);
-                    timer = setTimeout(() => huds.forEach(el => el.style.opacity = '0.2'), 3000);
-                };
-            },
-            updateDashboard: (msg) => {
-                const db = document.getElementById('dashboard');
-                db.innerText = "ESTADO: " + msg;
-                db.className = msg.includes("RECOLECTANDO") ? "estado-verde" : 
-                               msg.includes("INTERCAMBIO") ? "estado-amarillo" : "estado-rojo";
-            }
+            log: (msg) => { document.getElementById('log').innerHTML += `<br>> ${msg}`; }
         };
 
-        App.initHUD();
         App.peer.on('open', id => document.getElementById('myID').value = id);
-        
-        App.peer.on('connection', c => { 
-            App.conn = c; 
-            document.getElementById('dotRemote').style.background = '#00ff00';
-            c.on('data', data => {
-                if (data.cmd === 'update') {
-                    document.getElementById('valProtocolo').innerText = data.protocolo;
-                    App.updateDashboard(data.estado);
-                }
-            });
-        });
 
-        function enviar(e) {
-            if (e.key === 'Enter') {
-                const val = e.target.value;
-                if (val.startsWith('/')) {
-                    const parts = val.slice(1).split(' ');
-                    const p = parts[0].toUpperCase();
-                    const st = parts[1] ? parts[1].toUpperCase() : "LISTO";
-                    document.getElementById('valProtocolo').innerText = p;
-                    App.updateDashboard(st);
-                    if (App.conn?.open) App.conn.send({cmd:'update', protocolo: p, estado: st});
-                }
-                e.target.value = '';
-            }
-        }
-        
         async function conectar() {
+            const targetID = document.getElementById('peerID').value;
             const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
             document.getElementById('localVideo').srcObject = stream;
-            const call = App.peer.call(document.getElementById('peerID').value, stream);
-            call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; document.getElementById('dotRemote').style.background = '#00ff00'; });
+            document.getElementById('dotLocal').style.background = '#002244'; // Azul Oscuro
+
+            const call = App.peer.call(targetID, stream);
+            call.on('stream', st => {
+                document.getElementById('remoteVideo').srcObject = st;
+                document.getElementById('dotRemote').style.background = '#002244'; // Azul Oscuro
+                App.log("Conexión establecida con éxito.");
+            });
         }
+
+        App.peer.on('call', call => {
+            navigator.mediaDevices.getUserMedia({video:true, audio:true}).then(stream => {
+                document.getElementById('localVideo').srcObject = stream;
+                call.answer(stream);
+                call.on('stream', st => {
+                    document.getElementById('remoteVideo').srcObject = st;
+                    document.getElementById('dotRemote').style.background = '#002244';
+                });
+            });
+        });
     </script>
 </body>
 </html>
