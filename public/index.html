@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V13.0 [Lista Activa]</title>
+    <title>INTERFAZ DE COMUNICACIÓN V13.0</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #050505; color: #eee; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -18,10 +18,8 @@
         button { background: #111; color: #eee; border: 1px solid #333; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-bottom: 8px; font-size: 0.85em; }
         .btn-call { background: #002211; border-color: #008844; }
         .btn-final { background: #440000; border-color: #880000; margin-top: auto; }
-        
         input { padding: 8px; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
         
-        /* LISTA DE AMIGOS */
         .lista-container { flex-grow: 1; overflow-y: auto; border: 1px solid #222; padding: 5px; background: #000; margin-top: 10px; }
         .amigo-item { padding: 8px; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 0.85em; }
         .amigo-item:hover { background: #1a1a1a; }
@@ -37,11 +35,11 @@
     <div class="interface-layer">
         <div class="panel">
             <h3>Añadir Socio</h3>
-            <input type="text" id="busqueda" placeholder="Filtrar o ID de socio...">
+            <input type="text" id="busqueda" placeholder="Filtrar ID...">
             <button style="background: #003366; border: 1px solid #0055aa;">ENVIAR SOLICITUD</button>
             <div class="lista-container">
-                <div class="amigo-item">▼ Socios Conectados (0)</div>
-                <div class="amigo-item">▼ Historial reciente (0)</div>
+                <div class="amigo-item">▼ Socios Conectados</div>
+                <div class="amigo-item">▼ Historial reciente</div>
             </div>
             <button class="btn-final" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
         </div>
@@ -69,8 +67,6 @@
             const nom = document.getElementById('nombreInput').value;
             if(nom) { localStorage.setItem('nombreSanguino', nom); document.getElementById('miNombre').innerText = nom; }
         }
-        
-        // PeerJS Lógica central
         const App = {
             peer: new Peer(),
             getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: true}),
