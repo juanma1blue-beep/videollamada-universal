@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Comando Élite - Proyecto Sanguino (Accesible)</title>
+    <title>Comando Élite - Proyecto Sanguino (Precisión)</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; transition: filter 0.3s; }
@@ -15,26 +15,26 @@
         .audio-control { height: 15%; background: #0a0a0a; display: flex; align-items: center; padding: 0 10px; border-top: 1px solid #002244; font-size: 0.8em; font-weight: bold; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: #228B22; margin-left: 10px; }
 
-        .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 15px; padding: 15px; flex-grow: 1; }
-        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 15px; border-radius: 12px; }
+        .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
+        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* CAMPO DE ID MEJORADO (Accesibilidad) */
+        /* CAMPO DE ID: ESTIRADO Y CON ESPACIO */
         #peerID { 
-            width: 95%; 
-            padding: 15px; 
-            margin: 15px 0; 
+            width: 100%; 
+            padding: 18px; 
+            box-sizing: border-box; /* Asegura que el padding no rompa el ancho */
             background: #111; 
             color: #fff; 
             border: 3px solid #228B22; 
-            font-size: 1.2em; 
+            font-size: 1.3em; 
             text-align: center; 
             border-radius: 8px;
-            display: block;
+            margin: 10px 0;
         }
 
         button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1em; border-radius: 8px; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
-        .chat-log { height: 180px; overflow-y: auto; font-size: 0.9em; border: 1px solid #333; padding: 10px; margin-bottom: 10px; color: #ddd; background: #000; }
+        .chat-log { height: 180px; overflow-y: auto; font-size: 0.9em; border: 1px solid #333; padding: 10px; color: #ddd; background: #000; }
     </style>
 </head>
 <body>
@@ -54,12 +54,12 @@
         <div class="panel">
             <h3>[Session] Log</h3>
             <div id="chatLog" class="chat-log"></div>
-            <input type="text" id="chatInput" placeholder="/w Asesor..." onkeypress="App.manejarChat(event)" style="width:90%; padding:10px;">
+            <input type="text" id="chatInput" placeholder="/w Asesor..." onkeypress="App.manejarChat(event)" style="width:100%; padding:12px; box-sizing:border-box;">
         </div>
         
         <div class="panel">
             <h3>CABECERA DE MANDO</h3>
-            <div id="myIDDisplay" style="font-size:1.5em; font-weight:bold; border:2px solid #228B22; padding:15px; text-align:center; cursor:pointer; background:#000; border-radius:8px;" onclick="copyID()">GENERANDO ID...</div>
+            <div id="myIDDisplay" style="font-size:1.5em; font-weight:bold; border:2px solid #228B22; padding:20px; text-align:center; cursor:pointer; background:#000; border-radius:8px;" onclick="copyID()">GENERANDO ID...</div>
             <input type="text" id="peerID" placeholder="Introduce el ID de tu socio aquí">
             <button onclick="App.conectar()">CONECTAR SESIÓN PRIVADA</button>
         </div>
