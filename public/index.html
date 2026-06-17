@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>INTERFAZ DE COMUNICACIÓN V13.0</title>
+    <title>INTERFAZ DE COMUNICACIÓN V14.0</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #050505; color: #eee; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -11,21 +11,30 @@
         video { width: 100%; flex-grow: 1; object-fit: cover; }
         .nombre-tag { position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); padding: 4px 8px; border-radius: 4px; font-size: 0.8em; border: 1px solid #1a1a1a; color: #00ff00; }
         
+        /* MODAL DE AMISTADES */
+        .modal { display: none; position: fixed; top: 20%; left: 30%; width: 40%; background: #111; border: 2px solid #333; border-radius: 10px; padding: 20px; z-index: 100; box-shadow: 0 0 20px #000; }
+        
         .interface-layer { display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 15px; padding: 15px; flex-grow: 1; }
         .panel { border: 1px solid #1a1a1a; background: #0a0a0a; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; }
         h3 { margin: 0 0 10px 0; font-size: 0.9em; text-transform: uppercase; color: #666; border-bottom: 1px solid #222; padding-bottom: 5px; }
         
-        button { background: #111; color: #eee; border: 1px solid #333; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-bottom: 8px; font-size: 0.85em; }
+        button { background: #111; color: #eee; border: 1px solid #333; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-bottom: 8px; font-size: 0.85em; transition: 0.2s; }
+        button:hover { border-color: #555; }
         .btn-call { background: #002211; border-color: #008844; }
         .btn-final { background: #440000; border-color: #880000; margin-top: auto; }
         input { padding: 8px; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
-        
-        .lista-container { flex-grow: 1; overflow-y: auto; border: 1px solid #222; padding: 5px; background: #000; margin-top: 10px; }
-        .amigo-item { padding: 8px; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 0.85em; }
-        .amigo-item:hover { background: #1a1a1a; }
     </style>
 </head>
 <body>
+
+    <div id="ventanaAmistades" class="modal">
+        <h3>Lista de Amistades</h3>
+        <input type="text" placeholder="Buscar en lista...">
+        <div id="listaContenido" style="height: 150px; overflow-y: auto; border: 1px solid #222; margin: 10px 0;">
+            <p style="padding:10px; font-size:0.8em; color:#666;">No hay amistades registradas.</p>
+        </div>
+        <button onclick="toggleAmistades()">CERRAR</button>
+    </div>
 
     <div class="camera-layer">
         <div class="cam-box"><div id="miNombre" class="nombre-tag">TÚ</div><video id="localVideo" autoplay playsinline muted></video></div>
@@ -34,13 +43,10 @@
 
     <div class="interface-layer">
         <div class="panel">
-            <h3>Añadir Socio</h3>
-            <input type="text" id="busqueda" placeholder="Filtrar ID...">
+            <h3>Gestión de Contactos</h3>
+            <input type="text" id="busqueda" placeholder="Buscar Contacto por Código...">
             <button style="background: #003366; border: 1px solid #0055aa;">ENVIAR SOLICITUD</button>
-            <div class="lista-container">
-                <div class="amigo-item">▼ Socios Conectados</div>
-                <div class="amigo-item">▼ Historial reciente</div>
-            </div>
+            <button onclick="toggleAmistades()" style="background: #222;">ABRIR LISTADO AMISTADES</button>
             <button class="btn-final" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
         </div>
         
@@ -63,6 +69,10 @@
     </div>
 
     <script>
+        function toggleAmistades() {
+            const modal = document.getElementById('ventanaAmistades');
+            modal.style.display = (modal.style.display === 'block') ? 'none' : 'block';
+        }
         function guardarNombre() {
             const nom = document.getElementById('nombreInput').value;
             if(nom) { localStorage.setItem('nombreSanguino', nom); document.getElementById('miNombre').innerText = nom; }
