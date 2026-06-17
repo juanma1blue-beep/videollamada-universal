@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V27.0 [Arquitectura Neón]</title>
+    <title>SISTEMA V28.0 [Precisión Neón]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
@@ -17,12 +17,11 @@
         
         .panel-control { padding: 20px; background: rgba(0,30,98,0.1); }
         
-        /* CÓDIGO NEÓN BLAUGRANA */
         .id-box { 
             background: var(--azul); 
             border: 1px solid var(--neon-rojo); 
             color: var(--neon-rojo); 
-            padding: 15px; 
+            padding: 12px; 
             text-align: center; 
             font-family: monospace; 
             font-weight: bold;
@@ -34,9 +33,25 @@
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
         
-        .session-input { width: 100%; padding: 15px; border: 2px solid var(--azul); background: #000; color: #fff; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; }
+        /* INPUT DE SESIÓN CON FOCO GRANA NEÓN */
+        .session-input { 
+            width: 100%; 
+            padding: 15px; 
+            border: 2px solid var(--azul); 
+            background: #000; 
+            color: #fff; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            margin-bottom: 10px; 
+            font-family: monospace;
+            transition: 0.3s;
+        }
+        .session-input:focus { 
+            outline: none; 
+            border: 2px solid var(--granada); 
+            box-shadow: 0 0 10px var(--granada);
+        }
         
-        /* BOTONES NEÓN BLAUGRANA */
         button { 
             background: var(--azul); 
             color: var(--neon-rojo); 
