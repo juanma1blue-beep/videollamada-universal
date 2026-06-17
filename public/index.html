@@ -2,37 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v2.2 [AutoSync + Ayuda]</title>
+    <title>Sistema Sanguino v2.3 [Diseño Centralizado]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; transition: filter 0.3s; }
         .night-mode { filter: sepia(0.4) hue-rotate(180deg) brightness(0.85); }
+        
+        /* Capa de Cámaras */
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 40vh; }
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; height: 85%; object-fit: cover; }
         .audio-control { height: 15%; background: #0a0a0a; display: flex; align-items: center; padding: 0 10px; border-top: 1px solid #002244; font-size: 0.8em; font-weight: bold; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: #228B22; margin-left: 10px; }
+
+        /* Capa de Interfaz */
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+        
         #peerID { width: 100%; padding: 15px; box-sizing: border-box; background: #111; color: #fff; border: 2px solid #228B22; font-size: 1.1em; text-align: center; border-radius: 8px; }
+        
         button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; transition: 0.2s; }
         button:hover { background: #003366; }
+        
         .btn-sync { background: #228B22; border-color: #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
+        
         .chat-log { height: 120px; overflow-y: auto; font-size: 0.85em; border: 1px solid #333; padding: 10px; background: #000; }
         
-        /* Instrucciones discretas */
-        #helpPanel { position: fixed; bottom: 10px; left: 10px; background: #002244; color: #fff; padding: 10px; border-radius: 8px; font-size: 0.75em; border: 1px solid #228B22; opacity: 0.85; max-width: 250px; z-index: 100; pointer-events: none; }
+        /* Recuadro de Instrucciones (Ahora debajo del botón verde) */
+        #helpPanel { 
+            background: #001a33; 
+            color: #daffde; 
+            padding: 15px; 
+            border-radius: 8px; 
+            font-size: 0.85em; 
+            border: 1px dashed #228B22; 
+            margin-top: 5px;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
-
-    <div id="helpPanel">
-        <strong>Cómo conectar:</strong><br>
-        1. Pulsa <b>SYNC</b> para enviar tu ID.<br>
-        2. Recibirás el ID del socio auto-configurado.<br>
-        3. Si falla, usa <b>CONECTAR MANUAL</b>.
-    </div>
 
     <div class="camera-layer">
         <div class="cam-box">
@@ -54,15 +64,24 @@
         <div class="panel">
             <h3>CABECERA DE MANDO</h3>
             <div id="myIDDisplay" style="font-size:1.2em; font-weight:bold; border:2px solid #228B22; padding:15px; text-align:center; cursor:pointer;" onclick="copyID()">CARGANDO...</div>
+            
             <input type="text" id="peerID" placeholder="ID de tu socio">
+            
             <button onclick="App.conectar()">CONECTAR MANUAL</button>
             <button class="btn-sync" onclick="App.enviarID()">ENVIAR ID A SOCIO (Sync)</button>
+
+            <div id="helpPanel">
+                <strong>GUÍA RÁPIDA:</strong><br>
+                • Pulsa <b>SYNC</b> para enviar tu ID al socio.<br>
+                • El ID de tu socio se rellenará solo al recibirlo.<br>
+                • Si hay problemas, usa el modo <b>MANUAL</b>.
+            </div>
         </div>
 
         <div class="panel">
             <h3>PROTOCOLOS</h3>
             <button onclick="toggleNightMode()">MODO NOCTURNO</button>
-            <button class="btn-red" onclick="window.location.reload()">FINALIZAR</button>
+            <button class="btn-red" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
         </div>
     </div>
 
@@ -73,34 +92,52 @@
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
                     document.getElementById('localVideo').srcObject = stream;
-                    const call = App.peer.call(document.getElementById('peerID').value, stream);
-                    call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-                    App.log("Llamada iniciada.");
-                } catch(e) { App.log("Error: " + e.message); }
+                    const val = document.getElementById('peerID').value;
+                    if(!val) { App.log("Error: Falta ID del socio."); return; }
+                    
+                    const call = App.peer.call(val, stream);
+                    call.on('stream', st => { 
+                        document.getElementById('remoteVideo').srcObject = st; 
+                    });
+                    App.log("Intentando conectar video...");
+                } catch(e) { App.log("Error de hardware."); }
             },
             enviarID: () => {
-                const targetID = prompt("Introduce el ID del socio:");
+                const targetID = prompt("Introduce el ID del socio para la sincronización:");
                 if (targetID) {
                     const conn = App.peer.connect(targetID);
                     conn.on('open', () => {
                         conn.send(document.getElementById('myIDDisplay').innerText);
-                        App.log("ID enviado correctamente.");
+                        App.log("ID enviado al socio correctamente.");
                     });
                 }
             },
-            log: (msg) => { document.getElementById('chatLog').innerHTML += `<div>> ${msg}</div>`; }
+            log: (msg) => { 
+                const log = document.getElementById('chatLog');
+                log.innerHTML += `<div>> ${msg}</div>`; 
+                log.scrollTop = log.scrollHeight;
+            }
         };
 
+        // Escuchador de datos para la Sincronización Automática
         App.peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 document.getElementById('peerID').value = data;
-                App.log("ID recibido y configurado: " + data);
+                App.log("ID Recibido: " + data);
             });
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
-        function ajustarAudio(t, v) { document.getElementById(t === 'local' ? 'localVideo' : 'remoteVideo').volume = v; }
+        
+        function copyID() { 
+            navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); 
+            App.log("Tu ID ha sido copiado."); 
+        }
+        
+        function ajustarAudio(t, v) { 
+            document.getElementById(t === 'local' ? 'localVideo' : 'remoteVideo').volume = v; 
+        }
+        
         function toggleNightMode() { document.body.classList.toggle('night-mode'); }
     </script>
 </body>
