@@ -2,54 +2,51 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Market Evolution - Comando Élite</title>
+    <title>Comando Élite - Proyecto Sanguino</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Cámaras y bolitas de estado */
+        body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 50vh; }
-        .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; }
+        .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .dot { position: absolute; bottom: 15px; right: 15px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; }
-
-        /* Mando y Chat */
+        .dot { position: absolute; bottom: 15px; right: 15px; width: 20px; height: 20px; border-radius: 50%; border: 2px solid #fff; background: #8B0000; }
+        
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; padding: 10px; flex-grow: 1; }
-        .panel { border: 1px solid #002244; background: #0a0a0a; padding: 10px; border-radius: 8px; }
+        .panel { border: 1px solid #002244; background: #0a0a0a; padding: 10px; border-radius: 8px; display: flex; flex-direction: column; }
         
-        /* ID Sesión - EL CENTRO DE TODO */
-        .id-display { font-size: 1.5em; font-weight: bold; color: #fff; background: #000; border: 2px solid #228B22; padding: 10px; text-align: center; margin: 10px 0; cursor: pointer; }
+        .id-display { font-size: 1.2em; font-weight: bold; color: #fff; background: #000; border: 2px solid #228B22; padding: 10px; text-align: center; margin: 10px 0; cursor: pointer; }
+        input { background: #000; color: #fff; border: 1px solid #002244; padding: 8px; margin-bottom: 5px; width: 90%; }
+        button { background: #002244; color: #fff; border: 1px solid #228B22; padding: 10px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        .btn-red { background: #8B0000; border: 1px solid #FF4500; }
         
-        input { width: 90%; background: #000; color: #fff; border: 1px solid #002244; padding: 10px; margin-bottom: 5px; }
-        button { background: #002244; color: #fff; border: 1px solid #228B22; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
-        .chat-log { height: 150px; overflow-y: auto; font-size: 0.8em; border: 1px solid #333; padding: 5px; }
+        .chat-log { flex-grow: 1; overflow-y: auto; font-size: 0.8em; border: 1px solid #333; padding: 5px; margin-bottom: 5px; color: #ddd; }
     </style>
 </head>
 <body>
 
     <div class="camera-layer">
-        <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video><div id="dotLocal" class="dot" style="background:#8B0000;"></div></div>
-        <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video><div id="dotRemote" class="dot" style="background:#8B0000;"></div></div>
+        <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video><div id="dotLocal" class="dot"></div></div>
+        <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video><div id="dotRemote" class="dot"></div></div>
     </div>
 
     <div class="interface-layer">
         <div class="panel">
-            <h3>[Session] Log</h3>
+            <h3>[Session] Historial</h3>
             <div id="chatLog" class="chat-log"></div>
-            <input type="text" id="chatInput" placeholder="Mensaje..." onkeypress="App.manejarChat(event)">
+            <input type="text" id="chatInput" placeholder="/w Asesor..." onkeypress="App.manejarChat(event)">
         </div>
 
         <div class="panel">
             <h3>CABECERA DE MANDO</h3>
             <div id="myIDDisplay" class="id-display" onclick="copyID()">GENERANDO ID...</div>
-            <p style="font-size: 0.7em; text-align: center;">Haz clic en el ID para copiarlo y enviárselo a tu pareja.</p>
             <input type="text" id="peerID" placeholder="Introduce el ID de tu socio aquí">
             <button onclick="App.conectar()">CONECTAR SESIÓN PRIVADA</button>
         </div>
 
         <div class="panel">
-            <h3>ESTADO</h3>
-            <button class="btn-red" onclick="window.location.reload()" style="background:#8B0000;">CERRAR TODO</button>
+            <h3>ESTADO DEL SISTEMA</h3>
+            <button class="btn-red" onclick="window.location.reload()">CERRAR OPERACIÓN</button>
+            <p style="font-size: 0.7em; color: #888; margin-top: 20px;">SISTEMA INTEGRIDAD: 100%</p>
         </div>
     </div>
 
@@ -57,30 +54,48 @@
         const App = {
             peer: new Peer(),
             conn: null,
-            log: (msg) => { document.getElementById('chatLog').innerHTML += `<div>${msg}</div>`; },
+            init: () => {
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                history.forEach(h => App.logHist(h.msg, h.sender));
+            },
+            log: (msg, sender) => {
+                const log = document.getElementById('chatLog');
+                log.innerHTML += `<div>[${sender}] ${msg}</div>`;
+                log.scrollTop = log.scrollHeight;
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                history.push({ msg, sender });
+                localStorage.setItem('chatHistory', JSON.stringify(history.slice(-50)));
+            },
+            logHist: (msg, sender) => {
+                document.getElementById('chatLog').innerHTML += `<div>[${sender}] ${msg}</div>`;
+            },
+            manejarChat: (e) => {
+                if (e.key === 'Enter') {
+                    const val = e.target.value;
+                    App.log(val, 'Tú');
+                    if (App.conn?.open) App.conn.send(val);
+                    e.target.value = '';
+                }
+            },
             conectar: async () => {
                 const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
                 document.getElementById('localVideo').srcObject = stream;
-                document.getElementById('dotLocal').style.background = '#006600'; // Verde al conectar
+                document.getElementById('dotLocal').style.background = '#228B22';
                 const call = App.peer.call(document.getElementById('peerID').value, stream);
                 call.on('stream', st => {
                     document.getElementById('remoteVideo').srcObject = st;
-                    document.getElementById('dotRemote').style.background = '#006600';
+                    document.getElementById('dotRemote').style.background = '#228B22';
                 });
+                App.conn = App.peer.connect(document.getElementById('peerID').value);
             }
         };
 
-        App.peer.on('open', id => {
-            document.getElementById('myIDDisplay').innerText = id;
-        });
-
+        App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
         function copyID() {
-            const id = document.getElementById('myIDDisplay').innerText;
-            navigator.clipboard.writeText(id);
-            alert("ID de sesión copiado: " + id);
+            navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText);
+            alert("ID Copiado");
         }
-
-        App.peer.on('connection', c => { App.conn = c; c.on('data', d => App.log(d)); });
+        App.init();
     </script>
 </body>
 </html>
