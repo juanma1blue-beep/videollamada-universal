@@ -2,23 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v4.0 [Recuperación Total]</title>
+    <title>Sistema Sanguino v4.1 [Impacto Visual]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
         
         #eyeProtection { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255, 140, 0, 0.2); pointer-events: none; z-index: 99999; display: none; }
         
-        .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; height: 40vh; }
-        .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+        .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; height: 40vh; }
+        .cam-box { border: 2px solid #002244; background: #000; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; object-fit: cover; }
         
-        .audio-bar { background: #000; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; border-top: 1px solid #002244; font-size: 0.8em; }
+        .audio-bar { background: #000; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 15px; border-top: 1px solid #002244; font-size: 0.85em; }
         
-        .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
-        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; }
+        .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 25px; padding: 25px; flex-grow: 1; }
+        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 25px; border-radius: 15px; display: flex; flex-direction: column; }
         
-        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 8px; }
+        /* ESPACIADO DE IMPACTO */
+        #myIDDisplay { 
+            cursor: pointer; padding: 25px; border: 3px solid #228B22; 
+            text-align: center; margin-bottom: 40px; font-size: 1.2em; 
+            background: #001122; border-radius: 10px; box-shadow: 0 0 10px rgba(34, 139, 34, 0.2);
+        }
+        
+        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 12px; }
         .btn-boost { background: #004422; border: 2px solid #00ff00; }
         .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
     </style>
@@ -40,15 +47,15 @@
 
     <div class="interface-layer">
         <div class="panel">
-            <h3>LOG</h3>
-            <div id="chatLog" style="height: 120px; overflow-y: auto; font-size: 0.8em; border: 1px solid #333; padding: 5px;"></div>
+            <h3>LOG DE ESTADO</h3>
+            <div id="chatLog" style="height: 150px; overflow-y: auto; font-size: 0.85em; border: 1px solid #333; padding: 10px; background: #000;"></div>
         </div>
         
         <div class="panel">
             <h3>CENTRO DE CONTROL</h3>
-            <div id="myIDDisplay" onclick="copyID()" style="cursor: pointer; padding: 15px; border: 2px solid #228B22; text-align: center; margin-bottom: 10px;">CARGANDO ID...</div>
-            <input type="text" id="peerID" placeholder="Pega el código aquí" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box;">
-            <button onclick="App.llamar()">LLAMAR</button>
+            <div id="myIDDisplay" onclick="copyID()">CARGANDO ID...</div>
+            <input type="text" id="peerID" placeholder="Pega el código de tu socio aquí" style="width: 100%; padding: 15px; margin-bottom: 20px; box-sizing: border-box; background: #000; color: #fff; border: 1px solid #333;">
+            <button onclick="App.llamar()" style="background: #228B22; padding: 20px; font-size: 1.1em;">LLAMAR AHORA</button>
         </div>
 
         <div class="panel">
@@ -57,7 +64,7 @@
             <button class="btn-boost" onclick="optimizarRendimiento()">BOOST: LIMPIEZA</button>
             <button class="btn-boost" onclick="refrescarConexion()">REFRESCAR SEÑAL</button>
             <button class="btn-tip" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">DEJAR PROPINA</button>
-            <button onclick="window.location.reload()" style="background: #8B0000;">FINALIZAR</button>
+            <button onclick="window.location.reload()" style="background: #8B0000; border: 2px solid #FF4500;">FINALIZAR</button>
         </div>
     </div>
 
@@ -95,7 +102,7 @@
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado al portapapeles."); }
     </script>
 </body>
 </html>
