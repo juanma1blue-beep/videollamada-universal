@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA SANGUINO V12.0</title>
+    <title>SISTEMA SANGUINO V13.0 [Lista Activa]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #050505; color: #eee; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -18,7 +18,13 @@
         button { background: #111; color: #eee; border: 1px solid #333; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-bottom: 8px; font-size: 0.85em; }
         .btn-call { background: #002211; border-color: #008844; }
         .btn-final { background: #440000; border-color: #880000; margin-top: auto; }
+        
         input { padding: 8px; background: #000; color: #fff; border: 1px solid #333; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        
+        /* LISTA DE AMIGOS */
+        .lista-container { flex-grow: 1; overflow-y: auto; border: 1px solid #222; padding: 5px; background: #000; margin-top: 10px; }
+        .amigo-item { padding: 8px; border-bottom: 1px solid #1a1a1a; cursor: pointer; font-size: 0.85em; }
+        .amigo-item:hover { background: #1a1a1a; }
     </style>
 </head>
 <body>
@@ -30,18 +36,18 @@
 
     <div class="interface-layer">
         <div class="panel">
-            <h3>Gestión de Enlaces</h3>
-            <input type="text" id="tagSocio" placeholder="ID de conexión">
-            <button onclick="vincularSocio()" style="background: #003366; border: 1px solid #0055aa;">VINCULAR ENLACE</button>
-            <div style="margin-top:10px;">
-                <button onclick="gestionarNodo('EXTERNO')">SINCRONIZAR RED</button>
-                <button onclick="gestionarNodo('INTERNO')">CARGAR DATOS LOCALES</button>
+            <h3>Añadir Socio</h3>
+            <input type="text" id="busqueda" placeholder="Filtrar o ID de socio...">
+            <button style="background: #003366; border: 1px solid #0055aa;">ENVIAR SOLICITUD</button>
+            <div class="lista-container">
+                <div class="amigo-item">▼ Socios Conectados (0)</div>
+                <div class="amigo-item">▼ Historial reciente (0)</div>
             </div>
             <button class="btn-final" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
         </div>
         
         <div class="panel">
-            <h3>Control Maestro</h3>
+            <h3>Centro de Control</h3>
             <input type="text" id="nombreInput" placeholder="Nombre en cámara">
             <button onclick="guardarNombre()">GUARDAR IDENTIDAD</button>
             <div id="myIDDisplay" onclick="copyID()" style="padding:15px; border:1px solid #228B22; text-align:center; margin-bottom:15px; background:#000; border-radius:4px; cursor:pointer; font-family:monospace; color:#228B22;">CARGANDO ID...</div>
@@ -50,10 +56,10 @@
         </div>
 
         <div class="panel">
-            <h3>Estado del Sistema</h3>
-            <button onclick="optimizar()">BOOST: LIMPIEZA</button>
-            <button onclick="refrescar()">REFRESCAR SEÑAL</button>
-            <button onclick="proteccion()">PROTECCIÓN VISUAL</button>
+            <h3>Acciones Rápidas</h3>
+            <button onclick="alert('Optimizando...');">BOOST: LIMPIEZA</button>
+            <button onclick="alert('Renegociando...');">REFRESCAR SEÑAL</button>
+            <button onclick="alert('Protección activa.');">PROTECCIÓN VISUAL</button>
             <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">APOYAR PROYECTO</button>
         </div>
     </div>
@@ -63,15 +69,8 @@
             const nom = document.getElementById('nombreInput').value;
             if(nom) { localStorage.setItem('nombreSanguino', nom); document.getElementById('miNombre').innerText = nom; }
         }
-        function vincularSocio() {
-            const tag = document.getElementById('tagSocio').value;
-            if(tag) alert("Enlace vinculado con: " + tag);
-        }
-        function gestionarNodo(tipo) { alert("Accediendo a Nodo " + tipo + "."); }
-        function optimizar() { alert("Sistema: Memoria optimizada."); }
-        function refrescar() { alert("Sistema: Señal reestablecida."); }
-        function proteccion() { alert("Protección visual activa."); }
         
+        // PeerJS Lógica central
         const App = {
             peer: new Peer(),
             getStream: () => navigator.mediaDevices.getUserMedia({video: true, audio: true}),
