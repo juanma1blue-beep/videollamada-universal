@@ -2,32 +2,23 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v1.9</title>
+    <title>Sistema Sanguino v2.1 [AutoSync]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; transition: filter 0.3s; }
         .night-mode { filter: sepia(0.4) hue-rotate(180deg) brightness(0.85); }
-        
         .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 40vh; }
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; height: 85%; object-fit: cover; }
-        
         .audio-control { height: 15%; background: #0a0a0a; display: flex; align-items: center; padding: 0 10px; border-top: 1px solid #002244; font-size: 0.8em; font-weight: bold; }
         input[type=range] { width: 100%; cursor: pointer; accent-color: #228B22; margin-left: 10px; }
-
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
-        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 25px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
-        
-        #peerID { 
-            width: 100%; padding: 22px; box-sizing: border-box; background: #111; color: #fff; border: 3px solid #228B22; font-size: 1.2em; text-align: center; border-radius: 8px; margin: 15px 0;
-        }
-
-        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1em; border-radius: 8px; }
+        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+        #peerID { width: 100%; padding: 15px; box-sizing: border-box; background: #111; color: #fff; border: 2px solid #228B22; font-size: 1.1em; text-align: center; border-radius: 8px; }
+        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; }
+        .btn-sync { background: #228B22; border-color: #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
-        
-        .btn-paypal { background: #0070BA; border: 2px solid #fff; color: white; text-decoration: none; text-align: center; padding: 15px; font-weight: bold; border-radius: 8px; display: block; }
-        
-        .chat-log { height: 150px; overflow-y: auto; font-size: 0.9em; border: 1px solid #333; padding: 10px; color: #ddd; background: #000; }
+        .chat-log { height: 120px; overflow-y: auto; font-size: 0.85em; border: 1px solid #333; padding: 10px; background: #000; }
     </style>
 </head>
 <body>
@@ -45,24 +36,21 @@
 
     <div class="interface-layer">
         <div class="panel">
-            <h3>[Session] Log</h3>
+            <h3>LOG DE SESIÓN</h3>
             <div id="chatLog" class="chat-log"></div>
-            <input type="text" id="chatInput" placeholder="/w Asesor..." onkeypress="App.manejarChat(event)" style="width:100%; padding:12px; box-sizing:border-box; background:#111; color:#fff; border:1px solid #228B22;">
         </div>
         
         <div class="panel">
             <h3>CABECERA DE MANDO</h3>
-            <div id="myIDDisplay" style="font-size:1.4em; font-weight:bold; border:2px solid #228B22; padding:20px; text-align:center; cursor:pointer; background:#000; border-radius:8px;" onclick="copyID()">CARGANDO...</div>
-            
+            <div id="myIDDisplay" style="font-size:1.2em; font-weight:bold; border:2px solid #228B22; padding:15px; text-align:center; cursor:pointer;" onclick="copyID()">CARGANDO...</div>
             <input type="text" id="peerID" placeholder="ID de tu socio">
-            
-            <button onclick="App.conectar()">CONECTAR SESIÓN PRIVADA</button>
+            <button onclick="App.conectar()">CONECTAR MANUAL</button>
+            <button class="btn-sync" onclick="App.enviarID()">ENVIAR ID A SOCIO (Sync)</button>
         </div>
 
         <div class="panel">
             <h3>PROTOCOLOS</h3>
-            <button onclick="toggleNightMode()">MODO PROTECCIÓN OCULAR</button>
-            <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">☕ ENVIAR PROPINA (PayPal)</a>
+            <button onclick="toggleNightMode()">MODO NOCTURNO</button>
             <button class="btn-red" onclick="window.location.reload()">FINALIZAR</button>
         </div>
     </div>
@@ -71,34 +59,35 @@
         const App = {
             peer: new Peer(),
             conectar: async () => {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: true, 
-                        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 48000 }
-                    });
-                    document.getElementById('localVideo').srcObject = stream;
-                    const call = App.peer.call(document.getElementById('peerID').value, stream);
-                    call.on('stream', st => { 
-                        document.getElementById('remoteVideo').srcObject = st;
-                        document.getElementById('remoteVideo').play();
-                    });
-                } catch (e) { alert("Error: Verifica permisos de cámara y micro."); }
+                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('localVideo').srcObject = stream;
+                const call = App.peer.call(document.getElementById('peerID').value, stream);
+                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
             },
-            manejarChat: (e) => {
-                if (e.key === 'Enter') {
-                    const val = e.target.value;
-                    document.getElementById('chatLog').innerHTML += `<div>[Tú] ${val}</div>`;
-                    e.target.value = '';
+            enviarID: () => {
+                const targetID = prompt("Introduce el ID del socio para enviarle el tuyo:");
+                if (targetID) {
+                    const conn = App.peer.connect(targetID);
+                    conn.on('open', () => {
+                        conn.send(document.getElementById('myIDDisplay').innerText);
+                        alert("ID enviado correctamente.");
+                    });
                 }
-            }
+            },
+            log: (msg) => { document.getElementById('chatLog').innerHTML += `<div>> ${msg}</div>`; }
         };
-        function ajustarAudio(tipo, valor) {
-            const video = document.getElementById(tipo === 'local' ? 'localVideo' : 'remoteVideo');
-            video.volume = valor;
-        }
-        function toggleNightMode() { document.body.classList.toggle('night-mode'); }
+
+        App.peer.on('connection', (conn) => {
+            conn.on('data', (data) => {
+                document.getElementById('peerID').value = data;
+                App.log("ID recibido: " + data);
+            });
+        });
+
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); alert("ID Copiado"); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); }
+        function ajustarAudio(t, v) { document.getElementById(t === 'local' ? 'localVideo' : 'remoteVideo').volume = v; }
+        function toggleNightMode() { document.body.classList.toggle('night-mode'); }
     </script>
 </body>
 </html>
