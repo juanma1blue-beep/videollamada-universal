@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V33.0 [Coherencia Total]</title>
+    <title>SISTEMA V33.1 [Ajuste de Vídeo Profesional]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
@@ -11,6 +11,13 @@
         .video-zone { display: grid; grid-template-rows: 1fr 1fr; gap: 15px; padding: 20px; }
         .cam-container { border: 2px solid var(--azul); border-radius: 15px; overflow: hidden; position: relative; background: #000; }
         
+        /* AJUSTE DE VÍDEO PROFESIONAL */
+        video { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; /* Esto hace que el vídeo rellene el contenedor */
+        }
+        
         .chat-zone { border-left: 2px solid var(--azul); background: #0a0a0a; display: flex; flex-direction: column; }
         #chatBox { flex-grow: 1; padding: 15px; overflow-y: auto; font-size: 0.9em; border-bottom: 1px solid var(--azul); }
         .chat-input-area { padding: 15px; background: rgba(0,30,98,0.1); }
@@ -18,24 +25,8 @@
         .panel-control { padding: 20px; background: rgba(0,30,98,0.1); }
         .id-box { background: var(--azul); border: 1px solid var(--neon-rojo); color: var(--neon-rojo); padding: 12px; text-align: center; font-family: monospace; font-weight: bold; border-radius: 8px; margin: 10px 0; cursor: pointer; text-shadow: 0 0 8px rgba(255,51,51,0.8); }
         
-        /* ESTILO UNIFICADO PARA TODOS LOS CAMPOS DE TEXTO */
-        .neon-input { 
-            width: 100%; 
-            padding: 15px; 
-            border: 2px solid var(--azul); 
-            background: #000; 
-            color: #fff; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            margin-bottom: 10px; 
-            font-family: monospace; 
-            transition: 0.3s;
-        }
-        .neon-input:focus { 
-            outline: none; 
-            border: 2px solid var(--granada); 
-            box-shadow: 0 0 10px var(--granada);
-        }
+        .neon-input { width: 100%; padding: 15px; border: 2px solid var(--azul); background: #000; color: #fff; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; transition: 0.3s; }
+        .neon-input:focus { outline: none; border: 2px solid var(--granada); box-shadow: 0 0 10px var(--granada); }
         
         button { background: var(--azul); color: var(--neon-rojo); border: 1px solid var(--neon-rojo); padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 8px; transition: all 0.3s ease; text-shadow: 0 0 8px rgba(255,51,51,0.8); }
         button:hover { background: var(--granada); color: #fff; transform: scale(1.02); box-shadow: 0 0 15px rgba(165,0,68,0.6); text-shadow: none; }
