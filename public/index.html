@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V22.0 [Estabilidad Total]</title>
+    <title>SISTEMA V23.0 [Integración Total]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; }
@@ -11,13 +11,14 @@
         .video-zone { display: grid; grid-template-rows: 1fr 1fr; gap: 15px; padding: 20px; }
         .cam-container { border: 2px solid var(--azul); border-radius: 15px; overflow: hidden; position: relative; background: #000; }
         
+        /* CHAT RESTAURADO */
         .chat-zone { border-left: 2px solid var(--azul); background: #0a0a0a; display: flex; flex-direction: column; }
-        #chatBox { flex-grow: 1; padding: 15px; font-size: 0.9em; border-bottom: 1px solid var(--azul); }
+        #chatBox { flex-grow: 1; padding: 15px; overflow-y: auto; font-size: 0.9em; border-bottom: 1px solid var(--azul); }
+        .chat-input-area { padding: 15px; background: rgba(0,30,98,0.1); }
         
         .panel-control { padding: 20px; background: rgba(0,30,98,0.1); }
         .id-box { background: #000; border: 1px solid var(--azul); color: var(--azul); padding: 12px; text-align: center; font-family: monospace; border-radius: 8px; margin: 10px 0; cursor: pointer; }
         
-        /* INPUT DE SESIÓN RESTAURADO */
         .session-input { width: 100%; padding: 15px; border: 2px solid var(--azul); background: #000; color: #fff; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; }
         
         button { background: var(--azul); color: #fff; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 8px; transition: 0.3s; }
@@ -31,8 +32,8 @@
 
     <div id="modalAmistades" class="modal">
         <h3>AÑADIR USUARIO</h3>
-        <input type="text" id="userTag" placeholder="Nombre o ID..." style="width:100%; padding:10px; border-radius:5px; border:none;">
-        <button onclick="añadirUsuario()" style="margin-top:10px;">CONFIRMAR</button>
+        <input type="text" id="userTag" placeholder="Nombre o ID..." style="width:100%; padding:10px; border-radius:5px; border:none; margin-bottom:10px;">
+        <button onclick="añadirUsuario()">CONFIRMAR</button>
         <button onclick="toggleAmistades()" style="background:transparent;">CERRAR</button>
     </div>
 
@@ -44,13 +45,18 @@
 
         <div class="chat-zone">
             <div id="chatBox"></div>
+            
+            <div class="chat-input-area">
+                <input type="text" id="msgInput" placeholder="Escribe un mensaje..." style="width:100%; padding:10px; border-radius:5px; border:1px solid var(--azul); background:#000; color:#fff; margin-bottom:5px;">
+                <button onclick="enviarMensaje()">ENVIAR MENSAJE</button>
+            </div>
+
             <div class="panel-control">
-                <div style="font-size:0.7em; color:#aaa; margin-bottom:5px;">TU CÓDIGO DE SESIÓN:</div>
+                <div style="font-size:0.7em; color:#aaa; margin-bottom:5px;">CÓDIGO DE SESIÓN:</div>
                 <div id="myIDDisplay" class="id-box" onclick="copyID()">GENERANDO...</div>
                 
                 <input type="text" id="peerID" class="session-input" placeholder="PEGA EL CÓDIGO AQUÍ...">
                 <button class="btn-call" onclick="App.llamar()">ESTABLECER SESIÓN</button>
-                
                 <button onclick="toggleAmistades()">+ AÑADIR USUARIO</button>
                 <button style="background:#008844;" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">APOYAR PROYECTO</button>
                 <button class="btn-end" onclick="location.reload()">FINALIZAR LLAMADA</button>
@@ -61,6 +67,15 @@
     <script>
         function toggleAmistades() { const m = document.getElementById('modalAmistades'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
         
+        function enviarMensaje() {
+            const input = document.getElementById('msgInput');
+            if(input.value) {
+                const box = document.getElementById('chatBox');
+                box.innerHTML += `<div style="margin-bottom:8px;"><strong>Tú:</strong> ${input.value}</div>`;
+                input.value = '';
+            }
+        }
+
         function añadirUsuario() {
             const user = document.getElementById('userTag').value;
             if(user) { alert("Usuario " + user + " añadido."); toggleAmistades(); }
