@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V28.0 [Precisión Neón]</title>
+    <title>SISTEMA V29.0 [Memoria Inteligente]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
@@ -16,72 +16,25 @@
         .chat-input-area { padding: 15px; background: rgba(0,30,98,0.1); }
         
         .panel-control { padding: 20px; background: rgba(0,30,98,0.1); }
+        .id-box { background: var(--azul); border: 1px solid var(--neon-rojo); color: var(--neon-rojo); padding: 12px; text-align: center; font-family: monospace; font-weight: bold; border-radius: 8px; margin: 10px 0; cursor: pointer; text-shadow: 0 0 8px rgba(255,51,51,0.8); }
+        .session-input { width: 100%; padding: 15px; border: 2px solid var(--azul); background: #000; color: #fff; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; transition: 0.3s; }
+        .session-input:focus { outline: none; border: 2px solid var(--granada); box-shadow: 0 0 10px var(--granada); }
         
-        .id-box { 
-            background: var(--azul); 
-            border: 1px solid var(--neon-rojo); 
-            color: var(--neon-rojo); 
-            padding: 12px; 
-            text-align: center; 
-            font-family: monospace; 
-            font-weight: bold;
-            font-size: 1.1em;
-            border-radius: 8px; 
-            margin: 10px 0; 
-            cursor: pointer; 
-            text-shadow: 0 0 8px rgba(255,51,51,0.8);
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-        }
+        button { background: var(--azul); color: var(--neon-rojo); border: 1px solid var(--neon-rojo); padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 8px; transition: all 0.3s ease; text-shadow: 0 0 8px rgba(255,51,51,0.8); }
+        button:hover { background: var(--granada); color: #fff; transform: scale(1.02); box-shadow: 0 0 15px rgba(165,0,68,0.6); text-shadow: none; }
         
-        /* INPUT DE SESIÓN CON FOCO GRANA NEÓN */
-        .session-input { 
-            width: 100%; 
-            padding: 15px; 
-            border: 2px solid var(--azul); 
-            background: #000; 
-            color: #fff; 
-            border-radius: 8px; 
-            box-sizing: border-box; 
-            margin-bottom: 10px; 
-            font-family: monospace;
-            transition: 0.3s;
-        }
-        .session-input:focus { 
-            outline: none; 
-            border: 2px solid var(--granada); 
-            box-shadow: 0 0 10px var(--granada);
-        }
-        
-        button { 
-            background: var(--azul); 
-            color: var(--neon-rojo); 
-            border: 1px solid var(--neon-rojo); 
-            padding: 12px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            width: 100%; 
-            margin-bottom: 8px; 
-            transition: all 0.3s ease;
-            text-shadow: 0 0 8px rgba(255,51,51,0.8);
-        }
-        button:hover { 
-            background: var(--granada); 
-            color: #fff;
-            transform: scale(1.02);
-            box-shadow: 0 0 15px rgba(165,0,68,0.6);
-            text-shadow: none;
-        }
-        
-        .modal { display: none; position: fixed; top: 25%; left: 30%; width: 40%; background: var(--azul); padding: 25px; border-radius: 15px; z-index: 100; border: 2px solid var(--granada); }
+        /* Lista de amigos */
+        .amigo-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid var(--azul); font-size: 0.9em; }
+        .modal { display: none; position: fixed; top: 20%; left: 30%; width: 40%; background: var(--azul); padding: 25px; border-radius: 15px; z-index: 100; border: 2px solid var(--granada); }
     </style>
 </head>
 <body>
 
     <div id="modalAmistades" class="modal">
-        <h3 style="color:white;">AÑADIR USUARIO</h3>
+        <h3 style="color:white;">MIS CONTACTOS</h3>
+        <div id="listaContactos" style="margin-bottom:15px; max-height:150px; overflow-y:auto; background:#000; padding:10px; border-radius:5px;"></div>
         <input type="text" id="userTag" placeholder="Nombre o ID..." style="width:100%; padding:10px; border-radius:5px; border:none; margin-bottom:10px;">
-        <button onclick="añadirUsuario()">CONFIRMAR</button>
+        <button onclick="añadirUsuario()">AÑADIR</button>
         <button onclick="toggleAmistades()" style="background:var(--granada); color:white; border:none;">CERRAR</button>
     </div>
 
@@ -93,17 +46,14 @@
 
         <div class="chat-zone">
             <div id="chatBox"></div>
-            
             <div class="chat-input-area">
-                <input type="text" id="msgInput" placeholder="Escribe un mensaje..." style="width:100%; padding:10px; border-radius:5px; border:1px solid var(--azul); background:#000; color:#fff; margin-bottom:5px;">
+                <input type="text" id="msgInput" placeholder="Mensaje..." style="width:100%; padding:10px; border-radius:5px; border:1px solid var(--azul); background:#000; color:#fff; margin-bottom:5px;">
                 <button onclick="enviarMensaje()">ENVIAR MENSAJE</button>
                 <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">ENVIAR PROPINA PAYPAL</button>
             </div>
 
             <div class="panel-control">
-                <div style="font-size:0.7em; color:#aaa; margin-bottom:5px;">CÓDIGO DE SESIÓN:</div>
                 <div id="myIDDisplay" class="id-box" onclick="copyID()">GENERANDO...</div>
-                
                 <input type="text" id="peerID" class="session-input" placeholder="PEGA EL CÓDIGO AQUÍ...">
                 <button onclick="App.llamar()">ESTABLECER SESIÓN</button>
                 <button onclick="toggleAmistades()">+ AÑADIR USUARIO</button>
@@ -113,7 +63,28 @@
     </div>
 
     <script>
+        // Cargar contactos al iniciar
+        window.onload = actualizarLista;
+
         function toggleAmistades() { const m = document.getElementById('modalAmistades'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+        
+        function añadirUsuario() {
+            const user = document.getElementById('userTag').value;
+            if(user) {
+                let contactos = JSON.parse(localStorage.getItem('contactos') || '[]');
+                contactos.push(user);
+                localStorage.setItem('contactos', JSON.stringify(contactos));
+                document.getElementById('userTag').value = '';
+                actualizarLista();
+            }
+        }
+
+        function actualizarLista() {
+            const lista = document.getElementById('listaContactos');
+            const contactos = JSON.parse(localStorage.getItem('contactos') || '[]');
+            lista.innerHTML = contactos.map(c => `<div class="amigo-item">${c} <button style="width:auto; padding:2px 8px;" onclick="document.getElementById('peerID').value='${c}'; toggleAmistades()">LLAMAR</button></div>`).join('');
+        }
+
         function enviarMensaje() {
             const input = document.getElementById('msgInput');
             if(input.value) {
@@ -122,10 +93,7 @@
                 input.value = '';
             }
         }
-        function añadirUsuario() {
-            const user = document.getElementById('userTag').value;
-            if(user) { alert("Usuario " + user + " añadido."); toggleAmistades(); }
-        }
+
         function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); alert("Código copiado."); }
         const App = {
             peer: new Peer(),
