@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v3.0 [Estabilidad Recuperada]</title>
+    <title>Sistema Sanguino v3.1</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
@@ -12,26 +12,15 @@
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
         .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 15px; }
         
-        /* Ajuste de Espaciado del ID */
-        #myIDDisplay { 
-            font-size: 1.3em; 
-            font-weight: bold; 
-            border: 2px solid #228B22; 
-            padding: 20px; 
-            text-align: center; 
-            cursor: pointer; 
-            margin-bottom: 20px; /* Aquí recuperamos la separación */
-            background: #001122;
-        }
-
-        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; transition: 0.2s; }
-        button:hover { background: #003366; }
+        #myIDDisplay { font-size: 1.3em; font-weight: bold; border: 2px solid #228B22; padding: 20px; text-align: center; cursor: pointer; margin-bottom: 25px; background: #001122; }
         
+        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 15px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; }
         .btn-call { background: #228B22; border: 2px solid #fff; }
         .btn-tip { background: #ffc439; color: #000; border: 2px solid #fff; }
         .btn-red { background: #8B0000; border: 2px solid #FF4500; }
         
-        #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; font-size: 0.9em; border: 2px solid #228B22; line-height: 1.5; margin-top: 15px; }
+        /* Instrucciones simplificadas */
+        #helpPanel { background: #001a33; color: #fff; padding: 15px; border-radius: 8px; border: 1px solid #228B22; font-size: 0.9em; }
     </style>
 </head>
 <body>
@@ -51,15 +40,14 @@
             <h3>CENTRO DE CONTROL</h3>
             <div id="myIDDisplay" onclick="copyID()">CARGANDO...</div>
             
-            <input type="text" id="peerID" placeholder="Pega aquí el ID de tu pareja" style="padding: 10px; width: 100%; box-sizing: border-box;">
+            <input type="text" id="peerID" placeholder="Pega el código de tu socio aquí" style="padding: 10px; width: 100%; box-sizing: border-box;">
             
             <button class="btn-call" onclick="App.llamar()">LLAMAR</button>
 
             <div id="helpPanel">
-                <strong>¿CÓMO CONECTAR?</strong><br>
-                1. Comparte tu ID con tu pareja.<br>
-                2. Pega el ID de tu pareja arriba.<br>
-                3. Pulsa <b>LLAMAR</b> y espera a que acepte.
+                1. <b>COPIA</b> tu código de arriba.<br>
+                2. <b>ENVÍA</b> tu código a tu socio.<br>
+                3. <b>PEGA</b> el código de tu socio y llama.
             </div>
         </div>
 
@@ -75,11 +63,11 @@
             peer: new Peer(),
             llamar: () => {
                 const targetID = document.getElementById('peerID').value;
-                if(!targetID) { alert("¡Pide el ID de tu pareja primero!"); return; }
+                if(!targetID) { alert("¡Pide el ID de tu socio primero!"); return; }
                 const conn = App.peer.connect(targetID);
                 conn.on('open', () => {
                     conn.send({tipo: 'LLAMADA', de: App.peer.id});
-                    App.log("Llamando a: " + targetID);
+                    App.log("Llamando...");
                 });
             },
             conectar: async (id) => {
@@ -94,7 +82,7 @@
         App.peer.on('connection', (conn) => {
             conn.on('data', (data) => {
                 if(data.tipo === 'LLAMADA') {
-                    if(confirm("Llamada entrante de: " + data.de + ". ¿Aceptar?")) {
+                    if(confirm("Llamada recibida de " + data.de + ". ¿Aceptar?")) {
                         App.conectar(data.de);
                     }
                 }
@@ -102,7 +90,7 @@
         });
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("ID copiado."); }
+        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); App.log("Código copiado."); }
     </script>
 </body>
 </html>
