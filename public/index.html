@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V26.0 [Modo Neón]</title>
+    <title>SISTEMA V27.0 [Arquitectura Neón]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
@@ -16,7 +16,24 @@
         .chat-input-area { padding: 15px; background: rgba(0,30,98,0.1); }
         
         .panel-control { padding: 20px; background: rgba(0,30,98,0.1); }
-        .id-box { background: #000; border: 1px solid var(--azul); color: var(--azul); padding: 12px; text-align: center; font-family: monospace; border-radius: 8px; margin: 10px 0; cursor: pointer; }
+        
+        /* CÓDIGO NEÓN BLAUGRANA */
+        .id-box { 
+            background: var(--azul); 
+            border: 1px solid var(--neon-rojo); 
+            color: var(--neon-rojo); 
+            padding: 15px; 
+            text-align: center; 
+            font-family: monospace; 
+            font-weight: bold;
+            font-size: 1.1em;
+            border-radius: 8px; 
+            margin: 10px 0; 
+            cursor: pointer; 
+            text-shadow: 0 0 8px rgba(255,51,51,0.8);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        
         .session-input { width: 100%; padding: 15px; border: 2px solid var(--azul); background: #000; color: #fff; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; }
         
         /* BOTONES NEÓN BLAUGRANA */
