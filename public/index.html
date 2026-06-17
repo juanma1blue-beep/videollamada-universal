@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Market Evolution - Comando Élite</title>
+    <title>Market Evolution - Comando Élite V1.0</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #0a0a0a; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
@@ -10,14 +10,14 @@
         .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Chat WoW */
-        .chat-container { border: 2px solid #444; background: rgba(0,0,0,0.8); border-radius: 4px; padding: 10px; height: 30vh; margin: 0 10px; display: flex; flex-direction: column; }
+        /* Chat WoW Style */
+        .chat-container { border: 2px solid #444; background: rgba(0,0,0,0.9); border-radius: 4px; padding: 10px; height: 30vh; margin: 0 10px; display: flex; flex-direction: column; }
         .chat-tabs { display: flex; gap: 5px; margin-bottom: 5px; font-size: 0.8em; }
         .tab { border: 1px solid #555; padding: 2px 8px; cursor: pointer; color: #aaa; }
         .chat-log { flex-grow: 1; overflow-y: auto; font-size: 0.9em; color: #ddd; margin-bottom: 5px; }
         .chat-input { background: #000; border: 1px solid #002244; color: #fff; padding: 5px; width: 95%; }
 
-        /* Panel Mando */
+        /* Control Panel */
         .control-panel { display: flex; padding: 10px; gap: 10px; align-items: center; }
         button { background: #002244; color: #fff; border: 1px solid #228B22; padding: 10px 20px; cursor: pointer; font-weight: bold; }
         .btn-red { background: #8B0000; border: 1px solid #FF4500; }
@@ -35,13 +35,13 @@
             <div class="tab">[General]</div><div class="tab">[LFG]</div><div class="tab">[Guild]</div><div class="tab" style="color:#fff;">[Session]</div>
         </div>
         <div id="chatLog" class="chat-log"></div>
-        <input type="text" id="chatInput" class="chat-input" placeholder="/w Asesor..." onkeypress="manejarChat(event)">
+        <input type="text" id="chatInput" class="chat-input" placeholder="/w Asesor..." onkeypress="App.manejarChat(event)">
     </div>
 
     <div class="control-panel">
         <input type="text" id="myID" readonly placeholder="Cargando ID...">
         <input type="text" id="peerID" placeholder="ID Socio">
-        <button onclick="conectar()">CONECTAR</button>
+        <button onclick="App.conectar()">CONECTAR</button>
         <button class="btn-red" onclick="window.location.reload()">CERRAR OPERACIÓN</button>
     </div>
 
@@ -49,38 +49,53 @@
         const App = {
             peer: new Peer(),
             conn: null,
-            log: (msg) => {
+            
+            // Inicializar Chat desde localStorage
+            init: () => {
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                history.forEach(h => App.logHist(h.msg, h.sender));
+            },
+
+            log: (msg, sender) => {
                 const log = document.getElementById('chatLog');
-                log.innerHTML += `<div>[Session] ${msg}</div>`;
+                log.innerHTML += `<div>[${sender}] ${msg}</div>`;
                 log.scrollTop = log.scrollHeight;
+                
+                const history = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+                history.push({ msg, sender });
+                localStorage.setItem('chatHistory', JSON.stringify(history.slice(-50)));
+            },
+
+            logHist: (msg, sender) => {
+                const log = document.getElementById('chatLog');
+                log.innerHTML += `<div>[${sender}] ${msg}</div>`;
+            },
+
+            manejarChat: (e) => {
+                if (e.key === 'Enter') {
+                    const val = e.target.value;
+                    App.log(val, 'Tú');
+                    if (App.conn?.open) App.conn.send(val);
+                    e.target.value = '';
+                }
+            },
+
+            conectar: async () => {
+                const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+                document.getElementById('localVideo').srcObject = stream;
+                const call = App.peer.call(document.getElementById('peerID').value, stream);
+                call.on('stream', st => document.getElementById('remoteVideo').srcObject = st);
+                App.conn = App.peer.connect(document.getElementById('peerID').value);
             }
         };
 
         App.peer.on('open', id => document.getElementById('myID').value = id);
+        App.peer.on('connection', c => {
+            App.conn = c;
+            c.on('data', data => App.log(data, 'Asesor'));
+        });
         
-        function manejarChat(e) {
-            if (e.key === 'Enter') {
-                const val = e.target.value;
-                App.log(`Tú: ${val}`);
-                if (App.conn?.open) App.conn.send(val);
-                e.target.value = '';
-            }
-        }
-
-        async function conectar() {
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-                document.getElementById('localVideo').srcObject = stream;
-                const call = App.peer.call(document.getElementById('peerID').value, stream);
-                call.on('stream', st => {
-                    document.getElementById('remoteVideo').srcObject = st;
-                    App.log("Conexión de voz y video establecida.");
-                });
-                App.conn = App.peer.connect(document.getElementById('peerID').value);
-            } catch (err) {
-                App.log("Error de conexión: Verifica permisos de cámara/micrófono.");
-            }
-        }
+        App.init();
     </script>
 </body>
 </html>
