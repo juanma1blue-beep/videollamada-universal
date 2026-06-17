@@ -2,21 +2,23 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema Sanguino v4.8 [Ultra Compacto]</title>
+    <title>Sistema Sanguino v4.9 [Equilibrio]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
-        .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; height: 40vh; }
-        .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+        .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; height: 40vh; }
+        .cam-box { border: 2px solid #002244; background: #000; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
         video { width: 100%; flex-grow: 1; object-fit: cover; }
-        .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 20px; padding: 20px; flex-grow: 1; }
-        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; }
         
-        /* GUÍA COMPACTA */
-        .guia-item { font-size: 0.85em; margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 5px; }
+        .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 25px; padding: 25px; flex-grow: 1; }
+        .panel { border: 2px solid #002244; background: #0a0a0a; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; }
         
-        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 6px; margin-bottom: 8px; }
-        .btn-final { background: #8B0000; border: 2px solid #FF4500; }
+        /* EQUILIBRIO DE ESPACIO */
+        #log-container { flex-grow: 1; margin-bottom: 30px; overflow-y: auto; }
+        .guia-item { font-size: 0.9em; margin-bottom: 12px; border-bottom: 1px solid #111; padding-bottom: 8px; }
+        
+        button { background: #002244; color: #fff; border: 2px solid #228B22; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 8px; margin-bottom: 10px; }
+        .btn-final { background: #8B0000; border: 2px solid #FF4500; margin-top: auto; }
     </style>
 </head>
 <body>
@@ -28,19 +30,19 @@
     <div class="interface-layer">
         <div class="panel">
             <h3 style="margin-top:0;">PROTOCOLO</h3>
-            <div id="chatLog" style="height: 200px; overflow-y: auto;">
-                <div class="guia-item">1. **COPIA:** Clic en ID Verde.</div>
-                <div class="guia-item">2. **ENVÍA:** Pásalo a tu socio.</div>
-                <div class="guia-item">3. **PEGA:** ID Socio -> Llamar.</div>
-                <div class="guia-item">4. **FIX:** Si falla -> Refrescar.</div>
+            <div id="log-container">
+                <div class="guia-item">1. <strong>COPIA:</strong> Clic en ID Verde.</div>
+                <div class="guia-item">2. <strong>ENVÍA:</strong> Pásalo a tu socio.</div>
+                <div class="guia-item">3. <strong>PEGA:</strong> ID Socio -> Llamar.</div>
+                <div class="guia-item">4. <strong>FIX:</strong> Si falla -> Refrescar.</div>
             </div>
-            <button class="btn-final" onclick="window.location.reload()">FINALIZAR</button>
+            <button class="btn-final" onclick="window.location.reload()">FINALIZAR SESIÓN</button>
         </div>
         
         <div class="panel">
-            <h3>CONTROL</h3>
-            <div id="myIDDisplay" onclick="copyID()" style="padding:15px; border:2px solid #228B22; text-align:center; margin-bottom:15px; background:#001122;">CARGANDO ID...</div>
-            <input type="text" id="peerID" placeholder="Pega el ID del socio" style="width:100%; padding:10px; margin-bottom:15px; background:#000; color:#fff; border:1px solid #333;">
+            <h3>CENTRO DE CONTROL</h3>
+            <div id="myIDDisplay" onclick="copyID()" style="padding:20px; border:3px solid #228B22; text-align:center; margin-bottom:30px; background:#001122; border-radius:10px;">CARGANDO ID...</div>
+            <input type="text" id="peerID" placeholder="Pega el ID del socio" style="width:100%; padding:15px; margin-bottom:20px; background:#000; color:#fff; border:1px solid #333;">
             <button onclick="App.llamar()" style="background:#228B22; padding:15px;">LLAMAR AHORA</button>
         </div>
 
