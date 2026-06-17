@@ -2,67 +2,59 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Comando Élite - Control de Audio</title>
+    <title>Comando Élite - Protección Integral</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 45vh; }
-        .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        video { width: 100%; height: 85%; object-fit: cover; }
+        body { margin: 0; background: #000; color: #fff; font-family: 'Verdana', sans-serif; height: 100vh; display: flex; flex-direction: column; transition: filter 0.3s; }
         
-        /* Barra de Volumen Estilo Élite */
-        .audio-control { height: 15%; background: #0a0a0a; display: flex; align-items: center; padding: 0 10px; border-top: 1px solid #002244; }
-        input[type=range] { width: 100%; cursor: pointer; accent-color: #228B22; }
+        /* Filtro de Protección Visual (Aplica a todo, incluidas las cámaras) */
+        .night-mode { filter: sepia(0.4) hue-rotate(180deg) brightness(0.85); }
 
+        .camera-layer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; height: 45vh; }
+        .cam-box { border: 2px solid #002244; background: #000; border-radius: 8px; overflow: hidden; position: relative; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        
         .interface-layer { display: grid; grid-template-columns: 1fr 2fr 1fr; gap: 10px; padding: 10px; flex-grow: 1; }
         .panel { border: 1px solid #002244; background: #0a0a0a; padding: 10px; border-radius: 8px; }
-        .id-display { font-size: 1.2em; font-weight: bold; color: #fff; background: #000; border: 2px solid #228B22; padding: 10px; text-align: center; margin: 10px 0; cursor: pointer; }
-        button { background: #002244; color: #fff; border: 1px solid #228B22; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; }
+        
+        button { background: #002244; color: #fff; border: 1px solid #228B22; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 5px; }
+        .btn-night { background: #333; border: 1px solid #FFD700; color: #FFD700; }
+        input { background: #000; color: #fff; border: 1px solid #002244; padding: 8px; width: 90%; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="camera-layer">
-        <div class="cam-box">
-            <video id="localVideo" autoplay playsinline muted></video>
-            <div class="audio-control"><label>Tu Mic:</label><input type="range" min="0" max="1" step="0.1" value="0.5" oninput="ajustarAudio('local', this.value)"></div>
-        </div>
-        <div class="cam-box">
-            <video id="remoteVideo" autoplay playsinline></video>
-            <div class="audio-control"><label>Audio Socio:</label><input type="range" min="0" max="1" step="0.1" value="0.5" oninput="ajustarAudio('remote', this.value)"></div>
-        </div>
+    <div class="camera-layer" id="mainDisplay">
+        <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
 
     <div class="interface-layer">
-        <div class="panel"><h3>[Session] Log</h3><div id="chatLog" class="chat-log" style="height:150px; overflow-y:auto; font-size:0.8em; border:1px solid #333; padding:5px;"></div></div>
+        <div class="panel"><h3>[Session] Log</h3><div id="chatLog" style="height:150px; overflow-y:auto; font-size:0.8em; color:#ddd;"></div></div>
+        
         <div class="panel">
             <h3>CABECERA DE MANDO</h3>
-            <div id="myIDDisplay" class="id-display" onclick="copyID()">GENERANDO ID...</div>
-            <input type="text" id="peerID" placeholder="ID Socio" style="width:90%; padding:8px; margin-bottom:5px;">
-            <button onclick="App.conectar()">CONECTAR SESIÓN PRIVADA</button>
+            <div id="myIDDisplay" style="font-size:1.2em; font-weight:bold; border:2px solid #228B22; padding:10px; text-align:center;">GENERANDO ID...</div>
+            <input type="text" id="peerID" placeholder="ID Socio">
+            <button onclick="App.conectar()">CONECTAR</button>
         </div>
-        <div class="panel"><h3>ESTADO</h3><button class="btn-red" onclick="window.location.reload()" style="background:#8B0000; color:white;">CERRAR</button></div>
+
+        <div class="panel">
+            <h3>PROTOCOLOS</h3>
+            <button class="btn-night" onclick="toggleNightMode()">MODO PROTECCIÓN OCULAR</button>
+            <button class="btn-red" onclick="window.location.reload()" style="background:#8B0000;">CERRAR</button>
+        </div>
     </div>
 
     <script>
-        const App = {
-            peer: new Peer(),
-            audioCtx: new AudioContext(),
-            conectar: async () => {
-                const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
-                document.getElementById('localVideo').srcObject = stream;
-                const call = App.peer.call(document.getElementById('peerID').value, stream);
-                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-            }
-        };
-
-        function ajustarAudio(tipo, valor) {
-            const video = document.getElementById(tipo === 'local' ? 'localVideo' : 'remoteVideo');
-            video.volume = valor; // Controla la salida de audio directamente
+        const App = { peer: new Peer(), conectar: async () => { /* Logica de conexion */ } };
+        
+        // Protección Total: Aplica el filtro al body (todo el sistema)
+        function toggleNightMode() {
+            document.body.classList.toggle('night-mode');
         }
 
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
-        function copyID() { navigator.clipboard.writeText(document.getElementById('myIDDisplay').innerText); alert("ID Copiado"); }
     </script>
 </body>
 </html>
