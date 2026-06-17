@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V30.1 [Modo Antivirus]</title>
+    <title>SISTEMA V31.0 [Agenda de Contactos]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
@@ -19,17 +19,19 @@
         .session-input:focus { outline: none; border: 2px solid var(--granada); box-shadow: 0 0 10px var(--granada); }
         button { background: var(--azul); color: var(--neon-rojo); border: 1px solid var(--neon-rojo); padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 8px; transition: all 0.3s ease; text-shadow: 0 0 8px rgba(255,51,51,0.8); }
         button:hover { background: var(--granada); color: #fff; transform: scale(1.02); box-shadow: 0 0 15px rgba(165,0,68,0.6); text-shadow: none; }
-        .amigo-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid var(--azul); }
-        .modal { display: none; position: fixed; top: 20%; left: 30%; width: 40%; background: var(--azul); padding: 25px; border-radius: 15px; z-index: 100; border: 2px solid var(--granada); }
+        .amigo-item { background: #000; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid var(--azul); }
+        .modal { display: none; position: fixed; top: 15%; left: 30%; width: 40%; background: var(--azul); padding: 25px; border-radius: 15px; z-index: 100; border: 2px solid var(--granada); }
     </style>
 </head>
 <body>
 
     <div id="modalAmistades" class="modal">
-        <h3 style="color:white;">CONTACTOS</h3>
-        <div id="listaContactos" style="margin-bottom:15px; max-height:200px; overflow-y:auto; background:#000; padding:10px; border-radius:5px;"></div>
-        <input type="text" id="userTag" placeholder="Nombre o ID del nuevo usuario..." style="width:100%; padding:10px; border-radius:5px; border:none; margin-bottom:10px;">
-        <button onclick="añadirUsuario()">AÑADIR</button>
+        <h3 style="color:white;">AGENDA DE CONTACTOS</h3>
+        <div id="listaContactos" style="margin-bottom:15px; max-height:200px; overflow-y:auto; padding:10px;"></div>
+        <input type="text" id="nombreContacto" placeholder="Nombre..." style="width:100%; padding:10px; margin-bottom:5px; border-radius:5px; border:none;">
+        <input type="text" id="telContacto" placeholder="Número (Móvil/Fijo)..." style="width:100%; padding:10px; margin-bottom:5px; border-radius:5px; border:none;">
+        <input type="text" id="userTag" placeholder="ID Sesión..." style="width:100%; padding:10px; margin-bottom:5px; border-radius:5px; border:none;">
+        <button onclick="añadirContacto()">AÑADIR A AGENDA</button>
         <button onclick="toggleAmistades()" style="background:var(--granada); color:white; border:none;">CERRAR</button>
     </div>
 
@@ -42,85 +44,73 @@
         <div class="chat-zone">
             <div id="chatBox"></div>
             <div class="chat-input-area">
+                <button onclick="enviarMensajeRapido()" style="background:var(--granada); color:white; border:none; margin-bottom:5px;">ENVIAR: "Cari, ya estoy aquí"</button>
                 <input type="text" id="msgInput" placeholder="Mensaje..." style="width:100%; padding:10px; border-radius:5px; border:1px solid var(--azul); background:#000; color:#fff; margin-bottom:5px;">
                 <button onclick="enviarMensaje()">ENVIAR MENSAJE</button>
-                <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">ENVIAR PROPINA PAYPAL</button>
             </div>
 
             <div class="panel-control">
                 <div id="myIDDisplay" class="id-box" onclick="copyID()">GENERANDO...</div>
                 <input type="text" id="peerID" class="session-input" placeholder="PEGA EL CÓDIGO AQUÍ...">
                 <button onclick="App.llamar()">ESTABLECER SESIÓN</button>
-                <button onclick="toggleAmistades()">+ AÑADIR USUARIO</button>
-                <button onclick="location.reload()">FINALIZAR LLAMADA</button>
+                <button onclick="zumbar()">ZUMBAR LLAMADA</button>
+                <button onclick="toggleAmistades()">+ AGENDA</button>
+                <button onclick="location.reload()">FINALIZAR</button>
             </div>
         </div>
     </div>
 
     <script>
-        window.onload = actualizarLista;
-        function toggleAmistades() { const m = document.getElementById('modalAmistades'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+        window.onload = actualizarAgenda;
+        function toggleAmistades() { const m = document.getElementById8('modalAmistades'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
         
-        function añadirUsuario() {
-            const input = document.getElementById('userTag');
-            const user = input.value.trim();
-            if(user) {
-                try {
-                    let contactos = JSON.parse(localStorage.getItem('contactos') || '[]');
-                    if(!contactos.includes(user)) {
-                        contactos.push(user);
-                        localStorage.setItem('contactos', JSON.stringify(contactos));
-                    }
-                    input.value = '';
-                    actualizarLista();
-                } catch(e) { console.error("Error al guardar:", e); }
+        function añadirContacto() {
+            const nombre = document.getElementById('nombreContacto').value;
+            const tel = document.getElementById('telContacto').value;
+            const id = document.getElementById('userTag').value;
+            if(nombre && id) {
+                let contactos = JSON.parse(localStorage.getItem('agenda') || '[]');
+                contactos.push({nombre, tel, id});
+                localStorage.setItem('agenda', JSON.stringify(contactos));
+                actualizarAgenda();
             }
         }
 
-        function llamarContacto(id) {
-            document.getElementById('peerID').value = id;
-            toggleAmistades();
-            App.llamar();
-        }
-
-        function actualizarLista() {
+        function actualizarAgenda() {
             const lista = document.getElementById('listaContactos');
-            const contactos = JSON.parse(localStorage.getItem('contactos') || '[]');
+            const contactos = JSON.parse(localStorage.getItem('agenda') || '[]');
             lista.innerHTML = contactos.map(c => `
                 <div class="amigo-item">
-                    <span style="color:#fff;">${c}</span>
-                    <button style="width:auto; padding:5px 15px;" onclick="llamarContacto('${c}')">LLAMAR</button>
+                    <strong>${c.nombre}</strong><br><small>${c.tel}</small><br>
+                    <button onclick="document.getElementById('peerID').value='${c.id}'; toggleAmistades()">LLAMAR</button>
                 </div>`).join('');
         }
 
-        function enviarMensaje() {
-            const input = document.getElementById('msgInput');
-            if(input.value.trim()) {
-                const box = document.getElementById('chatBox');
-                box.innerHTML += `<div style="margin-bottom:8px; color:#fff;"><strong>Tú:</strong> ${input.value}</div>`;
-                input.value = '';
-            }
+        function enviarMensajeRapido() {
+            const box = document.getElementById('chatBox');
+            box.innerHTML += `<div style="margin-bottom:8px; color:var(--neon-rojo);"><strong>Tú:</strong> Cari, ya estoy en la aplicación. Ya puedes entrar.</div>`;
         }
 
-        function copyID() { 
-            const id = document.getElementById('myIDDisplay').innerText;
-            if(id !== "GENERANDO...") {
-                navigator.clipboard.writeText(id); 
-                alert("Código copiado al portapapeles."); 
-            }
+        function zumbar() {
+            // Genera un tono corto de alerta (Zumbido)
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            osc.connect(audioCtx.destination);
+            osc.frequency.value = 220; 
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.2);
+            alert("¡ZUMBIDO ENVIADO!");
         }
 
         const App = {
             peer: new Peer(),
             llamar: async () => {
                 const targetID = document.getElementById('peerID').value.trim();
-                if(!targetID) return alert("Error: Debes pegar un código de sesión válido.");
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                    document.getElementById('localVideo').srcObject = stream;
-                    const call = App.peer.call(targetID, stream);
-                    call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-                } catch(err) { alert("Error al acceder a la cámara: " + err.message); }
+                if(!targetID) return alert("Pega un código primero.");
+                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('localVideo').srcObject = stream;
+                const call = App.peer.call(targetID, stream);
+                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
             }
         };
         App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
