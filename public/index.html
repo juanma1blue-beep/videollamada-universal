@@ -2,133 +2,69 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V34.0 [Agenda Inteligente]</title>
+    <title>SISTEMA V35.0 [Transmisión 1-Clic]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
         body { margin: 0; background: var(--fondo); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .main-layout { display: grid; grid-template-columns: 1fr 350px; height: 100vh; }
-        .video-zone { display: grid; grid-template-rows: 1fr 1fr; gap: 15px; padding: 20px; }
-        .cam-container { border: 2px solid var(--azul); border-radius: 15px; overflow: hidden; position: relative; background: #000; }
+        
+        .hero-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 70vh; padding: 15px; }
+        .cam-container { border: 2px solid var(--azul); border-radius: 15px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .chat-zone { border-left: 2px solid var(--azul); background: #0a0a0a; display: flex; flex-direction: column; }
-        #chatBox { flex-grow: 1; padding: 15px; overflow-y: auto; font-size: 0.9em; border-bottom: 1px solid var(--azul); }
-        .chat-input-area { padding: 15px; background: rgba(0,30,98,0.1); }
-        .panel-control { padding: 20px; background: rgba(0,30,98,0.1); }
-        .id-box { background: var(--azul); border: 1px solid var(--neon-rojo); color: var(--neon-rojo); padding: 12px; text-align: center; font-family: monospace; font-weight: bold; border-radius: 8px; margin: 10px 0; cursor: pointer; text-shadow: 0 0 8px rgba(255,51,51,0.8); }
-        .neon-input { width: 100%; padding: 15px; border: 2px solid var(--azul); background: #000; color: #fff; border-radius: 8px; box-sizing: border-box; margin-bottom: 10px; font-family: monospace; transition: 0.3s; }
-        .neon-input:focus { outline: none; border: 2px solid var(--granada); box-shadow: 0 0 10px var(--granada); }
-        button { background: var(--azul); color: var(--neon-rojo); border: 1px solid var(--neon-rojo); padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 8px; transition: all 0.3s ease; text-shadow: 0 0 8px rgba(255,51,51,0.8); }
-        button:hover { background: var(--granada); color: #fff; transform: scale(1.02); box-shadow: 0 0 15px rgba(165,0,68,0.6); text-shadow: none; }
-        .amigo-item { background: #000; padding: 10px; margin-bottom: 5px; border-radius: 5px; border: 1px solid var(--azul); display: flex; justify-content: space-between; align-items: center; }
-        .modal { display: none; position: fixed; top: 20%; left: 30%; width: 40%; background: var(--azul); padding: 25px; border-radius: 15px; z-index: 100; border: 2px solid var(--granada); }
+        
+        .control-zone { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        
+        button { background: var(--azul); color: #fff; border: 2px solid var(--neon-rojo); padding: 20px 40px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 0 20px rgba(255,51,51,0.3); }
+        button:hover { background: var(--granada); transform: scale(1.05); }
+        
+        .status-box { font-family: monospace; color: var(--neon-rojo); margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div id="modalAmistades" class="modal">
-        <h3 style="color:white;">AGENDA</h3>
-        <div id="listaContactos" style="margin-bottom:15px; max-height:200px; overflow-y:auto; padding:5px;"></div>
-        <input type="text" id="userTag" class="neon-input" placeholder="Nombre o ID del nuevo usuario...">
-        <button onclick="añadirUsuario()">AÑADIR CONTACTO</button>
-        <button onclick="toggleAmistades()" style="background:var(--granada); color:white; border:none;">CERRAR</button>
+
+    <div class="hero-zone">
+        <div class="cam-container"><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="cam-container"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
-    <div class="main-layout">
-        <div class="video-zone">
-            <div class="cam-container"><video id="localVideo" autoplay playsinline muted></video></div>
-            <div class="cam-container"><video id="remoteVideo" autoplay playsinline></video></div>
-        </div>
-        <div class="chat-zone">
-            <div id="chatBox"></div>
-            <div class="chat-input-area">
-                <input type="text" id="msgInput" class="neon-input" placeholder="Escribe un mensaje...">
-                <button onclick="enviarMensaje()">ENVIAR MENSAJE</button>
-            </div>
-            <div class="panel-control">
-                <div id="myIDDisplay" class="id-box" onclick="copyID()">GENERANDO...</div>
-                <input type="text" id="peerID" class="neon-input" placeholder="PEGA EL CÓDIGO AQUÍ...">
-                <button onclick="App.llamar()">ESTABLECER SESIÓN</button>
-                <button onclick="zumbar()">ENVIAR ZUMBIDO</button>
-                <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">PROPINA PAYPAL</button>
-                <button onclick="toggleAmistades()">AGENDA</button>
-                <button onclick="location.reload()">FINALIZAR</button>
-            </div>
-        </div>
+
+    <div class="control-zone">
+        <button id="btnTransmision" onclick="iniciarTodo()">INICIAR TRANSMISIÓN</button>
+        <div id="status" class="status-box">ESTADO: ESPERANDO ACTIVACIÓN...</div>
+        <input type="text" id="targetID" placeholder="Introduce el ID de tu pareja aquí" style="padding:10px; width:300px; background:#000; border:1px solid var(--azul); color:#fff; text-align:center;">
     </div>
+
     <script>
-        window.onload = actualizarAgenda;
-        function toggleAmistades() { const m = document.getElementById('modalAmistades'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
-        
-        function añadirUsuario() {
-            const input = document.getElementById('userTag');
-            if(input.value.trim()) {
-                let contactos = JSON.parse(localStorage.getItem('agenda') || '[]');
-                contactos.push(input.value.trim());
-                localStorage.setItem('agenda', JSON.stringify(contactos));
-                input.value = '';
-                actualizarAgenda();
-            }
-        }
-
-        function eliminarContacto(index) {
-            if(confirm("¿Seguro que deseas eliminar este contacto?")) {
-                let contactos = JSON.parse(localStorage.getItem('agenda') || '[]');
-                contactos.splice(index, 1);
-                localStorage.setItem('agenda', JSON.stringify(contactos));
-                actualizarAgenda();
-            }
-        }
-
-        function actualizarAgenda() {
-            const lista = document.getElementById('listaContactos');
-            const contactos = JSON.parse(localStorage.getItem('agenda') || '[]');
-            lista.innerHTML = contactos.map((c, index) => `
-                <div class="amigo-item">
-                    <span>${c}</span>
-                    <div style="display:flex; gap:5px;">
-                        <button style="width:auto; padding:5px 10px;" onclick="document.getElementById('peerID').value='${c}'; toggleAmistades()">LLAMAR</button>
-                        <button style="width:auto; padding:5px 10px; background:var(--neon-rojo); border-color:var(--neon-rojo); color:white;" onclick="eliminarContacto(${index})">X</button>
-                    </div>
-                </div>`).join('');
-        }
-
-        function zumbar() {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.frequency.value = 150;
-            gain.gain.value = 0.5;
-            osc.start();
-            osc.stop(ctx.currentTime + 0.3);
-        }
-
-        function enviarMensaje() {
-            const input = document.getElementById('msgInput');
-            if(input.value.trim()) {
-                const box = document.getElementById('chatBox');
-                box.innerHTML += `<div style="margin-bottom:8px; color:#fff;"><strong>Tú:</strong> ${input.value}</div>`;
-                input.value = '';
-            }
-        }
-
-        function copyID() { 
-            const id = document.getElementById('myIDDisplay').innerText;
-            if(id !== "GENERANDO...") { navigator.clipboard.writeText(id); alert("Código copiado."); }
-        }
-
         const App = {
             peer: new Peer(),
-            llamar: async () => {
-                const targetID = document.getElementById('peerID').value.trim();
-                if(!targetID) return alert("Pega un código primero.");
-                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                document.getElementById('localVideo').srcObject = stream;
-                const call = App.peer.call(targetID, stream);
-                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-            }
+            stream: null
         };
-        App.peer.on('open', id => { document.getElementById('myIDDisplay').innerText = id; });
+
+        async function iniciarTodo() {
+            try {
+                // 1. Activar Cámara y Audio
+                App.stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('localVideo').srcObject = App.stream;
+                
+                // 2. Escuchar llamadas entrantes
+                App.peer.on('call', call => {
+                    call.answer(App.stream);
+                    call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
+                    document.getElementById('status').innerText = "ESTADO: CONECTADO";
+                });
+
+                // 3. Intentar llamar automáticamente si hay un ID
+                const target = document.getElementById('targetID').value;
+                if(target) {
+                    const call = App.peer.call(target, App.stream);
+                    call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
+                }
+
+                document.getElementById('status').innerText = "ESTADO: TRANSMITIENDO (ID: " + App.peer.id + ")";
+                document.getElementById('btnTransmision').style.display = 'none'; // Ocultar para limpiar interfaz
+            } catch(e) {
+                alert("Error: Asegúrate de dar permisos de cámara.");
+            }
+        }
     </script>
 </body>
 </html>
