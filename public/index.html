@@ -2,47 +2,52 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V38.0 [Automatización]</title>
+    <title>SISTEMA V39.0 [Orden Total]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
-        body { margin: 0; background: var(--fondo); color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-        .hero-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: 75vh; padding: 5px; }
-        .cam-container { border: 1px solid var(--azul); border-radius: 8px; overflow: hidden; background: #000; }
+        :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon: #FF3333; }
+        body { margin: 0; background: var(--fondo); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+
+        /* Estructura Principal */
+        .layout { display: grid; grid-template-columns: 1fr 300px; height: 85vh; }
+        .video-chat-container { display: grid; grid-template-rows: 1fr 1fr; gap: 5px; padding: 10px; }
+        .cam-box { border: 2px solid var(--azul); border-radius: 10px; overflow: hidden; background: #000; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .control-bar { padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #000; border-top: 1px solid var(--azul); }
-        .input-row { display: flex; gap: 5px; width: 100%; max-width: 500px; }
-        input { background: #000; border: 1px solid var(--azul); color: var(--neon-rojo); padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; flex-grow: 1; }
-        button { background: var(--azul); color: white; border: 1px solid var(--neon-rojo); padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        
+        #chatBox { border: 1px solid var(--azul); padding: 10px; overflow-y: auto; background: #0a0a0a; font-size: 0.9em; }
+
+        /* Panel Inferior Minimalista */
+        .control-panel { height: 15vh; background: #000; border-top: 2px solid var(--azul); display: flex; align-items: center; justify-content: center; gap: 15px; padding: 0 20px; }
+        input { background: #000; border: 1px solid var(--azul); color: var(--neon); padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; width: 120px; }
+        button { background: var(--azul); color: #fff; border: 1px solid var(--neon); padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         button:hover { background: var(--granada); }
     </style>
 </head>
 <body>
 
-    <div class="hero-zone">
-        <div class="cam-container"><video id="localVideo" autoplay playsinline muted></video></div>
-        <div class="cam-container"><video id="remoteVideo" autoplay playsinline></video></div>
+    <div class="layout">
+        <div class="video-chat-container">
+            <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
+            <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
+        </div>
+        <div id="chatBox">-- SISTEMA LISTO --</div>
     </div>
 
-    <div class="control-bar">
-        <div class="input-row">
-            <input type="text" id="myIDDisplay" readonly title="Tu código de sesión">
-            <input type="text" id="targetID" placeholder="Pega el ID de tu pareja">
-        </div>
-        <div class="input-row">
-            <button onclick="iniciarTodo()" style="background:var(--granada); flex-grow:2;">INICIAR TRANSMISIÓN</button>
-            <button onclick="zumbar()">ZUMBIDO</button>
-            <button onclick="location.reload()" style="background:var(--neon-rojo);">FINALIZAR</button>
-        </div>
+    <div class="control-panel">
+        <input type="text" id="myID" readonly>
+        <input type="text" id="targetID" placeholder="ID PAREJA">
+        <button onclick="iniciar()" style="background:var(--granada);">INICIAR</button>
+        <button onclick="zumbar()">ZUMBIDO</button>
+        <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">PROPINA</button>
+        <button onclick="location.reload()" style="background:var(--neon);">FINALIZAR</button>
     </div>
 
     <script>
-        // Generación automática del ID aleatorio al cargar
-        const uniqueID = Math.random().toString(36).substring(2, 10);
-        document.getElementById('myIDDisplay').value = uniqueID;
-        const App = { peer: new Peer(uniqueID) };
+        const myID = Math.random().toString(36).substring(2, 10);
+        document.getElementById('myID').value = myID;
+        const App = { peer: new Peer(myID) };
 
-        async function iniciarTodo() {
+        async function iniciar() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
                 document.getElementById('localVideo').srcObject = stream;
@@ -57,9 +62,11 @@
                     const call = App.peer.call(target, stream);
                     call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
                 }
-            } catch(e) { alert("Error de cámara/micrófono."); }
+                log("Sesión iniciada.");
+            } catch(e) { log("Error: Permisos necesarios."); }
         }
 
+        function log(msg) { document.getElementById('chatBox').innerHTML += `<div>> ${msg}</div>`; }
         function zumbar() {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator();
