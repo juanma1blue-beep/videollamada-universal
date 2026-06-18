@@ -2,79 +2,66 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V39.1 [Bug Resuelto]</title>
+    <title>SISTEMA V40.0 [TikTok Live Mode]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon: #FF3333; }
-        body { margin: 0; background: var(--fondo); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root { --azul: #001E62; --neon: #FF3333; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* Estructura fija para evitar que el vídeo rompa el diseño */
-        .layout { display: grid; grid-template-columns: 1fr 300px; height: 85vh; overflow: hidden; }
-        .video-chat-container { display: flex; flex-direction: column; gap: 5px; padding: 10px; overflow: hidden; }
-        .cam-box { flex: 1; border: 2px solid var(--azul); border-radius: 10px; overflow: hidden; background: #000; position: relative; min-height: 0; }
-        
-        /* Corrección crítica: forzar que el vídeo se limite a su caja */
-        video { width: 100%; height: 100%; object-fit: cover; display: block; }
-        
-        #chatBox { border: 1px solid var(--azul); padding: 10px; overflow-y: auto; background: #0a0a0a; font-size: 0.9em; }
+        /* Contenedor principal: Cámaras ocupan todo */
+        .live-zone { flex: 1; position: relative; display: flex; flex-direction: column; }
+        .cam-box { flex: 1; position: relative; border-bottom: 1px solid var(--azul); }
+        video { width: 100%; height: 100%; object-fit: cover; }
 
-        .control-panel { height: 15vh; background: #000; border-top: 2px solid var(--azul); display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; flex-wrap: wrap; z-index: 10; }
-        input { background: #000; border: 1px solid var(--azul); color: var(--neon); padding: 8px; border-radius: 5px; text-align: center; font-weight: bold; width: 100px; }
-        button { background: var(--azul); color: #fff; border: 1px solid var(--neon); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9em; }
-        button:hover { background: var(--granada); }
+        /* Capa del Chat flotante sobre el vídeo */
+        #chatOverlay { position: absolute; bottom: 80px; left: 10px; width: 250px; height: 300px; overflow-y: auto; pointer-events: none; z-index: 10; padding: 10px; }
+        .chat-msg { background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 15px; margin-bottom: 5px; font-size: 0.85em; border-left: 3px solid var(--neon); }
+
+        /* Panel de control inferior */
+        .controls { height: 70px; background: #000; display: flex; align-items: center; justify-content: space-around; padding: 0 10px; border-top: 1px solid var(--azul); }
+        input { background: #222; border: none; color: white; padding: 10px; border-radius: 20px; width: 150px; }
+        button { background: var(--azul); color: white; border: 1px solid var(--neon); padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="layout">
-        <div class="video-chat-container">
-            <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
-            <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
-        </div>
-        <div id="chatBox">-- SISTEMA LISTO --</div>
+    <div class="live-zone">
+        <div id="chatOverlay"></div>
+        <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
 
-    <div class="control-panel">
-        <input type="text" id="myID" readonly title="Tu ID">
-        <input type="text" id="targetID" placeholder="ID PAREJA">
-        <button onclick="iniciar()" style="background:var(--granada);">INICIAR</button>
-        <button onclick="zumbar()">ZUMBIDO</button>
+    <div class="controls">
+        <input type="text" id="msgInput" placeholder="Escribe aquí...">
+        <button onclick="enviarMensaje()">ENVIAR</button>
         <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">PROPINA</button>
-        <button onclick="location.reload()" style="background:var(--neon);">FINALIZAR</button>
+        <button onclick="location.reload()" style="background:var(--neon);">SALIR</button>
     </div>
 
     <script>
         const myID = Math.random().toString(36).substring(2, 10);
-        document.getElementById('myID').value = myID;
         const App = { peer: new Peer(myID) };
+
+        function enviarMensaje() {
+            const input = document.getElementById('msgInput');
+            if(input.value.trim()) {
+                const chat = document.getElementById('chatOverlay');
+                chat.innerHTML += `<div class="chat-msg"><strong>Tú:</strong> ${input.value}</div>`;
+                input.value = '';
+                chat.scrollTop = chat.scrollHeight;
+            }
+        }
 
         async function iniciar() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
                 document.getElementById('localVideo').srcObject = stream;
-                
-                App.peer.on('call', call => {
-                    call.answer(stream);
-                    call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-                });
-
-                const target = document.getElementById('targetID').value;
-                if(target) {
-                    const call = App.peer.call(target, stream);
-                    call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-                }
-                log("Transmisión activa.");
-            } catch(e) { log("Error de acceso."); }
+                App.peer.on('call', call => { call.answer(stream); call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; }); });
+            } catch(e) { alert("Error de cámara."); }
         }
-
-        function log(msg) { document.getElementById('chatBox').innerHTML += `<div>> ${msg}</div>`; }
-        function zumbar() {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.frequency.value = 150; osc.start(); osc.stop(ctx.currentTime + 0.3);
-        }
+        
+        // Auto-iniciar al abrir
+        iniciar();
     </script>
 </body>
 </html>
