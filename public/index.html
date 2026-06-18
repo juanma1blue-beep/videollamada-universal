@@ -2,66 +2,53 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V54.0 [Agenda Full]</title>
+    <title>SISTEMA V55.0 [Agenda Limpia]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; }
-        
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
         .box { background: #111; padding: 20px; border-radius: 15px; width: 320px; border: 1px solid #333; }
-        
-        .amigo-item { background: #222; padding: 10px; margin-bottom: 8px; border-radius: 5px; font-size: 14px; }
-        input { width: 100%; padding: 8px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        .amigo-item { background: #222; padding: 10px; margin-bottom: 8px; border-radius: 5px; }
+        input { width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="panel">
         <div class="box">
-            <h3>AGENDA DE CONTACTOS</h3>
+            <h3>AGENDA</h3>
             <div id="listaAmigos"></div>
             
             <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
             
             <input type="text" id="nombre" placeholder="Nombre...">
             <input type="text" id="telefono" placeholder="Número de teléfono...">
-            <input type="text" id="id" placeholder="ID de conexión...">
-            <button onclick="guardar()" style="background:#006600; color:white;">GUARDAR EN AGENDA</button>
-            
-            <h3 style="margin-top:20px;">CONECTAR</h3>
-            <input type="text" id="myID" readonly placeholder="Tu ID...">
-            <input type="text" id="targetID" placeholder="Pega el ID aquí...">
-            <button onclick="conectar()" style="background:#A50044; color:white;">INICIAR VIDEO</button>
+            <button onclick="guardar()" style="background:#006600; color:white;">AÑADIR CONTACTO</button>
         </div>
     </div>
 
     <script>
-        const myID = Math.random().toString(36).substring(2, 10);
-        document.getElementById('myID').value = myID;
         let agenda = JSON.parse(localStorage.getItem('agenda') || '[]');
 
         function guardar() {
             const nombre = document.getElementById('nombre').value;
             const telefono = document.getElementById('telefono').value;
-            const id = document.getElementById('id').value;
-            if(!nombre || !id) return alert("Rellena al menos Nombre e ID");
+            if(!nombre || !telefono) return alert("Rellena nombre y teléfono");
             
-            agenda.push({nombre, telefono, id});
+            agenda.push({nombre, telefono});
             localStorage.setItem('agenda', JSON.stringify(agenda));
             render();
         }
 
         function render() {
             const lista = document.getElementById('listaAmigos');
-            lista.innerHTML = agenda.map((a, index) => `
+            lista.innerHTML = agenda.map(a => `
                 <div class="amigo-item">
-                    <b>${a.nombre}</b><br>Tel: ${a.telefono}<br>
-                    <button onclick="document.getElementById('targetID').value='${a.id}'" style="background:#444; color:#fff;">Cargar ID</button>
+                    <b>${a.nombre}</b><br>${a.telefono}
                 </div>`).join('');
         }
-
-        function conectar() { /* Lógica de conexión igual a v52 */ }
+        
         render();
     </script>
 </body>
