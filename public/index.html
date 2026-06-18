@@ -2,77 +2,98 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V45.0 [Orden Maestro]</title>
+    <title>SISTEMA V47.0 [Interacción Táctil]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+        body { margin: 0; background: #000; color: #fff; font-family: -apple-system, sans-serif; overflow: hidden; }
         
-        /* Bloqueo Inicial */
-        #bloqueo { position: fixed; top:0; left:0; width:100%; height:100%; background:#000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
+        #bloqueo { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         
-        /* Layout Ordenado: 2 Cámaras iguales */
         .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
-        .cam-box { border: 2px solid #111; overflow: hidden; position: relative; }
+        .cam-box { position: relative; overflow: hidden; border-bottom: 1px solid #222; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Chat Live superpuesto (dentro de la cam remota) */
-        #chatLive { position: absolute; bottom: 20px; left: 20px; width: 80%; max-height: 150px; overflow-y: auto; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; pointer-events: none; z-index: 10; }
-        .chat-entry { margin-bottom: 5px; font-size: 0.9em; text-shadow: 1px 1px 2px #000; }
-
-        /* Controles siempre visibles */
-        .panel-control { position: absolute; top: 10px; right: 10px; display: flex; gap: 10px; z-index: 20; }
-        .btn-finalizar { background: #FF3333; color: white; padding: 10px 20px; border-radius: 5px; border: none; cursor: pointer; font-weight: bold; }
+        /* CHAT Y INPUT TÁCTIL (Integrado en el vídeo remoto) */
+        .chat-overlay {
+            position: absolute; bottom: 0; width: 100%; height: 180px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            padding: 15px; display: flex; flex-direction: column; justify-content: flex-end;
+            box-sizing: border-box; z-index: 50;
+        }
+        #chatLog { flex: 1; overflow-y: auto; margin-bottom: 10px; }
+        .msg { font-size: 15px; margin-bottom: 5px; color: #fff; }
+        
+        .input-tactil {
+            display: flex; gap: 5px; background: rgba(255,255,255,0.1);
+            padding: 10px; border-radius: 20px; backdrop-filter: blur(5px);
+        }
+        input { flex: 1; background: transparent; border: none; color: white; padding: 5px; outline: none; }
+        button { background: #A50044; border: none; color: white; padding: 5px 15px; border-radius: 15px; }
     </style>
 </head>
 <body>
 
     <div id="bloqueo">
-        <h2>CONTROL DE ACCESO</h2>
-        <input type="text" id="myID" readonly style="padding:10px; text-align:center; width:200px;">
-        <input type="text" id="targetID" placeholder="ID PAREJA" style="padding:10px; text-align:center; width:200px;">
-        <button onclick="conectar()" style="padding:10px 30px; background:#A50044; color:white; border:none; border-radius:5px;">CONECTAR</button>
+        <input type="text" id="myID" readonly style="padding:10px; border-radius:10px; border:none; text-align:center;">
+        <input type="text" id="targetID" placeholder="Código de acceso..." style="padding:10px; border-radius:10px; border:none; text-align:center;">
+        <button onclick="conectar()" style="padding:10px 40px; background:#A50044; color:white; border:none; border-radius:10px; cursor:pointer;">DESBLOQUEAR</button>
     </div>
 
     <div class="live-grid">
         <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="cam-box">
             <video id="remoteVideo" autoplay playsinline></video>
-            <div id="chatLive"></div>
+            <div class="chat-overlay">
+                <div id="chatLog"></div>
+                <div class="input-tactil">
+                    <input type="text" id="msgInput" placeholder="Mensaje...">
+                    <button onclick="enviar()">Enviar</button>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <div class="panel-control">
-        <button class="btn-finalizar" onclick="location.reload()">FINALIZAR TRANSMISIÓN</button>
     </div>
 
     <script>
         const uniqueID = Math.random().toString(36).substring(2, 10);
-        document.getElementById('myID').value = "Tu ID: " + uniqueID;
+        document.getElementById('myID').value = "ID: " + uniqueID;
         const peer = new Peer(uniqueID);
-        let myStream;
+        let conn;
 
         async function conectar() {
             const target = document.getElementById('targetID').value.trim();
             if(!target) return alert("Pega el ID...");
             
-            myStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('localVideo').srcObject = myStream;
+            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('localVideo').srcObject = stream;
+            
+            // Conexión de Datos para el Chat
+            conn = peer.connect(target);
+            peer.on('connection', c => {
+                conn = c;
+                conn.on('data', data => agregarMensaje("Pareja", data));
+            });
             
             peer.on('call', call => {
-                call.answer(myStream);
+                call.answer(stream);
                 call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
             });
 
-            const call = peer.call(target, myStream);
+            const call = peer.call(target, stream);
             call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-            
             document.getElementById('bloqueo').style.display = 'none';
         }
-        
-        // Simulación de mensajes para que veas cómo queda el chat
-        function addChat(msg) {
-            const c = document.getElementById('chatLive');
-            c.innerHTML += `<div class="chat-entry"><b>User:</b> ${msg}</div>`;
+
+        function enviar() {
+            const input = document.getElementById('msgInput');
+            if(input.value) {
+                agregarMensaje("Tú", input.value);
+                if(conn) conn.send(input.value);
+                input.value = '';
+            }
+        }
+
+        function agregarMensaje(quien, msg) {
+            document.getElementById('chatLog').innerHTML += `<div class="msg"><b>${quien}:</b> ${msg}</div>`;
         }
     </script>
 </body>
