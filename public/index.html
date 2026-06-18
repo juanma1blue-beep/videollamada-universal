@@ -2,45 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V48.1 [Interface Limpia]</title>
+    <title>SISTEMA V49.0 [Control Total]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        #bloqueo { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
-        
-        .grid { display: grid; grid-template-rows: 1fr 1fr; height: 100vh; width: 100vw; }
+        /* BLOQUEO INICIAL (Limpio y claro) */
+        #bloqueo { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        input { background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; width: 250px; text-align: center; }
+        button#btnConectar { padding: 12px 40px; background: #A50044; color: white; border: none; border-radius: 8px; cursor: pointer; }
+
+        /* GRID PROFESIONAL */
+        .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
         .cam-box { position: relative; border-bottom: 1px solid #111; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        .chat-box { 
-            position: absolute; bottom: 15px; left: 15px; width: 85%; height: 120px; 
-            background: rgba(0,0,0,0.6); border: 1px solid #333; border-radius: 5px; 
-            padding: 8px; z-index: 10; display: flex; flex-direction: column; 
+        /* CHAT INTEGRADO (Aparece al interactuar) */
+        #chatInterface { 
+            position: absolute; bottom: 20px; left: 20px; width: 300px; height: 150px; 
+            background: rgba(0,0,0,0.7); border-radius: 8px; padding: 10px; display: none; 
         }
-        #chatLog { flex: 1; overflow-y: auto; font-size: 13px; font-family: monospace; }
-        .input-row { display: flex; gap: 5px; margin-top: 5px; }
-        input { flex: 1; background: #000; border: 1px solid #555; color: #fff; padding: 5px; }
-        
-        .btn-end { position: absolute; top: 10px; right: 10px; z-index: 20; background: #A50044; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        #chatLog { height: 100px; overflow-y: auto; font-size: 12px; margin-bottom: 5px; }
+        .input-row { display: flex; gap: 5px; }
+        input#msgInput { flex: 1; padding: 5px; }
+
+        /* BOTÓN FINALIZAR (Arriba derecha) */
+        .btn-end { position: absolute; top: 15px; right: 15px; z-index: 100; background: #880000; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="bloqueo">
-        <input type="text" id="myID" readonly style="width:200px; padding:10px; text-align:center;">
-        <input type="text" id="targetID" placeholder="Código de la pareja..." style="width:200px; padding:10px; text-align:center;">
-        <button onclick="conectar()" style="padding:10px 40px; background:#001E62; color:white; border:none; cursor:pointer;">CONECTAR</button>
+        <input type="text" id="myID" readonly>
+        <input type="text" id="targetID" placeholder="Código de la pareja...">
+        <button id="btnConectar" onclick="conectar()">CONECTAR</button>
     </div>
 
-    <div class="grid">
+    <div class="live-grid">
         <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
-        <div class="cam-box">
+        <div class="cam-box" onclick="toggleChat()">
             <video id="remoteVideo" autoplay playsinline></video>
-            <div class="chat-box">
+            <div id="chatInterface">
                 <div id="chatLog"></div>
                 <div class="input-row">
-                    <input type="text" id="msgInput" placeholder="Hablar...">
+                    <input type="text" id="msgInput" placeholder="Escribir...">
                     <button onclick="enviar()">Ok</button>
                 </div>
             </div>
@@ -63,13 +68,18 @@
             document.getElementById('localVideo').srcObject = stream;
             
             conn = peer.connect(target);
-            peer.on('connection', c => { conn = c; conn.on('data', d => addChat("Conectado", d)); });
-            
+            peer.on('connection', c => { conn = c; conn.on('data', d => addChat("Pareja", d)); });
             peer.on('call', call => { call.answer(stream); call.on('stream', st => document.getElementById('remoteVideo').srcObject = st); });
+            
             const call = peer.call(target, stream);
             call.on('stream', st => document.getElementById('remoteVideo').srcObject = st);
             
             document.getElementById('bloqueo').style.display = 'none';
+        }
+
+        function toggleChat() {
+            const c = document.getElementById('chatInterface');
+            c.style.display = (c.style.display === 'block') ? 'none' : 'block';
         }
 
         function enviar() {
@@ -78,7 +88,7 @@
             if(conn) conn.send(input.value);
             input.value = '';
         }
-        function addChat(quien, msg) { document.getElementById('chatLog').innerHTML += `<div>[${quien}]: ${msg}</div>`; }
+        function addChat(quien, msg) { document.getElementById('chatLog').innerHTML += `<div><b>${quien}:</b> ${msg}</div>`; }
     </script>
 </body>
 </html>
