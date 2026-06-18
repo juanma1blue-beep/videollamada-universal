@@ -2,24 +2,25 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V39.0 [Orden Total]</title>
+    <title>SISTEMA V39.1 [Bug Resuelto]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon: #FF3333; }
-        body { margin: 0; background: var(--fondo); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        body { margin: 0; background: var(--fondo); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Estructura Principal */
-        .layout { display: grid; grid-template-columns: 1fr 300px; height: 85vh; }
-        .video-chat-container { display: grid; grid-template-rows: 1fr 1fr; gap: 5px; padding: 10px; }
-        .cam-box { border: 2px solid var(--azul); border-radius: 10px; overflow: hidden; background: #000; position: relative; }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        /* Estructura fija para evitar que el vídeo rompa el diseño */
+        .layout { display: grid; grid-template-columns: 1fr 300px; height: 85vh; overflow: hidden; }
+        .video-chat-container { display: flex; flex-direction: column; gap: 5px; padding: 10px; overflow: hidden; }
+        .cam-box { flex: 1; border: 2px solid var(--azul); border-radius: 10px; overflow: hidden; background: #000; position: relative; min-height: 0; }
+        
+        /* Corrección crítica: forzar que el vídeo se limite a su caja */
+        video { width: 100%; height: 100%; object-fit: cover; display: block; }
         
         #chatBox { border: 1px solid var(--azul); padding: 10px; overflow-y: auto; background: #0a0a0a; font-size: 0.9em; }
 
-        /* Panel Inferior Minimalista */
-        .control-panel { height: 15vh; background: #000; border-top: 2px solid var(--azul); display: flex; align-items: center; justify-content: center; gap: 15px; padding: 0 20px; }
-        input { background: #000; border: 1px solid var(--azul); color: var(--neon); padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; width: 120px; }
-        button { background: var(--azul); color: #fff; border: 1px solid var(--neon); padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .control-panel { height: 15vh; background: #000; border-top: 2px solid var(--azul); display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 15px; flex-wrap: wrap; z-index: 10; }
+        input { background: #000; border: 1px solid var(--azul); color: var(--neon); padding: 8px; border-radius: 5px; text-align: center; font-weight: bold; width: 100px; }
+        button { background: var(--azul); color: #fff; border: 1px solid var(--neon); padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9em; }
         button:hover { background: var(--granada); }
     </style>
 </head>
@@ -34,7 +35,7 @@
     </div>
 
     <div class="control-panel">
-        <input type="text" id="myID" readonly>
+        <input type="text" id="myID" readonly title="Tu ID">
         <input type="text" id="targetID" placeholder="ID PAREJA">
         <button onclick="iniciar()" style="background:var(--granada);">INICIAR</button>
         <button onclick="zumbar()">ZUMBIDO</button>
@@ -62,8 +63,8 @@
                     const call = App.peer.call(target, stream);
                     call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
                 }
-                log("Sesión iniciada.");
-            } catch(e) { log("Error: Permisos necesarios."); }
+                log("Transmisión activa.");
+            } catch(e) { log("Error de acceso."); }
         }
 
         function log(msg) { document.getElementById('chatBox').innerHTML += `<div>> ${msg}</div>`; }
