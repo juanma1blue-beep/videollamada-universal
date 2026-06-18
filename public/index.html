@@ -2,20 +2,17 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V48.0 [WoW/Live Style]</title>
+    <title>SISTEMA V48.1 [Interface Limpia]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        /* Bloqueo Inicial */
         #bloqueo { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
         
-        /* Estructura de cámaras (WoW Style: Una arriba, otra abajo) */
         .grid { display: grid; grid-template-rows: 1fr 1fr; height: 100vh; width: 100vw; }
         .cam-box { position: relative; border-bottom: 1px solid #111; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Chat Estilo WoW / Live */
         .chat-box { 
             position: absolute; bottom: 15px; left: 15px; width: 85%; height: 120px; 
             background: rgba(0,0,0,0.6); border: 1px solid #333; border-radius: 5px; 
@@ -25,7 +22,6 @@
         .input-row { display: flex; gap: 5px; margin-top: 5px; }
         input { flex: 1; background: #000; border: 1px solid #555; color: #fff; padding: 5px; }
         
-        /* Finalizar */
         .btn-end { position: absolute; top: 10px; right: 10px; z-index: 20; background: #A50044; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
@@ -66,9 +62,8 @@
             const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = stream;
             
-            // Conexión de chat
             conn = peer.connect(target);
-            peer.on('connection', c => { conn = c; conn.on('data', d => addChat("Pareja", d)); });
+            peer.on('connection', c => { conn = c; conn.on('data', d => addChat("Conectado", d)); });
             
             peer.on('call', call => { call.answer(stream); call.on('stream', st => document.getElementById('remoteVideo').srcObject = st); });
             const call = peer.call(target, stream);
