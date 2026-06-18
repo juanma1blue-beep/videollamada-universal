@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V33.1 [Versión Estable]</title>
+    <title>SISTEMA V34.0 [Agenda Inteligente]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
@@ -57,6 +57,7 @@
     <script>
         window.onload = actualizarAgenda;
         function toggleAmistades() { const m = document.getElementById('modalAmistades'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+        
         function añadirUsuario() {
             const input = document.getElementById('userTag');
             if(input.value.trim()) {
@@ -67,15 +68,29 @@
                 actualizarAgenda();
             }
         }
+
+        function eliminarContacto(index) {
+            if(confirm("¿Seguro que deseas eliminar este contacto?")) {
+                let contactos = JSON.parse(localStorage.getItem('agenda') || '[]');
+                contactos.splice(index, 1);
+                localStorage.setItem('agenda', JSON.stringify(contactos));
+                actualizarAgenda();
+            }
+        }
+
         function actualizarAgenda() {
             const lista = document.getElementById('listaContactos');
             const contactos = JSON.parse(localStorage.getItem('agenda') || '[]');
-            lista.innerHTML = contactos.map(c => `
+            lista.innerHTML = contactos.map((c, index) => `
                 <div class="amigo-item">
                     <span>${c}</span>
-                    <button style="width:auto; padding:5px 15px;" onclick="document.getElementById('peerID').value='${c}'; toggleAmistades()">LLAMAR</button>
+                    <div style="display:flex; gap:5px;">
+                        <button style="width:auto; padding:5px 10px;" onclick="document.getElementById('peerID').value='${c}'; toggleAmistades()">LLAMAR</button>
+                        <button style="width:auto; padding:5px 10px; background:var(--neon-rojo); border-color:var(--neon-rojo); color:white;" onclick="eliminarContacto(${index})">X</button>
+                    </div>
                 </div>`).join('');
         }
+
         function zumbar() {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = ctx.createOscillator();
@@ -87,6 +102,7 @@
             osc.start();
             osc.stop(ctx.currentTime + 0.3);
         }
+
         function enviarMensaje() {
             const input = document.getElementById('msgInput');
             if(input.value.trim()) {
@@ -95,10 +111,12 @@
                 input.value = '';
             }
         }
+
         function copyID() { 
             const id = document.getElementById('myIDDisplay').innerText;
             if(id !== "GENERANDO...") { navigator.clipboard.writeText(id); alert("Código copiado."); }
         }
+
         const App = {
             peer: new Peer(),
             llamar: async () => {
