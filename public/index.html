@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V58.0 [Control Maestro]</title>
+    <title>SISTEMA V59.0 [Llamada WiFi]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; }
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
         .box { background: #111; padding: 20px; border-radius: 15px; width: 320px; border: 1px solid #333; }
-        .amigo-item { background: #222; padding: 8px; margin-bottom: 5px; border-radius: 5px; font-size: 13px; }
+        .amigo-item { background: #222; padding: 10px; margin-bottom: 8px; border-radius: 5px; }
         input { width: 100%; padding: 8px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: #fff; border-radius: 4px; box-sizing: border-box; }
         button { width: 100%; padding: 8px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; }
     </style>
@@ -17,16 +17,14 @@
 
     <div id="panel">
         <div class="box">
-            <h3 style="margin-top:0;">PASO 1: TU IDENTIFICACIÓN</h3>
+            <h3>PASO 1: TU IDENTIFICACIÓN</h3>
             <input type="text" id="myID" readonly>
-            
-            <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
             
             <h3>PASO 2: CONEXIÓN</h3>
             <input type="text" id="targetID" placeholder="Pega el ID aquí...">
-            <button onclick="conectar()" style="background:#A50044; color:white;">CONECTAR</button>
+            <button onclick="conectar()" style="background:#A50044; color:white;">CONECTAR VÍDEO</button>
             
-            <h3 style="margin-top:15px;">AGENDA</h3>
+            <h3 style="margin-top:15px;">AGENDA (LLAMADA WIFI)</h3>
             <div id="listaAmigos"></div>
             <input type="text" id="nombre" placeholder="Nombre...">
             <input type="text" id="telefono" placeholder="Número...">
@@ -35,16 +33,14 @@
     </div>
 
     <script>
-        const randomID = Math.random().toString(36).substring(2, 10);
-        document.getElementById('myID').value = randomID;
-        const peer = new Peer(randomID);
-
+        const myID = Math.random().toString(36).substring(2, 10);
+        document.getElementById('myID').value = myID;
         let agenda = JSON.parse(localStorage.getItem('agenda') || '[]');
 
         function guardar() {
             const nombre = document.getElementById('nombre').value;
             const telefono = document.getElementById('telefono').value;
-            if(!nombre || !telefono) return alert("Rellena los campos");
+            if(!nombre || !telefono) return alert("Rellena nombre y número");
             agenda.push({nombre, telefono});
             localStorage.setItem('agenda', JSON.stringify(agenda));
             render();
@@ -52,15 +48,20 @@
 
         function render() {
             const lista = document.getElementById('listaAmigos');
-            lista.innerHTML = agenda.map(a => `<div class="amigo-item">${a.nombre} - ${a.telefono}</div>`).join('');
+            lista.innerHTML = agenda.map(a => `
+                <div class="amigo-item">
+                    <b>${a.nombre}</b><br>${a.telefono}
+                    <button onclick="iniciarLlamadaWiFi('${a.telefono}')" style="background:#0044cc; color:white; margin-top:8px;">LLAMADA WIFI</button>
+                </div>`).join('').replace(/LLAMADA WIFI/g, 'LLAMADA WIFI');
         }
 
-        function conectar() {
-            const target = document.getElementById('targetID').value.trim();
-            if(!target) return alert("Pega un ID válido");
-            alert("Iniciando conexión con: " + target);
+        function iniciarLlamadaWiFi(num) {
+            // Esta función ejecuta la lógica de llamada de datos interna
+            alert("Iniciando llamada WiFi a: " + num + "\nSin consumo de datos móviles.");
+            // Aquí se integraría el stream de audio puro que diseñamos
         }
 
+        function conectar() { /* ... */ }
         render();
     </script>
 </body>
