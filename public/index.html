@@ -2,22 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V35.0 [Transmisión 1-Clic]</title>
+    <title>SISTEMA V36.0 [Minimalismo Esencial]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
-        body { margin: 0; background: var(--fondo); color: #fff; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        body { margin: 0; background: var(--fondo); color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .hero-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; height: 70vh; padding: 15px; }
-        .cam-container { border: 2px solid var(--azul); border-radius: 15px; overflow: hidden; background: #000; }
+        .hero-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: 75vh; padding: 5px; }
+        .cam-container { border: 1px solid var(--azul); border-radius: 8px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        .control-zone { padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .control-bar { padding: 10px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; background: #000; border-top: 1px solid var(--azul); }
+        button { background: var(--azul); color: white; border: 1px solid var(--neon-rojo); padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.8em; transition: 0.3s; }
+        button:hover { background: var(--granada); }
         
-        button { background: var(--azul); color: #fff; border: 2px solid var(--neon-rojo); padding: 20px 40px; border-radius: 50px; font-size: 1.2em; font-weight: bold; cursor: pointer; transition: 0.3s; box-shadow: 0 0 20px rgba(255,51,51,0.3); }
-        button:hover { background: var(--granada); transform: scale(1.05); }
-        
-        .status-box { font-family: monospace; color: var(--neon-rojo); margin-top: 10px; }
+        #btnMain { padding: 15px 30px; font-size: 1.1em; border: 2px solid var(--neon-rojo); background: var(--granada); }
+        .modal { display: none; position: fixed; top: 10%; left: 10%; width: 80%; background: var(--azul); padding: 20px; border-radius: 10px; border: 2px solid var(--granada); }
     </style>
 </head>
 <body>
@@ -27,43 +27,48 @@
         <div class="cam-container"><video id="remoteVideo" autoplay playsinline></video></div>
     </div>
 
-    <div class="control-zone">
-        <button id="btnTransmision" onclick="iniciarTodo()">INICIAR TRANSMISIÓN</button>
-        <div id="status" class="status-box">ESTADO: ESPERANDO ACTIVACIÓN...</div>
-        <input type="text" id="targetID" placeholder="Introduce el ID de tu pareja aquí" style="padding:10px; width:300px; background:#000; border:1px solid var(--azul); color:#fff; text-align:center;">
+    <div class="control-bar">
+        <button id="btnMain" onclick="iniciarTodo()">INICIAR TRANSMISIÓN</button>
+        <button onclick="zumbar()">ZUMBIDO</button>
+        <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">PROPINAS</button>
+        <button onclick="toggleModal()">AGENDA</button>
+    </div>
+
+    <div id="modalAgenda" class="modal">
+        <h3 style="color:white; margin-top:0;">AGENDA</h3>
+        <input type="text" id="targetID" placeholder="Pega el ID aquí..." style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+        <button onclick="toggleModal()" style="background:var(--granada);">CERRAR</button>
     </div>
 
     <script>
-        const App = {
-            peer: new Peer(),
-            stream: null
-        };
-
+        const App = { peer: new Peer() };
+        function toggleModal() { const m = document.getElementById('modalAgenda'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
+        
         async function iniciarTodo() {
             try {
-                // 1. Activar Cámara y Audio
-                App.stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                document.getElementById('localVideo').srcObject = App.stream;
+                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('localVideo').srcObject = stream;
                 
-                // 2. Escuchar llamadas entrantes
                 App.peer.on('call', call => {
-                    call.answer(App.stream);
+                    call.answer(stream);
                     call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
-                    document.getElementById('status').innerText = "ESTADO: CONECTADO";
                 });
 
-                // 3. Intentar llamar automáticamente si hay un ID
                 const target = document.getElementById('targetID').value;
                 if(target) {
-                    const call = App.peer.call(target, App.stream);
+                    const call = App.peer.call(target, stream);
                     call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
                 }
+                document.getElementById('btnMain').innerText = "TRANSMITIENDO...";
+            } catch(e) { alert("Permiso denegado."); }
+        }
 
-                document.getElementById('status').innerText = "ESTADO: TRANSMITIENDO (ID: " + App.peer.id + ")";
-                document.getElementById('btnTransmision').style.display = 'none'; // Ocultar para limpiar interfaz
-            } catch(e) {
-                alert("Error: Asegúrate de dar permisos de cámara.");
-            }
+        function zumbar() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.frequency.value = 150; osc.start(); osc.stop(ctx.currentTime + 0.3);
         }
     </script>
 </body>
