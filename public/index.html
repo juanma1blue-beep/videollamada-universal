@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V49.0 [Control Total]</title>
+    <title>SISTEMA V49.1 [Raw Fidelity]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        /* BLOQUEO INICIAL (Limpio y claro) */
+        /* BLOQUEO INICIAL */
         #bloqueo { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
         input { background: #111; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; width: 250px; text-align: center; }
         button#btnConectar { padding: 12px 40px; background: #A50044; color: white; border: none; border-radius: 8px; cursor: pointer; }
@@ -17,16 +17,17 @@
         .cam-box { position: relative; border-bottom: 1px solid #111; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* CHAT INTEGRADO (Aparece al interactuar) */
+        /* CHAT INTEGRADO */
         #chatInterface { 
             position: absolute; bottom: 20px; left: 20px; width: 300px; height: 150px; 
             background: rgba(0,0,0,0.7); border-radius: 8px; padding: 10px; display: none; 
+            pointer-events: auto; z-index: 50;
         }
         #chatLog { height: 100px; overflow-y: auto; font-size: 12px; margin-bottom: 5px; }
         .input-row { display: flex; gap: 5px; }
-        input#msgInput { flex: 1; padding: 5px; }
+        input#msgInput { flex: 1; padding: 5px; background: #222; border: none; color: white; }
 
-        /* BOTÓN FINALIZAR (Arriba derecha) */
+        /* FINALIZAR */
         .btn-end { position: absolute; top: 15px; right: 15px; z-index: 100; background: #880000; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
@@ -64,7 +65,12 @@
             const target = document.getElementById('targetID').value.trim();
             if(!target) return alert("Pega el código...");
             
-            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            // CONFIGURACIÓN DE MÁXIMA CALIDAD (RAW)
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 60 } },
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, latency: 0 }
+            });
+            
             document.getElementById('localVideo').srcObject = stream;
             
             conn = peer.connect(target);
