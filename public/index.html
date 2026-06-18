@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V37.0 [Transmisión Privada]</title>
+    <title>SISTEMA V38.0 [Automatización]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { --azul: #001E62; --granada: #A50044; --fondo: #050505; --neon-rojo: #FF3333; }
@@ -10,12 +10,11 @@
         .hero-zone { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: 75vh; padding: 5px; }
         .cam-container { border: 1px solid var(--azul); border-radius: 8px; overflow: hidden; background: #000; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .control-bar { padding: 10px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; background: #000; border-top: 1px solid var(--azul); }
-        button { background: var(--azul); color: white; border: 1px solid var(--neon-rojo); padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.75em; transition: 0.3s; }
+        .control-bar { padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #000; border-top: 1px solid var(--azul); }
+        .input-row { display: flex; gap: 5px; width: 100%; max-width: 500px; }
+        input { background: #000; border: 1px solid var(--azul); color: var(--neon-rojo); padding: 10px; border-radius: 5px; text-align: center; font-weight: bold; flex-grow: 1; }
+        button { background: var(--azul); color: white; border: 1px solid var(--neon-rojo); padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         button:hover { background: var(--granada); }
-        #btnMain { padding: 12px 20px; font-size: 1em; border: 2px solid var(--neon-rojo); background: var(--granada); }
-        #btnFinalizar { background: var(--neon-rojo); border-color: white; }
-        .modal { display: none; position: fixed; top: 10%; left: 10%; width: 80%; background: var(--azul); padding: 20px; border-radius: 10px; border: 2px solid var(--granada); z-index: 1000; }
     </style>
 </head>
 <body>
@@ -26,28 +25,23 @@
     </div>
 
     <div class="control-bar">
-        <button id="btnMain" onclick="iniciarTodo()">INICIAR</button>
-        <button onclick="zumbar()">ZUMBIDO</button>
-        <button onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">PROPINA</button>
-        <button onclick="toggleModal()">AGENDA</button>
-        <button id="btnFinalizar" onclick="location.reload()">FINALIZAR</button>
-    </div>
-
-    <div id="modalAgenda" class="modal">
-        <h3 id="displayID" style="color:white; font-family:monospace; background:black; padding:10px;">GENERANDO ID...</h3>
-        <input type="text" id="targetID" placeholder="Pega el ID aquí..." style="width:100%; padding:10px; margin-bottom:10px; box-sizing:border-box;">
-        <button onclick="toggleModal()" style="background:var(--granada); width:100%;">CERRAR</button>
+        <div class="input-row">
+            <input type="text" id="myIDDisplay" readonly title="Tu código de sesión">
+            <input type="text" id="targetID" placeholder="Pega el ID de tu pareja">
+        </div>
+        <div class="input-row">
+            <button onclick="iniciarTodo()" style="background:var(--granada); flex-grow:2;">INICIAR TRANSMISIÓN</button>
+            <button onclick="zumbar()">ZUMBIDO</button>
+            <button onclick="location.reload()" style="background:var(--neon-rojo);">FINALIZAR</button>
+        </div>
     </div>
 
     <script>
-        // Generación de ID Aleatorio único para cada sesión privada
+        // Generación automática del ID aleatorio al cargar
         const uniqueID = Math.random().toString(36).substring(2, 10);
-        const App = { peer: new Peer(uniqueID) }; 
-        
-        document.getElementById('displayID').innerText = "TU ID: " + uniqueID;
+        document.getElementById('myIDDisplay').value = uniqueID;
+        const App = { peer: new Peer(uniqueID) };
 
-        function toggleModal() { const m = document.getElementById('modalAgenda'); m.style.display = (m.style.display === 'block') ? 'none' : 'block'; }
-        
         async function iniciarTodo() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
@@ -63,8 +57,7 @@
                     const call = App.peer.call(target, stream);
                     call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
                 }
-                document.getElementById('btnMain').innerText = "EN LÍNEA";
-            } catch(e) { alert("Acceso a cámara/micrófono denegado."); }
+            } catch(e) { alert("Error de cámara/micrófono."); }
         }
 
         function zumbar() {
