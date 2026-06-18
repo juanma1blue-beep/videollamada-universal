@@ -2,47 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V51.0 [Enlace y Llamada]</title>
+    <title>SISTEMA V52.0 [Control Maestro]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
         
-        /* PANEL DE ENLACE */
-        #bloqueo { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
-        input { background: #111; border: 1px solid #444; color: #fff; padding: 15px; border-radius: 10px; width: 250px; text-align: center; }
-        .btn-main { padding: 12px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; width: 250px; }
+        #bloqueo { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; padding: 20px; }
         
-        /* GRID DE VÍDEO */
+        /* Estilos del Panel */
+        .panel-box { border: 1px solid #333; padding: 20px; border-radius: 15px; width: 300px; text-align: center; background: #111; }
+        input { background: #222; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 8px; width: 100%; margin-bottom: 10px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        
         .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
         .cam-box { position: relative; border-bottom: 1px solid #111; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
-
-        /* CHAT Y FINALIZAR */
-        #chatInterface { position: absolute; bottom: 20px; left: 20px; width: 300px; height: 150px; background: rgba(0,0,0,0.8); border-radius: 8px; padding: 10px; display: none; z-index: 50; }
-        .btn-end { position: absolute; top: 15px; right: 15px; z-index: 100; background: #880000; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .btn-end { position: absolute; top: 15px; right: 15px; z-index: 100; background: #880000; color: white; padding: 8px 15px; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="bloqueo">
-        <input type="text" id="myID" readonly>
-        <input type="text" id="targetID" placeholder="Código de la pareja...">
-        
-        <button class="btn-main" onclick="conectar()" style="background:#A50044; color:white;">DESBLOQUEAR VÍDEO</button>
-        
-        <a href="tel:+34000000000" style="text-decoration:none;">
-            <button class="btn-main" style="background:#006600; color:white;">LLAMAR POR WIFI</button>
-        </a>
+        <div class="panel-box">
+            <h3 style="margin-top:0;">PASO 1: CONTACTO</h3>
+            <a href="tel:+34000000000"><button style="background:#006600; color:white;">LLAMAR POR WIFI</button></a>
+            
+            <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
+            
+            <h3>PASO 2: CONEXIÓN</h3>
+            <input type="text" id="myID" readonly placeholder="Tu ID (dáselo a ella)">
+            <input type="text" id="targetID" placeholder="Pega el ID de ella aquí">
+            <button onclick="conectar()" style="background:#A50044; color:white;">CONECTAR VÍDEO</button>
+        </div>
     </div>
 
     <div class="live-grid">
         <div class="cam-box"><video id="localVideo" autoplay playsinline muted></video></div>
-        <div class="cam-box" onclick="toggleChat()">
+        <div class="cam-box">
             <video id="remoteVideo" autoplay playsinline></video>
-            <div id="chatInterface">
-                <div id="chatLog" style="height:100px; overflow-y:auto; font-size:12px; margin-bottom:5px;"></div>
-                <div style="display:flex; gap:5px;"><input type="text" id="msgInput" style="flex:1; background:#333; color:white; border:none; padding:5px;"><button onclick="enviar()" style="background:#A50044; color:white; border:none; padding:5px 10px;">Ok</button></div>
-            </div>
         </div>
     </div>
 
@@ -52,26 +49,22 @@
         const myID = Math.random().toString(36).substring(2, 10);
         document.getElementById('myID').value = myID;
         const peer = new Peer(myID);
-        let conn, localStream;
 
         async function conectar() {
             const target = document.getElementById('targetID').value.trim();
-            if(!target) return alert("Pega el código...");
+            if(!target) return alert("¡Pega el ID de tu pareja primero!");
             
-            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('localVideo').srcObject = localStream;
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 30 } },
+                audio: { echoCancellation: true, noiseSuppression: true, latency: 0 }
+            });
             
-            peer.on('connection', c => { conn = c; conn.on('data', d => addChat("Pareja", d)); });
-            peer.on('call', call => { call.answer(localStream); call.on('stream', st => document.getElementById('remoteVideo').srcObject = st); });
-            
-            const call = peer.call(target, localStream);
+            document.getElementById('localVideo').srcObject = stream;
+            peer.on('call', call => { call.answer(stream); call.on('stream', st => document.getElementById('remoteVideo').srcObject = st); });
+            const call = peer.call(target, stream);
             call.on('stream', st => document.getElementById('remoteVideo').srcObject = st);
             document.getElementById('bloqueo').style.display = 'none';
         }
-
-        function toggleChat() { document.getElementById('chatInterface').style.display = (document.getElementById('chatInterface').style.display === 'block') ? 'none' : 'block'; }
-        function enviar() { const input = document.getElementById('msgInput'); addChat("Tú", input.value); if(conn) conn.send(input.value); input.value = ''; }
-        function addChat(quien, msg) { document.getElementById('chatLog').innerHTML += `<div><b>${quien}:</b> ${msg}</div>`; }
     </script>
 </body>
 </html>
