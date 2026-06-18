@@ -2,63 +2,54 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V41.0 [TikTok Live Pro]</title>
+    <title>SISTEMA V42.0 [Seguridad Activa]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; background: #000; font-family: sans-serif; overflow: hidden; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
         
-        /* Contenedor total */
-        .live-container { position: relative; width: 100vw; height: 100vh; }
-        .cam-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        /* Capa de Bloqueo (El letrero que tapa todo) */
+        #bloqueo { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+        
+        .live-container { width: 100vw; height: 100vh; }
         video { width: 100%; height: 100%; object-fit: cover; }
-
-        /* Interfaz tipo TikTok */
-        #chatOverlay { position: absolute; bottom: 100px; left: 15px; width: 80%; height: 200px; overflow-y: hidden; z-index: 20; }
-        .msg { background: rgba(0,0,0,0.3); padding: 6px 12px; border-radius: 20px; margin-bottom: 8px; color: white; display: inline-block; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        /* Botones Laterales (Estilo TikTok) */
-        .side-bar { position: absolute; right: 15px; bottom: 150px; display: flex; flex-direction: column; gap: 20px; z-index: 30; }
-        .btn-side { background: rgba(0,0,0,0.5); border: none; color: white; width: 50px; height: 50px; border-radius: 50%; font-size: 20px; cursor: pointer; }
         
-        /* Input de escritura */
-        .input-bar { position: absolute; bottom: 0; width: 100%; padding: 15px; display: flex; gap: 10px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
-        input { flex: 1; background: rgba(255,255,255,0.2); border: none; padding: 12px; border-radius: 20px; color: white; }
+        input { background: #222; border: 1px solid #444; color: white; padding: 15px; border-radius: 10px; width: 250px; text-align: center; }
+        button { background: #A50044; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="live-container">
-        <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
-        <div id="chatOverlay"></div>
-        
-        <div class="side-bar">
-            <button class="btn-side" onclick="like()">❤️</button>
-            <button class="btn-side" onclick="window.open('https://paypal.me/MarketEvolution', '_blank')">💰</button>
-        </div>
+    <div id="bloqueo">
+        <h2>SISTEMA BLOQUEADO</h2>
+        <input type="text" id="myID" readonly>
+        <input type="text" id="targetID" placeholder="Pega el código de tu pareja...">
+        <button onclick="conectar()">DESBLOQUEAR Y CONECTAR</button>
+    </div>
 
-        <div class="input-bar">
-            <input type="text" id="msgInput" placeholder="Añade un comentario...">
-            <button onclick="enviar()" style="border-radius:20px; background:var(--neon);">Enviar</button>
-        </div>
+    <div class="live-container">
+        <video id="remoteVideo" autoplay playsinline></video>
     </div>
 
     <script>
-        // Lógica TikTok
-        function enviar() {
-            const input = document.getElementById('msgInput');
-            if(input.value) {
-                const chat = document.getElementById('chatOverlay');
-                chat.innerHTML += `<div class="msg"><b>Usuario:</b> ${input.value}</div>`;
-                input.value = '';
-            }
+        const uniqueID = Math.random().toString(36).substring(2, 10);
+        document.getElementById('myID').value = "Tu ID: " + uniqueID;
+        const App = { peer: new Peer(uniqueID) };
+
+        async function conectar() {
+            const target = document.getElementById('targetID').value.trim();
+            if(!target) return alert("¡Necesito el código de tu pareja!");
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('remoteVideo').srcObject = stream;
+                
+                const call = App.peer.call(target, stream);
+                call.on('stream', st => { document.getElementById('remoteVideo').srcObject = st; });
+                
+                // Si todo va bien, quitamos el candado
+                document.getElementById('bloqueo').style.display = 'none';
+            } catch(e) { alert("Error: Permisos denegados."); }
         }
-        function like() { alert("¡Te gusta este directo!"); }
-        
-        // PeerJS auto-iniciando cámara
-        const App = { peer: new Peer() };
-        navigator.mediaDevices.getUserMedia({video:true, audio:true})
-        .then(st => { document.getElementById('remoteVideo').srcObject = st; });
     </script>
 </body>
 </html>
