@@ -2,36 +2,47 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V79.0 [JERARQUÍA BLAUGRANA]</title>
+    <title>SISTEMA V80.0 [ALINEACIÓN TÁCTICA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        /* RESET Y ESTRUCTURA */
+        * { box-sizing: border-box; }
         body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        .box { background: #050a1a; padding: 25px; width: 340px; border: 2px solid #002277; border-radius: 20px; box-shadow: 0 0 20px rgba(0, 34, 119, 0.3); }
-        h3 { color: #f2f2f2; border-bottom: 2px solid #002277; padding-bottom: 5px; }
+        /* BOX BLAUGRANA: Ajuste de dimensiones fijas para evitar desbordes */
+        .box { background: #050a1a; padding: 20px; width: 320px; border: 2px solid #002277; border-radius: 15px; box-shadow: 0 0 15px rgba(0, 34, 119, 0.5); }
         
-        button { width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 8px; border-radius: 8px; transition: 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3); }
-        button:active { transform: translateY(2px); border-bottom: 2px solid rgba(0,0,0,0.3); }
+        h3 { font-size: 14px; color: #f2f2f2; margin: 15px 0 8px 0; border-bottom: 1px solid #002277; padding-bottom: 4px; }
         
-        /* AZUL: CONEXIÓN */
-        .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; box-shadow: 0 4px 0 #000a22; }
-        .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #fff; box-shadow: 0 2px 0 #000a22; }
+        /* INPUTS BLINDADOS: Alineación exacta */
+        input { 
+            width: 100%; height: 40px; padding: 0 10px; margin-bottom: 10px; 
+            background: #0a1122; border: 1px solid #00d2ff; color: #00d2ff; 
+            border-radius: 5px; font-size: 14px;
+        }
         
-        /* GRANA: DATOS */
-        .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; box-shadow: 0 4px 0 #4a0011; }
-        .btn-edit  { background: #910023; border: 1px solid #ff4444; color: #fff; box-shadow: 0 4px 0 #4a0011; }
+        button { 
+            width: 100%; padding: 10px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 5px; border-radius: 5px; 
+            transition: 0.1s; border-bottom: 3px solid rgba(0,0,0,0.5);
+        }
+        button:active { transform: translateY(2px); }
         
-        /* FINALIZAR: ROJO OBSIDIANA (DISTINTO AL GRANA) */
+        /* COLORES Y JERARQUÍA */
+        .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; }
+        .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #fff; }
+        .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; }
+        .btn-edit  { background: #910023; border: 1px solid #ff4444; color: #fff; }
+        
+        /* FINALIZAR: ROJO OBSIDIANA */
         .btn-end { 
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; 
-            background: #3d0000; border: 3px solid #ff0000; color: #ffcccc;
-            padding: 20px 50px; border-radius: 50px; cursor: pointer; font-weight: 900; font-size: 20px;
-            box-shadow: 0 10px 20px rgba(255, 0, 0, 0.5), 0 4px 0 #1a0000;
+            background: #3d0000; border: 2px solid #ff0000; color: #ffcccc;
+            padding: 15px 40px; border-radius: 30px; cursor: pointer; font-weight: 900; font-size: 16px;
         }
-        .btn-end:active { transform: translateX(-50%) translateY(6px); box-shadow: 0 2px 0 #1a0000; }
 
-        .amigo-item { background: #0a1122; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #002277; }
+        .amigo-item { background: #0a1122; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid #002277; }
         .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
         .cam-box { position: relative; border-bottom: 1px solid #002277; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
