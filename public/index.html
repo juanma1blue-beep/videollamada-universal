@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V71.0 [NÚCLEO 3D BLINDADO]</title>
+    <title>SISTEMA V72.0 [NÚCLEO 3D BLINDADO]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
@@ -10,7 +10,6 @@
         .box { background: #151515; padding: 25px; width: 340px; border: 1px solid #333; border-radius: 20px; }
         input { width: 100%; padding: 12px; margin-bottom: 8px; background: #0a0a0a; border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box; }
         
-        /* BOTONES 3D BLINDADOS */
         button { 
             width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 8px; border-radius: 8px; 
             transition: 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3);
@@ -22,10 +21,12 @@
         .btn-wifi  { background: #00d2ff; border: 1px solid #00f2ff; color: #fff; box-shadow: 0 4px 0 #006677; }
         .btn-edit  { background: #ffaa00; border: 1px solid #ffcc00; color: #fff; box-shadow: 0 4px 0 #885500; }
         
+        /* BOTÓN FINALIZAR EQUILIBRADO Y 3D */
         .btn-end { 
             position: absolute; bottom: 20px; right: 20px; z-index: 100; 
             background: #cc0000; border: 1px solid #ff4444; color: white;
-            padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold;
+            padding: 14px 28px; border-radius: 40px; cursor: pointer; 
+            font-weight: 800; font-size: 16px; letter-spacing: 1px;
             box-shadow: 0 6px 0 #550000;
         }
         .btn-end:active { transform: translateY(4px); box-shadow: 0 2px 0 #550000; }
