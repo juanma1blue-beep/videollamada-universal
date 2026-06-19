@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V74.0 [CENTRADO ABSOLUTO]</title>
+    <title>SISTEMA V76.0 [PANEL DE GESTIÓN TÁCTICA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
@@ -21,21 +21,10 @@
         .btn-wifi  { background: #00d2ff; border: 1px solid #00f2ff; color: #fff; box-shadow: 0 4px 0 #006677; }
         .btn-edit  { background: #ffaa00; border: 1px solid #ffcc00; color: #fff; box-shadow: 0 4px 0 #885500; }
         
-        /* REAJUSTE CENTRADO ABSOLUTO */
         .btn-end { 
-            position: absolute; 
-            bottom: 30px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            z-index: 1000; 
-            background: #cc0000; 
-            border: 2px solid #ff4444; 
-            color: white;
-            padding: 18px 40px; 
-            border-radius: 50px; 
-            cursor: pointer; 
-            font-weight: 900; 
-            font-size: 18px; 
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; 
+            background: #cc0000; border: 2px solid #ff4444; color: white;
+            padding: 18px 40px; border-radius: 50px; cursor: pointer; font-weight: 900; font-size: 18px;
             box-shadow: 0 8px 15px rgba(204, 0, 0, 0.4), 0 4px 0 #550000;
         }
         .btn-end:active { transform: translateX(-50%) translateY(4px); box-shadow: 0 2px 0 #550000; }
@@ -53,7 +42,7 @@
             <h3>ID DE CONEXIÓN</h3>
             <input type="text" id="myID" readonly>
             
-            <h3>OPERACIONES</h3>
+            <h3>PANEL DE GESTIÓN TÁCTICA</h3>
             <input type="text" id="targetID" placeholder="Pega el ID aquí...">
             <button class="btn-video" onclick="conectar()">Iniciar Videollamada</button>
             
