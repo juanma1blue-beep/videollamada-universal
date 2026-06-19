@@ -2,36 +2,48 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V76.0 [PANEL DE GESTIÓN TÁCTICA]</title>
+    <title>SISTEMA V77.0 [BLAUGRANA NEÓN - GESTIÓN TÁCTICA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        body { margin: 0; background: #050505; color: #00d2ff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .box { background: #151515; padding: 25px; width: 340px; border: 1px solid #333; border-radius: 20px; }
-        input { width: 100%; padding: 12px; margin-bottom: 8px; background: #0a0a0a; border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box; }
         
+        /* PANEL PRINCIPAL BLAUGRANA */
+        .box { background: #0a0a0a; padding: 25px; width: 340px; border: 2px solid #910023; border-radius: 20px; box-shadow: 0 0 15px #910023, inset 0 0 5px #002277; }
+        h3 { color: #00d2ff; text-shadow: 0 0 5px #00d2ff; }
+        input { width: 100%; padding: 12px; margin-bottom: 8px; background: #0a0a0a; border: 1px solid #002277; color: #00d2ff; border-radius: 8px; box-sizing: border-box; box-shadow: 0 0 5px #002277; }
+        
+        /* BOTONES NEÓN BLAUGRANA */
         button { 
             width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 8px; border-radius: 8px; 
             transition: 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3);
         }
         button:active { transform: translateY(2px); border-bottom: 2px solid rgba(0,0,0,0.3); }
         
-        .btn-video { background: #0055ff; border: 1px solid #0099ff; color: #fff; box-shadow: 0 4px 0 #002277; }
-        .btn-save  { background: #00b070; border: 1px solid #00ff90; color: #fff; box-shadow: 0 4px 0 #005030; }
-        .btn-wifi  { background: #00d2ff; border: 1px solid #00f2ff; color: #fff; box-shadow: 0 4px 0 #006677; }
-        .btn-edit  { background: #ffaa00; border: 1px solid #ffcc00; color: #fff; box-shadow: 0 4px 0 #885500; }
+        /* BOTÓN DE VIDEO NEÓN AZUL OSCURO */
+        .btn-video { background: #002277; border: 2px solid #00d2ff; color: #00d2ff; box-shadow: 0 0 10px #00d2ff, 0 4px 0 #001133; }
+        /* BOTÓN DE GUARDADO NEÓN GRANA */
+        .btn-save  { background: #910023; border: 2px solid #ff0044; color: #ff0044; box-shadow: 0 0 10px #ff0044, 0 4px 0 #550011; }
         
+        /* BOTONES DE AGENDA */
+        .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #00d2ff; box-shadow: 0 0 5px #00d2ff; }
+        .btn-edit  { background: #910023; border: 1px solid #ff0044; color: #ff0044; box-shadow: 0 0 5px #ff0044; }
+        
+        /* BOTÓN FINALIZAR CENTRADO */
         .btn-end { 
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; 
-            background: #cc0000; border: 2px solid #ff4444; color: white;
+            background: linear-gradient(135deg, #cc0000, #330000); border: 2px solid #ff4444; color: white;
             padding: 18px 40px; border-radius: 50px; cursor: pointer; font-weight: 900; font-size: 18px;
             box-shadow: 0 8px 15px rgba(204, 0, 0, 0.4), 0 4px 0 #550000;
         }
         .btn-end:active { transform: translateX(-50%) translateY(4px); box-shadow: 0 2px 0 #550000; }
 
-        .amigo-item { background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #444; }
+        /* ELEMENTOS DE AGENDA CON EFECTO NEÓN */
+        .amigo-item { background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #002277; box-shadow: inset 0 0 5px rgba(0,210,255,0.2); }
         .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
-        .cam-box { position: relative; border-bottom: 1px solid #222; overflow: hidden; }
+        
+        /* CÁMARAS CON BORDES TÁCTICOS NEÓN */
+        .cam-box { position: relative; border-bottom: 1px solid #002277; box-shadow: 0 0 10px #002277; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
