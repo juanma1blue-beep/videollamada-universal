@@ -2,48 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V68.0 [Colores de Impacto]</title>
+    <title>SISTEMA V70.0 [NÚCLEO INTOCABLE]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: 'Courier New', monospace; overflow: hidden; }
+        body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .box { background: #151515; padding: 25px; width: 340px; border: 1px solid #333; border-radius: 20px; }
+        input { width: 100%; padding: 12px; margin-bottom: 8px; background: #0a0a0a; border: 1px solid #444; color: #fff; border-radius: 8px; box-sizing: border-box; }
         
-        #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
-        .box { background: #111; padding: 20px; width: 320px; border: 1px solid #555; }
-        input { width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: #fff; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 8px; border-radius: 8px; transition: 0.3s; }
         
-        /* BOTONES DE IMPACTO */
-        button { width: 100%; padding: 10px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 5px; color: #000; }
-        .btn-video { background: #ff00ff; box-shadow: 0 0 10px #ff00ff; } /* Fucsia */
-        .btn-save { background: #00ff00; box-shadow: 0 0 10px #00ff00; } /* Verde */
-        .btn-wifi { background: #00ffff; box-shadow: 0 0 10px #00ffff; } /* Cian */
-        .btn-edit { background: #ffff00; box-shadow: 0 0 10px #ffff00; } /* Amarillo */
-        
-        .amigo-item { background: #111; padding: 10px; margin-bottom: 8px; border: 1px solid #333; }
-        
-        .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
-        .cam-box { position: relative; border-bottom: 1px solid #333; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: cover; }
+        /* PALETA DE IMPACTO - NÚCLEO ESTABLE */
+        .btn-video { background: linear-gradient(135deg, #0055ff, #002277); border: 1px solid #0099ff; color: #fff; }
+        .btn-save  { background: linear-gradient(135deg, #00b070, #005030); border: 1px solid #00ff90; color: #fff; }
+        .btn-wifi  { background: linear-gradient(135deg, #00d2ff, #006677); border: 1px solid #00f2ff; color: #fff; }
+        .btn-edit  { background: linear-gradient(135deg, #ffaa00, #885500); border: 1px solid #ffcc00; color: #fff; }
         
         .btn-end { 
             position: absolute; bottom: 20px; right: 20px; z-index: 100; 
-            background: #ff0000; color: white; padding: 12px 24px; 
-            border: none; border-radius: 25px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 0 15px #ff0000;
+            background: linear-gradient(135deg, #770000, #330000); border: 1px solid #ff4444; color: white;
+            padding: 15px 30px; border-radius: 50px; cursor: pointer; font-weight: bold;
         }
+
+        .amigo-item { background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #444; }
+        .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
+        .cam-box { position: relative; border-bottom: 1px solid #222; overflow: hidden; }
+        video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="panel">
         <div class="box">
-            <h3>TU CÓDIGO (ID)</h3>
+            <h3>ID DE CONEXIÓN</h3>
             <input type="text" id="myID" readonly>
             
-            <h3>CONEXIÓN</h3>
+            <h3>OPERACIONES</h3>
             <input type="text" id="targetID" placeholder="Pega el ID aquí...">
             <button class="btn-video" onclick="conectar()">Iniciar Videollamada</button>
             
-            <h3 style="margin-top:15px;">AGENDA</h3>
+            <h3>AGENDA</h3>
             <div id="listaAmigos"></div>
             <input type="text" id="nombre" placeholder="Nombre...">
             <input type="text" id="telefono" placeholder="Número...">
