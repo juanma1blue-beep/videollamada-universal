@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V82.0 [AUTOMATIZACIÓN TÁCTICA]</title>
+    <title>SISTEMA V83.0 [SINCRONIZACIÓN TÁCTICA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -52,16 +52,19 @@
     </div>
 
     <script>
-        // Generar ID y Copiar automáticamente
-        const randomID = Math.random().toString(36).substring(2, 10);
-        document.getElementById('myID').value = randomID;
-        
-        // Autocopiado al portapapeles
-        navigator.clipboard.writeText(randomID).then(() => {
-            console.log("ID Copiado automáticamente");
-        });
+        // Sincronización: Generación y Copiado inmediato
+        function iniciarSistema() {
+            const randomID = Math.random().toString(36).substring(2, 10);
+            document.getElementById('myID').value = randomID;
+            
+            // Acción atómica de copiado
+            navigator.clipboard.writeText(randomID).catch(err => console.error("Error al copiar: ", err));
+            
+            return randomID;
+        }
 
-        const peer = new Peer(randomID);
+        const idGenerado = iniciarSistema();
+        const peer = new Peer(idGenerado);
 
         function editar(index) {
             let agenda = JSON.parse(localStorage.getItem('agenda') || '[]');
