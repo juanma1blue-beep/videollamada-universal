@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V73.0 [AJUSTE DE PRECISIÓN]</title>
+    <title>SISTEMA V74.0 [CENTRADO ABSOLUTO]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
@@ -21,11 +21,12 @@
         .btn-wifi  { background: #00d2ff; border: 1px solid #00f2ff; color: #fff; box-shadow: 0 4px 0 #006677; }
         .btn-edit  { background: #ffaa00; border: 1px solid #ffcc00; color: #fff; box-shadow: 0 4px 0 #885500; }
         
-        /* BOTÓN FINALIZAR - REAJUSTE DE PRECISIÓN */
+        /* REAJUSTE CENTRADO ABSOLUTO */
         .btn-end { 
             position: absolute; 
             bottom: 30px; 
-            right: 30px; 
+            left: 50%; 
+            transform: translateX(-50%); 
             z-index: 1000; 
             background: #cc0000; 
             border: 2px solid #ff4444; 
@@ -35,10 +36,9 @@
             cursor: pointer; 
             font-weight: 900; 
             font-size: 18px; 
-            text-shadow: 0 2px 2px rgba(0,0,0,0.5);
             box-shadow: 0 8px 15px rgba(204, 0, 0, 0.4), 0 4px 0 #550000;
         }
-        .btn-end:active { transform: translateY(6px); box-shadow: 0 2px 0 #550000; }
+        .btn-end:active { transform: translateX(-50%) translateY(4px); box-shadow: 0 2px 0 #550000; }
 
         .amigo-item { background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #444; }
         .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
