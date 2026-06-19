@@ -2,44 +2,42 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V80.0 [ALINEACIÓN TÁCTICA]</title>
+    <title>SISTEMA V81.0 [POSICIONAMIENTO AJUSTADO]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        /* RESET Y ESTRUCTURA */
         * { box-sizing: border-box; }
         body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* BOX BLAUGRANA: Ajuste de dimensiones fijas para evitar desbordes */
         .box { background: #050a1a; padding: 20px; width: 320px; border: 2px solid #002277; border-radius: 15px; box-shadow: 0 0 15px rgba(0, 34, 119, 0.5); }
-        
         h3 { font-size: 14px; color: #f2f2f2; margin: 15px 0 8px 0; border-bottom: 1px solid #002277; padding-bottom: 4px; }
         
-        /* INPUTS BLINDADOS: Alineación exacta */
-        input { 
-            width: 100%; height: 40px; padding: 0 10px; margin-bottom: 10px; 
-            background: #0a1122; border: 1px solid #00d2ff; color: #00d2ff; 
-            border-radius: 5px; font-size: 14px;
-        }
+        input { width: 100%; height: 40px; padding: 0 10px; margin-bottom: 10px; background: #0a1122; border: 1px solid #00d2ff; color: #00d2ff; border-radius: 5px; font-size: 14px; }
         
-        button { 
-            width: 100%; padding: 10px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 5px; border-radius: 5px; 
-            transition: 0.1s; border-bottom: 3px solid rgba(0,0,0,0.5);
-        }
+        button { width: 100%; padding: 10px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 5px; border-radius: 5px; transition: 0.1s; border-bottom: 3px solid rgba(0,0,0,0.5); }
         button:active { transform: translateY(2px); }
         
-        /* COLORES Y JERARQUÍA */
         .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; }
         .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #fff; }
         .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; }
         .btn-edit  { background: #910023; border: 1px solid #ff4444; color: #fff; }
         
-        /* FINALIZAR: ROJO OBSIDIANA */
+        /* BOTÓN FINALIZAR: AJUSTE DE POSICIÓN (BAJADO) */
         .btn-end { 
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; 
-            background: #3d0000; border: 2px solid #ff0000; color: #ffcccc;
-            padding: 15px 40px; border-radius: 30px; cursor: pointer; font-weight: 900; font-size: 16px;
+            position: absolute; 
+            bottom: 20px; /* Reajustado hacia abajo */
+            left: 50%; 
+            transform: translateX(-50%); 
+            z-index: 1000; 
+            background: #3d0000; 
+            border: 2px solid #ff0000; 
+            color: #ffcccc;
+            padding: 15px 40px; 
+            border-radius: 30px; 
+            cursor: pointer; 
+            font-weight: 900; 
+            font-size: 16px;
         }
 
         .amigo-item { background: #0a1122; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid #002277; }
