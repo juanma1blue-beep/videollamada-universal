@@ -2,14 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V88.0 [VISIBILIDAD AUMENTADA]</title>
+    <title>SISTEMA V89.0 [RESTAURACIÓN TÁCTICA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* PANEL ESCALADO PARA VISIÓN A DISTANCIA */
         .box { background: #050a1a; padding: 40px; width: 450px; border: 3px solid #002277; border-radius: 25px; box-shadow: 0 0 30px rgba(0, 34, 119, 0.8); }
         h3 { font-size: 18px; color: #f2f2f2; margin: 25px 0 12px 0; border-bottom: 2px solid #002277; padding-bottom: 8px; }
         
@@ -19,12 +18,13 @@
         button:active { transform: translateY(2px); }
         
         .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; }
+        .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #fff; font-size: 14px; padding: 8px; margin-top: 0; margin-right: 10px; }
         .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; }
         
         .btn-edit { 
             width: 45px; height: 45px; border-radius: 50%; background: #910023; border: 2px solid #ff4444;
             color: white; font-size: 20px; display: flex; align-items: center; justify-content: center;
-            padding: 0; margin-left: 15px; flex-shrink: 0;
+            padding: 0; flex-shrink: 0;
         }
 
         .amigo-item { 
@@ -32,6 +32,7 @@
             border-left: 5px solid #002277; display: flex; align-items: center; justify-content: space-between; font-size: 16px;
         }
         .info-area { flex-grow: 1; line-height: 1.4; }
+        .controls-area { display: flex; align-items: center; }
         
         .btn-end { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; background: #3d0000; border: 3px solid #ff0000; color: #ffcccc; padding: 20px 60px; border-radius: 40px; cursor: pointer; font-weight: 900; font-size: 20px; }
         
@@ -104,7 +105,10 @@
             lista.innerHTML = agenda.map((a, i) => `
                 <div class="amigo-item">
                     <div class="info-area"><b>${a.nombre}</b><br>${a.telefono}</div>
-                    <button class="btn-edit" onclick="editar(${i})">✎</button>
+                    <div class="controls-area">
+                        <button class="btn-wifi" onclick="alert('Llamada WiFi a ${a.telefono}')">WIFI</button>
+                        <button class="btn-edit" onclick="editar(${i})">✎</button>
+                    </div>
                 </div>`).join('');
         }
 
