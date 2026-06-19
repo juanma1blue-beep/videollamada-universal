@@ -2,48 +2,38 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V77.0 [BLAUGRANA NEÓN - GESTIÓN TÁCTICA]</title>
+    <title>SISTEMA V79.0 [JERARQUÍA BLAUGRANA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #050505; color: #00d2ff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         
-        /* PANEL PRINCIPAL BLAUGRANA */
-        .box { background: #0a0a0a; padding: 25px; width: 340px; border: 2px solid #910023; border-radius: 20px; box-shadow: 0 0 15px #910023, inset 0 0 5px #002277; }
-        h3 { color: #00d2ff; text-shadow: 0 0 5px #00d2ff; }
-        input { width: 100%; padding: 12px; margin-bottom: 8px; background: #0a0a0a; border: 1px solid #002277; color: #00d2ff; border-radius: 8px; box-sizing: border-box; box-shadow: 0 0 5px #002277; }
+        .box { background: #050a1a; padding: 25px; width: 340px; border: 2px solid #002277; border-radius: 20px; box-shadow: 0 0 20px rgba(0, 34, 119, 0.3); }
+        h3 { color: #f2f2f2; border-bottom: 2px solid #002277; padding-bottom: 5px; }
         
-        /* BOTONES NEÓN BLAUGRANA */
-        button { 
-            width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 8px; border-radius: 8px; 
-            transition: 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3);
-        }
+        button { width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 8px; border-radius: 8px; transition: 0.1s; border-bottom: 4px solid rgba(0,0,0,0.3); }
         button:active { transform: translateY(2px); border-bottom: 2px solid rgba(0,0,0,0.3); }
         
-        /* BOTÓN DE VIDEO NEÓN AZUL OSCURO */
-        .btn-video { background: #002277; border: 2px solid #00d2ff; color: #00d2ff; box-shadow: 0 0 10px #00d2ff, 0 4px 0 #001133; }
-        /* BOTÓN DE GUARDADO NEÓN GRANA */
-        .btn-save  { background: #910023; border: 2px solid #ff0044; color: #ff0044; box-shadow: 0 0 10px #ff0044, 0 4px 0 #550011; }
+        /* AZUL: CONEXIÓN */
+        .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; box-shadow: 0 4px 0 #000a22; }
+        .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #fff; box-shadow: 0 2px 0 #000a22; }
         
-        /* BOTONES DE AGENDA */
-        .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #00d2ff; box-shadow: 0 0 5px #00d2ff; }
-        .btn-edit  { background: #910023; border: 1px solid #ff0044; color: #ff0044; box-shadow: 0 0 5px #ff0044; }
+        /* GRANA: DATOS */
+        .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; box-shadow: 0 4px 0 #4a0011; }
+        .btn-edit  { background: #910023; border: 1px solid #ff4444; color: #fff; box-shadow: 0 4px 0 #4a0011; }
         
-        /* BOTÓN FINALIZAR CENTRADO */
+        /* FINALIZAR: ROJO OBSIDIANA (DISTINTO AL GRANA) */
         .btn-end { 
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; 
-            background: linear-gradient(135deg, #cc0000, #330000); border: 2px solid #ff4444; color: white;
-            padding: 18px 40px; border-radius: 50px; cursor: pointer; font-weight: 900; font-size: 18px;
-            box-shadow: 0 8px 15px rgba(204, 0, 0, 0.4), 0 4px 0 #550000;
+            background: #3d0000; border: 3px solid #ff0000; color: #ffcccc;
+            padding: 20px 50px; border-radius: 50px; cursor: pointer; font-weight: 900; font-size: 20px;
+            box-shadow: 0 10px 20px rgba(255, 0, 0, 0.5), 0 4px 0 #1a0000;
         }
-        .btn-end:active { transform: translateX(-50%) translateY(4px); box-shadow: 0 2px 0 #550000; }
+        .btn-end:active { transform: translateX(-50%) translateY(6px); box-shadow: 0 2px 0 #1a0000; }
 
-        /* ELEMENTOS DE AGENDA CON EFECTO NEÓN */
-        .amigo-item { background: #1a1a1a; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #002277; box-shadow: inset 0 0 5px rgba(0,210,255,0.2); }
+        .amigo-item { background: #0a1122; padding: 12px; margin-bottom: 10px; border-radius: 10px; border-left: 4px solid #002277; }
         .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
-        
-        /* CÁMARAS CON BORDES TÁCTICOS NEÓN */
-        .cam-box { position: relative; border-bottom: 1px solid #002277; box-shadow: 0 0 10px #002277; overflow: hidden; }
+        .cam-box { position: relative; border-bottom: 1px solid #002277; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
