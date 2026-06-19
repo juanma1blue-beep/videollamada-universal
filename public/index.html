@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V85.0 [SINCRONIZACIÓN AUTOMÁTICA]</title>
+    <title>SISTEMA V86.0 [FINALIZACIÓN ACTIVA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -28,7 +28,7 @@
 
     <div id="panel">
         <div class="box">
-            <h3>ID DE CONEXIÓN (AUTOCOPIADO)</h3>
+            <h3>ID DE CONEXIÓN</h3>
             <input type="text" id="myID" readonly>
             
             <h3>PANEL DE GESTIÓN TÁCTICA</h3>
@@ -47,24 +47,30 @@
         <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
         <div class="cam-box">
             <video id="localVideo" autoplay playsinline muted></video>
-            <button class="btn-end" onclick="location.reload()">FINALIZAR</button>
+            <button class="btn-end" onclick="finalizarConexion()">FINALIZAR</button>
         </div>
     </div>
 
     <script>
-        // Generación y copiado invisible pero forzado
         const randomID = Math.random().toString(36).substring(2, 10);
         document.getElementById('myID').value = randomID;
         
-        // Ejecución forzada en el primer clic o interacción (necesario por seguridad del navegador)
+        // Copiado forzado al interactuar
         document.body.addEventListener('click', () => {
             navigator.clipboard.writeText(randomID).catch(() => {});
         }, { once: true });
-        
-        // Intento directo en carga
-        navigator.clipboard.writeText(randomID).catch(() => {});
 
         const peer = new Peer(randomID);
+        let localStream;
+
+        // Función Maestra de Finalización
+        function finalizarConexion() {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            peer.destroy();
+            window.location.reload();
+        }
 
         function guardar() {
             const nombre = document.getElementById('nombre').value;
@@ -89,10 +95,10 @@
         async function conectar() {
             const target = document.getElementById('targetID').value.trim();
             if(!target) return alert("Pega un ID");
-            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('localVideo').srcObject = stream;
-            peer.on('call', call => { call.answer(stream); call.on('stream', st => document.getElementById('remoteVideo').srcObject = st); });
-            const call = peer.call(target, stream);
+            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('localVideo').srcObject = localStream;
+            peer.on('call', call => { call.answer(localStream); call.on('stream', st => document.getElementById('remoteVideo').srcObject = st); });
+            const call = peer.call(target, localStream);
             call.on('stream', st => document.getElementById('remoteVideo').srcObject = st);
             document.getElementById('panel').style.display = 'none';
             document.getElementById('videoArea').style.display = 'grid';
