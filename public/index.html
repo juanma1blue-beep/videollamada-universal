@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V83.0 [SINCRONIZACIÓN TÁCTICA]</title>
+    <title>SISTEMA V85.0 [SINCRONIZACIÓN AUTOMÁTICA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -28,7 +28,7 @@
 
     <div id="panel">
         <div class="box">
-            <h3>ID DE CONEXIÓN (COPIADO AL INICIAR)</h3>
+            <h3>ID DE CONEXIÓN (AUTOCOPIADO)</h3>
             <input type="text" id="myID" readonly>
             
             <h3>PANEL DE GESTIÓN TÁCTICA</h3>
@@ -52,26 +52,19 @@
     </div>
 
     <script>
-        // Sincronización: Generación y Copiado inmediato
-        function iniciarSistema() {
-            const randomID = Math.random().toString(36).substring(2, 10);
-            document.getElementById('myID').value = randomID;
-            
-            // Acción atómica de copiado
-            navigator.clipboard.writeText(randomID).catch(err => console.error("Error al copiar: ", err));
-            
-            return randomID;
-        }
+        // Generación y copiado invisible pero forzado
+        const randomID = Math.random().toString(36).substring(2, 10);
+        document.getElementById('myID').value = randomID;
+        
+        // Ejecución forzada en el primer clic o interacción (necesario por seguridad del navegador)
+        document.body.addEventListener('click', () => {
+            navigator.clipboard.writeText(randomID).catch(() => {});
+        }, { once: true });
+        
+        // Intento directo en carga
+        navigator.clipboard.writeText(randomID).catch(() => {});
 
-        const idGenerado = iniciarSistema();
-        const peer = new Peer(idGenerado);
-
-        function editar(index) {
-            let agenda = JSON.parse(localStorage.getItem('agenda') || '[]');
-            let n = prompt("Nuevo nombre:", agenda[index].nombre);
-            let t = prompt("Nuevo número:", agenda[index].telefono);
-            if(n && t) { agenda[index] = {nombre: n, telefono: t}; localStorage.setItem('agenda', JSON.stringify(agenda)); render(); }
-        }
+        const peer = new Peer(randomID);
 
         function guardar() {
             const nombre = document.getElementById('nombre').value;
@@ -90,7 +83,6 @@
                 <div class="amigo-item">
                     <b>${a.nombre}</b><br>${a.telefono}
                     <button class="btn-wifi" onclick="alert('Llamada WiFi a ${a.telefono}')">LLAMADA WIFI</button>
-                    <button class="btn-edit" onclick="editar(${i})">EDITAR</button>
                 </div>`).join('');
         }
 
