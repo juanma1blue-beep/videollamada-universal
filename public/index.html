@@ -2,51 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V66.0 [Control Maestro Completo]</title>
+    <title>SISTEMA V67.0 [Neón Control]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+        body { margin: 0; background: #000; color: #0ff; font-family: 'Courier New', monospace; overflow: hidden; }
         
-        /* PANEL PRINCIPAL */
+        /* ESTILO NEÓN GLOBAL */
+        .neon-box { border: 2px solid #0ff; box-shadow: 0 0 10px #0ff, inset 0 0 5px #0ff; border-radius: 15px; }
+        
         #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
-        .box { background: #111; padding: 20px; border-radius: 15px; width: 320px; border: 1px solid #333; }
-        input { width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #444; color: #fff; border-radius: 5px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        .box { background: #111; padding: 20px; width: 320px; }
+        input { width: 100%; padding: 10px; margin-bottom: 5px; background: #000; border: 1px solid #0ff; color: #0ff; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; border: none; cursor: pointer; font-weight: bold; background: #000; border: 1px solid #0ff; color: #0ff; text-transform: uppercase; }
+        button:hover { background: #0ff; color: #000; }
         
-        /* AGENDA Y BOTONES */
-        .amigo-item { background: #222; padding: 10px; margin-bottom: 8px; border-radius: 5px; font-size: 13px; }
-        .btn-wifi { background:#0044cc; color:white; padding: 8px; font-size: 12px; margin-top: 5px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
-        .btn-edit { background:#444; color:white; border:none; padding:4px; font-size:10px; cursor:pointer; width:100%; margin-top:5px; }
+        .amigo-item { background: #111; padding: 10px; margin-bottom: 8px; border: 1px solid #0ff; }
+        .btn-wifi { background: #0044cc; color: white; border: none; padding: 8px; width: 100%; margin-top: 5px; cursor: pointer; }
         
-        /* VIDEOLLAMADA */
+        /* VIDEO NEÓN */
         .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
-        .cam-box { position: relative; border-bottom: 1px solid #111; overflow: hidden; }
+        .cam-box { position: relative; border-bottom: 1px solid #0ff; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* FINALIZAR - ERGONÓMICO */
+        /* FINALIZAR - FIJO Y NEÓN */
         .btn-end { 
-            position: absolute; bottom: 15px; right: 15px; z-index: 100; 
-            background: #880000; color: white; padding: 10px 20px; 
-            border-radius: 25px; cursor: pointer; border: none; font-weight: bold;
+            position: absolute; bottom: 20px; right: 20px; z-index: 100; 
+            background: #880000; color: white; padding: 12px 24px; 
+            border: 2px solid #ff0000; border-radius: 25px; cursor: pointer; font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div id="panel">
+    <div id="panel" class="neon-box">
         <div class="box">
             <h3>PASO 1: TU CÓDIGO</h3>
             <input type="text" id="myID" readonly>
-            
             <h3>PASO 2: VIDEOLLAMADA</h3>
             <input type="text" id="targetID" placeholder="Pega el ID aquí...">
-            <button onclick="conectar()" style="background:#A50044; color:white;">INICIAR VIDEOLLAMADA</button>
-            
+            <button onclick="conectar()">Iniciar Videollamada</button>
             <h3 style="margin-top:15px;">AGENDA (LLAMADA WIFI)</h3>
             <div id="listaAmigos"></div>
             <input type="text" id="nombre" placeholder="Nombre...">
             <input type="text" id="telefono" placeholder="Número...">
-            <button onclick="guardar()" style="background:#006600; color:white;">GUARDAR CONTACTO</button>
+            <button onclick="guardar()">Guardar Contacto</button>
         </div>
     </div>
 
@@ -63,19 +62,13 @@
         document.getElementById('myID').value = randomID;
         const peer = new Peer(randomID);
 
-        // EDICIÓN DE CONTACTOS
         function editar(index) {
             let agenda = JSON.parse(localStorage.getItem('agenda') || '[]');
             let n = prompt("Nuevo nombre:", agenda[index].nombre);
             let t = prompt("Nuevo número:", agenda[index].telefono);
-            if(n !== null && t !== null) {
-                agenda[index] = {nombre: n, telefono: t};
-                localStorage.setItem('agenda', JSON.stringify(agenda));
-                render();
-            }
+            if(n && t) { agenda[index] = {nombre: n, telefono: t}; localStorage.setItem('agenda', JSON.stringify(agenda)); render(); }
         }
 
-        // GUARDAR CONTACTO
         function guardar() {
             const nombre = document.getElementById('nombre').value;
             const telefono = document.getElementById('telefono').value;
@@ -86,7 +79,6 @@
             render();
         }
 
-        // RENDERIZAR AGENDA
         function render() {
             const lista = document.getElementById('listaAmigos');
             let agenda = JSON.parse(localStorage.getItem('agenda') || '[]');
@@ -94,26 +86,21 @@
                 <div class="amigo-item">
                     <b>${a.nombre}</b><br>${a.telefono}
                     <button class="btn-wifi" onclick="alert('Llamada WiFi a ${a.telefono}')">LLAMADA WIFI</button>
-                    <button class="btn-edit" onclick="editar(${i})">EDITAR</button>
+                    <button onclick="editar(${i})" style="background:#222; color:#0ff; border:1px solid #0ff; width:100%; margin-top:5px; cursor:pointer;">EDITAR</button>
                 </div>`).join('');
         }
 
-        // MOTOR VIDEOLLAMADA
         async function conectar() {
             const target = document.getElementById('targetID').value.trim();
-            if(!target) return alert("Pega un ID para conectar");
-            
+            if(!target) return alert("Pega un ID");
             const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = stream;
-            
             peer.on('call', call => { call.answer(stream); call.on('stream', st => document.getElementById('remoteVideo').srcObject = st); });
             const call = peer.call(target, stream);
             call.on('stream', st => document.getElementById('remoteVideo').srcObject = st);
-            
             document.getElementById('panel').style.display = 'none';
             document.getElementById('videoArea').style.display = 'grid';
         }
-
         render();
     </script>
 </body>
