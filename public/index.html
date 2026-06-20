@@ -2,54 +2,48 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V121.0 [ESTABLE]</title>
+    <title>SISTEMA V122.0 [REPLICACIÓN Y MEJORA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        /* PANEL PRINCIPAL: Fijo y centrado */
+        /* PANEL PRINCIPAL */
         #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 10; }
         .box { background: #0a1122; padding: 25px; width: 90%; max-width: 400px; border: 2px solid #a50044; border-radius: 20px; text-align: center; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 8px; text-align: center; }
+        input { width: 100%; padding: 15px; margin: 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 10px; text-align: center; font-weight: bold; cursor: pointer; }
 
-        /* VIDEOS: Estables */
+        /* VIDEOS */
         #videoArea { display: none; width: 100vw; height: 100vh; }
-        .v-container { width: 100%; height: 50%; position: relative; border-bottom: 1px solid #a50044; }
+        .v-container { width: 100%; height: 50%; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* WIDGET METEO: Minimalista */
-        .weather-widget { position: absolute; top: 10px; right: 10px; z-index: 500; background: rgba(0,0,0,0.6); border: 1px solid #004d98; padding: 5px 10px; border-radius: 10px; font-size: 10px; }
-        
-        /* CONTROL BAR: Estética Finalizada */
-        .control-bar { position: fixed; bottom: 20px; left: 5%; width: 90%; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-radius: 40px; border: 2px solid #a50044; z-index: 999; background: #02040a; }
-        
-        /* BOTÓN FINALIZAR: Azulgrana restaurado */
-        .btn-end { 
-            background: linear-gradient(to right, #004d98, #a50044);
-            border: none; border-radius: 20px; padding: 10px 25px; 
-            cursor: pointer; font-weight: 900; color: #fff; text-transform: uppercase;
+        /* WIDGET METEO */
+        .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 500; background: rgba(0,0,0,0.5); border: 1px solid #004d98; padding: 8px 12px; border-radius: 10px; font-size: 12px; pointer-events: none; }
+
+        /* BARRA INFERIOR (Replicando la imagen) */
+        .control-bar { 
+            position: fixed; bottom: 20px; left: 5%; width: 90%;
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px 30px; border-radius: 50px; 
+            background: linear-gradient(90deg, #a50044 0%, #004d98 100%);
+            z-index: 999; border: 2px solid #fff;
         }
-        
-        /* TEXTO PROPINAS: Degradado azul restaurado */
+        .btn-end { background: none; border: none; color: #fff; font-weight: 900; font-size: 22px; cursor: pointer; letter-spacing: 2px; }
         .btn-paypal { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
-        .btn-paypal img { width: 45px; }
-        .paypal-text { 
-            font-weight: bold; font-size: 11px; 
-            background: linear-gradient(to right, #00d2ff, #004d98);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
+        .btn-paypal img { width: 40px; }
+        .paypal-text { font-size: 10px; color: #fff; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
     </style>
 </head>
 <body>
 
     <div id="panel">
         <div class="box">
-            <h3>ID CONEXIÓN</h3>
-            <input type="text" id="myID" readonly>
-            <h3>ID SOCIO</h3>
-            <input type="text" id="targetID" placeholder="Introduce ID...">
-            <button id="btnIniciar" style="width:100%; padding:15px; background:#a50044; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">INICIAR</button>
+            <h3 style="color:#004d98;">ID CONEXIÓN</h3>
+            <input type="text" id="myID" readonly placeholder="Generando...">
+            <h3 style="color:#004d98;">ID SOCIO</h3>
+            <input type="text" id="targetID" placeholder="Introduce ID socio...">
+            <button id="btnIniciar" style="width:100%; padding:15px; background:#a50044; color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">INICIAR</button>
         </div>
     </div>
 
@@ -61,20 +55,32 @@
             <button class="btn-end" onclick="window.location.reload()">FINALIZAR</button>
             <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
-                <span class="paypal-text">PROPINAS</span>
+                <span class="paypal-text">PAYPAL</span>
             </a>
         </div>
     </div>
     
     <script>
         const peer = new Peer();
-        peer.on('open', id => document.getElementById('myID').value = id);
-        
+        peer.on('open', id => {
+            const el = document.getElementById('myID');
+            el.value = id;
+            // Autocopiado al generar
+            navigator.clipboard.writeText(id);
+        });
+
+        // Copiar al hacer clic
+        document.getElementById('myID').addEventListener('click', () => {
+            navigator.clipboard.writeText(document.getElementById('myID').value);
+            alert("ID copiado al portapapeles");
+        });
+
         document.getElementById('btnIniciar').addEventListener('click', async () => {
             const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = stream;
             document.getElementById('panel').style.display = 'none';
             document.getElementById('videoArea').style.display = 'block';
+            
             const targetID = document.getElementById('targetID').value;
             if(targetID) {
                 const call = peer.call(targetID, stream);
