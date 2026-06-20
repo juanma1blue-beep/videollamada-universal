@@ -5,21 +5,15 @@
     <title>FaceCall Professional</title>
     <style>
         body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; padding: 20px; }
-        
-        /* Sección de código destacada */
         .setup-section { margin: 20px auto; padding: 20px; background: #fff; border-radius: 10px; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { padding: 10px; font-size: 18px; text-align: center; border: 2px solid #004d98; border-radius: 5px; }
-        
-        /* Botones Azulgrana */
+        input { padding: 10px; font-size: 18px; text-align: center; border: 2px solid #004d98; border-radius: 5px; width: 200px; }
         .controls { margin-top: 20px; }
-        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; margin: 5px; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; margin: 5px; transition: 0.3s; }
         #llamarBtn { background-color: #004d98; }
         #colgarBtn { background-color: #a50044; }
         #generarBtn { background-color: #333; }
-        
         .video-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 900px; }
         video { width: 48%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; object-fit: cover; }
-        
         .footer { margin-top: 30px; }
         .paypal-btn { background-color: #f7c000; color: black; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; }
     </style>
@@ -27,9 +21,9 @@
 <body>
 
     <div class="setup-section">
-        <h3>1. Prepara tu sala</h3>
-        <button id="generarBtn">Generar Código Aleatorio</button>
-        <input type="text" id="roomCode" placeholder="Esperando código..." readonly>
+        <h3>1. Gestionar Sala</h3>
+        <button id="generarBtn">Generar/Cambiar Código</button>
+        <input type="text" id="roomCode" placeholder="Código..." readonly>
     </div>
 
     <div class="controls">
@@ -53,21 +47,21 @@
         let peerConnection;
         const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-        // Solo iniciamos cámara al generar código, no antes
+        // Generación infinita: Siempre disponible
         document.getElementById('generarBtn').addEventListener('click', async () => {
             const code = Math.random().toString(36).substring(2, 9);
             document.getElementById('roomCode').value = code;
             
-            // Encender cámara tras tener código
-            try {
+            // Si ya hay cámara, la mantenemos, si no, la pedimos
+            if (!localStream) {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-            } catch (err) { alert("Error: Por favor permite el acceso a la cámara."); }
+            }
         });
 
         document.getElementById('llamarBtn').addEventListener('click', async () => {
             const code = document.getElementById('roomCode').value;
-            if (!code) return alert("Genera un código primero, por favor.");
+            if (!code) return alert("Genera un código primero.");
             
             socket.emit('join-room', code);
             peerConnection = new RTCPeerConnection(config);
