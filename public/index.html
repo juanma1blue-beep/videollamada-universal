@@ -31,6 +31,7 @@
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
+            align-items: flex-start;
         }
 
         .container {
@@ -41,7 +42,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        /* CABECERA ALINEADA CON BOTÓN DE DONACIONES */
+        /* CABECERA EQUILIBRADA CON BOTÓN DE DONACIONES */
         .header-area {
             display: flex;
             justify-content: space-between;
@@ -49,6 +50,7 @@
             margin-bottom: 25px;
             border-bottom: 1px solid #e1e8ed;
             padding-bottom: 15px;
+            height: 50px;
         }
 
         h1 {
@@ -71,6 +73,7 @@
             transition: background 0.2s ease, transform 0.1s ease;
             border: 1px solid #e5b228;
             cursor: pointer;
+            height: 43px;
         }
 
         .paypal-donation-btn:hover {
@@ -89,16 +92,25 @@
         .paypal-logo-text .p1 { color: #003087; }
         .paypal-logo-text .p2 { color: #0079c1; margin-left: -1px; }
 
-        /* Panel de Chat Lateral Derecho - Interactivo */
+        /* PANEL DE CHAT LATERAL - ALINEACIÓN TOTAL EN ALTURA */
         .chat-panel {
             flex: 1;
             background: #ffffff;
-            padding: 20px;
+            padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            height: 520px;
+            height: 515px; /* Ajustado exactamente para equilibrar con el contenedor izquierdo */
+        }
+
+        .chat-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+            border-bottom: 1px solid #e1e8ed;
+            padding-bottom: 10px;
+            height: 35px;
         }
 
         /* REJILLA SIMÉTRICA DE DOS COLUMNAS ALINEADAS */
@@ -113,31 +125,28 @@
             flex-direction: column;
         }
 
-        /* Campos de control superiores alineados entre líneas con la misma altura exacta */
+        /* Bloques superiores de control nivelados al milímetro */
         .control-top {
-            height: 95px;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            gap: 10px;
             margin-bottom: 15px;
         }
 
-        /* Input Text estirado al 100% de la anchura */
+        /* Inputs y Botones con la misma altura exacta de 43px para un equilibrio total */
         .room-input {
             width: 100%;
             padding: 10px;
             border: 2px solid #ccc;
             border-radius: 6px;
-            font-size: 15px;
+            font-size: 14px;
             text-align: center;
             font-weight: bold;
             letter-spacing: 1px;
             background-color: #fff;
             height: 43px;
-            margin-bottom: 10px;
         }
 
-        /* BOTÓN DE YOUTUBE EN CSS PURO (ESTIRADO AL 100% EN LA COLUMNA DERECHA) */
         .youtube-btn {
             display: inline-flex;
             align-items: center;
@@ -154,7 +163,6 @@
             height: 43px;
             border: none;
             cursor: pointer;
-            margin-bottom: 10px;
         }
 
         .youtube-btn:hover {
@@ -162,7 +170,6 @@
             transform: translateY(-1px);
         }
 
-        /* Icono de Play de YouTube en CSS puro */
         .youtube-icon {
             width: 20px;
             height: 14px;
@@ -200,23 +207,13 @@
             height: 43px;
         }
 
-        .btn-primary {
-            background-color: #004d98;
-        }
+        .btn-primary { background-color: #004d98; }
+        .btn-primary:hover { background-color: #003366; }
 
-        .btn-primary:hover {
-            background-color: #003366;
-        }
+        .btn-success { background-color: #28a745; }
+        .btn-success:hover { background-color: #218838; }
 
-        .btn-success {
-            background-color: #28a745;
-        }
-
-        .btn-success:hover {
-            background-color: #218838;
-        }
-
-        /* Contenedores de las Cámaras Nativas */
+        /* Contenedores de las Cámaras Simétricas */
         .video-box {
             width: 100%;
             height: 280px;
@@ -260,7 +257,7 @@
             z-index: 3;
         }
 
-        /* Estructura del Chat */
+        /* Estructura Interna del Chat */
         .chat-messages {
             flex: 1;
             border: 1px solid #e1e8ed;
@@ -311,22 +308,34 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 14px;
+            height: 43px;
         }
 
-        @media (max-width: 768px) {
+        /* DISEÑO ADAPTABLE UNIVERSAL EQUILIBRADO */
+        @media (max-width: 900px) {
             .main-layout {
                 flex-direction: column;
+                align-items: stretch;
             }
+            .chat-panel {
+                height: 400px;
+            }
+        }
+
+        @media (max-width: 600px) {
             .video-grid {
                 flex-direction: column;
             }
-            .control-top {
-                height: auto;
-            }
             .header-area {
                 flex-direction: column;
+                height: auto;
                 gap: 15px;
                 text-align: center;
+                padding-bottom: 20px;
+            }
+            .paypal-donation-btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -401,7 +410,6 @@
         try {
             modelHandpose = await handpose.load();
             console.log("Motor de reconocimiento gestual ✋ cargado correctamente.");
-            // Ejecutamos una limpieza inicial preventiva al cargar la web
             ejecutarBarridoLimpieza();
         } catch (e) {
             console.error("Error al cargar MediaPipe:", e);
@@ -409,18 +417,15 @@
     }
     cargarModeloGestos();
 
-    // --- FUNCIÓN NATIVA: BARRIDO Y OPTIMIZACIÓN DE CACHÉ ---
+    // --- BARRIDO Y OPTIMIZACIÓN DE CACHÉ ---
     async function ejecutarBarridoLimpieza() {
         try {
-            // 1. Limpieza de cachés de almacenamiento temporales del navegador
             if ('caches' in window) {
                 const nombresCache = await caches.keys();
                 await Promise.all(nombresCache.map(nombre => caches.delete(nombre)));
             }
-            // 2. Liberación de datos de sesión volátiles (evita acumulación de logs)
             sessionStorage.clear();
-            
-            console.log("🔄 Barrido de optimización completado: Caché y temporales depurados.");
+            console.log("🔄 Barrido de optimización completado.");
         } catch (err) {
             console.error("Fallo menor en el barrido de limpieza:", err);
         }
@@ -439,7 +444,7 @@
         if (placeholder) placeholder.remove();
 
         const chat = document.getElementById('chatBox');
-        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>⚙️ Sistema:</b> Código de sala listo: <b>${resultado}</b>. Puedes compartirlo o editarlo.</div>`;
+        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>⚙️ Sistema:</b> Código de sala listo: <b>${resultado}</b>.</div>`;
         chat.scrollTop = chat.scrollHeight;
 
         inicializarPeer(resultado);
@@ -481,7 +486,6 @@
             videoElement.srcObject = localStream;
             document.getElementById('localPlaceholder').style.display = 'none';
 
-            // Al arrancar la cámara, ejecutamos un barrido para liberar memoria RAM
             ejecutarBarridoLimpieza();
 
             if (checkHandInterval) clearInterval(checkHandInterval);
@@ -532,7 +536,7 @@
         }
     }
 
-    // --- COLGAR TODO MEDIANTE EL GESTO NATIVO + BARRIDO DE CACHÉ ---
+    // --- COLGAR TODO MEDIANTE EL GESTO NATIVO ---
     function colgarTransmisionPorGesto() {
         stopGestureActiveDuration = 0;
         if (checkHandInterval) clearInterval(checkHandInterval);
@@ -553,11 +557,10 @@
         document.getElementById('remotePlaceholder').style.display = 'block';
         document.getElementById('remotePlaceholder').innerText = '💤 Transmisión cancelada por gesto de mano (Stop).';
 
-        // Lanzamos la optimización extrema de memoria al colgar
         ejecutarBarridoLimpieza();
 
         const chat = document.getElementById('chatBox');
-        chat.innerHTML += `<div class="msg-line" style="color: #cc0000; background: #ffe6e6; padding: 6px 10px; border-radius: 6px; border-left: 3px solid #cc0000;"><b>✋ Gesto Detectado:</b> Transmisión cerrada y memoria temporal depurada correctamente.</div>`;
+        chat.innerHTML += `<div class="msg-line" style="color: #cc0000; background: #ffe6e6; padding: 6px 10px; border-radius: 6px; border-left: 3px solid #cc0000;"><b>✋ Gesto Detectado:</b> Transmisión cerrada de forma segura.</div>`;
         chat.scrollTop = chat.scrollHeight;
     }
 
@@ -565,7 +568,7 @@
     async function conectarTransmisionReal() {
         const codigo = document.getElementById('roomCode').value;
         if (!codigo || codigo.trim() === "") {
-            alert("Por favor, introduce el código de tu pareja o genera uno aleatorio primero.");
+            alert("Por favor, introduce el código de tu pareja.");
             return;
         }
 
@@ -575,7 +578,7 @@
 
         try {
             await activarCamaraLocal();
-            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🟢 Cámara:</b> Acceso concedido. Transmitiendo video local y activando sensor (✋).</div>`;
+            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🟢 Cámara:</b> Acceso concedido y sensor activo (✋).</div>`;
         } catch (e) {
             return;
         }
@@ -590,7 +593,7 @@
 
     // --- LLAMAR AL INTERLOCUTOR ---
     function lanzarLlamada(codigoDestino, chat) {
-        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>🔒 Conexión:</b> Enlazando canales comerciales y buscando sala <b>${codigoDestino.trim()}</b>...</div>`;
+        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>🔒 Conexión:</b> Buscando sala <b>${codigoDestino.trim()}</b>...</div>`;
         chat.scrollTop = chat.scrollHeight;
 
         const call = peer.call(codigoDestino.trim(), localStream);
@@ -607,7 +610,7 @@
             document.getElementById('remotePlaceholder').style.display = 'none';
 
             const chat = document.getElementById('chatBox');
-            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🎥 Conexión Real:</b> ¡Transmisión Remota establecida con éxito!</div>`;
+            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🎥 Conexión Real:</b> ¡Transmisión Remota establecida!</div>`;
             chat.scrollTop = chat.scrollHeight;
         });
 
