@@ -115,8 +115,16 @@
             margin-bottom: 15px;
         }
 
-        .room-input {
+        /* Fila compuesta para entrada de texto y botón de YouTube */
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
             width: 100%;
+        }
+
+        .room-input {
+            flex: 1;
             padding: 10px;
             border: 2px solid #ccc;
             border-radius: 6px;
@@ -124,8 +132,57 @@
             text-align: center;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-bottom: 10px;
             background-color: #fff;
+            height: 43px;
+        }
+
+        /* BOTÓN DE YOUTUBE EN CSS PURO (SEGURO Y LEGAL) */
+        .youtube-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ff0000;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.2s ease, transform 0.1s ease;
+            height: 43px;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .youtube-btn:hover {
+            background-color: #cc0000;
+            transform: translateY(-1px);
+        }
+
+        /* Icono de Play de YouTube en CSS puro */
+        .youtube-icon {
+            width: 20px;
+            height: 14px;
+            background-color: #ffffff;
+            border-radius: 4px;
+            margin-right: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .youtube-icon::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 4px solid transparent;
+            border-bottom: 4px solid transparent;
+            border-left: 6px solid #ff0000;
+            position: absolute;
+            left: 8px;
         }
 
         button {
@@ -139,6 +196,7 @@
             cursor: pointer;
             transition: background 0.2s ease;
             text-align: center;
+            height: 43px; /* Altura unificada para simetría total */
         }
 
         .btn-primary {
@@ -269,6 +327,13 @@
                 gap: 15px;
                 text-align: center;
             }
+            .input-row {
+                flex-direction: column;
+                height: auto;
+            }
+            .youtube-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -289,7 +354,12 @@
         <div class="video-grid">
             <div class="video-column">
                 <div class="control-top">
-                    <input type="text" id="roomCode" class="room-input" placeholder="INTRODUCE O GENERA CÓDIGO">
+                    <div class="input-row">
+                        <input type="text" id="roomCode" class="room-input" placeholder="INTRODUCE O GENERA CÓDIGO">
+                        <a href="https://www.youtube.com/@JuanmaEntertainment" target="_blank" class="youtube-btn">
+                            <span class="youtube-icon"></span> YouTube
+                        </a>
+                    </div>
                     <button class="btn-primary" onclick="generarCodigoTransmision()">Generar Código Aleatorio</button>
                 </div>
                 
@@ -302,7 +372,7 @@
 
             <div class="video-column">
                 <div class="control-top">
-                    <button class="btn-success" style="height: 43px;" onclick="conectarTransmisionReal()">Iniciar Conexión Segura</button>
+                    <button class="btn-success" onclick="conectarTransmisionReal()">Iniciar Conexión Segura</button>
                 </div>
                 
                 <div class="video-box" id="remoteVideoBox">
@@ -320,7 +390,7 @@
         </div>
         <div class="chat-input-area">
             <input type="text" id="chatMsg" class="chat-input" placeholder="Escribe un mensaje...">
-            <button class="btn-primary" style="width: auto;" onclick="enviarMensajeChat()">Enviar</button>
+            <button class="btn-primary" style="width: auto; height: 43px;" onclick="enviarMensajeChat()">Enviar</button>
         </div>
     </div>
 </div>
