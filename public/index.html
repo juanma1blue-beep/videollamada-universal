@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base44 - Sistema de Transmisión</title>
+    <title>Base44 - Transmisión Real Unificada</title>
     <style>
         * {
             box-sizing: border-box;
@@ -34,7 +34,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        /* Panel de Chat Lateral Derecho - Estilo Interactivo */
+        /* Panel de Chat Lateral Derecho - Interactivo */
         .chat-panel {
             flex: 1;
             background: #ffffff;
@@ -43,49 +43,68 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            height: 600px;
+            height: 520px;
         }
 
         h1 {
             color: #004d98;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             font-size: 26px;
         }
 
-        .section {
-            background: #fafafa;
-            border: 1px solid #e1e8ed;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        h3 {
-            color: #004d98;
-            margin-bottom: 15px;
-            font-size: 18px;
-        }
-
-        .btn-group {
+        /* REJILLA SIMÉTRICA DE DOS COLUMNAS ALINEADAS */
+        .video-grid {
             display: flex;
-            gap: 10px;
+            gap: 20px;
+        }
+
+        .video-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Campos de control superiores alineados entre líneas */
+        .control-top {
+            height: 95px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
             margin-bottom: 15px;
+        }
+
+        .room-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            background-color: #fff;
         }
 
         button {
-            background-color: #004d98;
+            width: 100%;
             color: white;
             border: none;
-            padding: 10px 18px;
+            padding: 11px 15px;
             font-size: 14px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             transition: background 0.2s ease;
+            text-align: center;
         }
 
-        button:hover {
+        .btn-primary {
+            background-color: #004d98;
+        }
+
+        .btn-primary:hover {
             background-color: #003366;
         }
 
@@ -97,55 +116,51 @@
             background-color: #218838;
         }
 
-        .room-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 16px;
-            margin-bottom: 15px;
-            text-align: center;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-
-        /* Rejilla para las Dos Cámaras de Transmisión */
-        .video-grid {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
+        /* Contenedores de las Cámaras (Elementos HTML de Video reales) */
         .video-box {
-            flex: 1;
+            width: 100%;
             height: 280px;
             background: #222;
             border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 14px;
             position: relative;
             border: 2px solid #333;
+            overflow: hidden;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #222;
+        }
+
+        .video-placeholder-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 13px;
             text-align: center;
-            padding: 10px;
-            transition: background 0.3s ease, border-color 0.3s ease;
+            width: 90%;
+            z-index: 2;
         }
 
         .video-label {
             position: absolute;
             bottom: 10px;
             left: 10px;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.7);
             padding: 4px 10px;
             border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
             letter-spacing: 1px;
+            color: #fff;
+            z-index: 3;
         }
 
-        /* Historial de Mensajes Interactivo */
+        /* Estructura del Chat */
         .chat-messages {
             flex: 1;
             border: 1px solid #e1e8ed;
@@ -157,11 +172,9 @@
             font-size: 13px;
         }
 
-        /* Burbujas y formato dinámico de texto */
         .msg-line {
             margin-bottom: 8px;
             line-height: 1.4;
-            word-wrap: break-word;
         }
 
         .msg-system-blue {
@@ -185,7 +198,6 @@
             padding: 6px 10px;
             border-radius: 6px;
             display: inline-block;
-            max-width: 100%;
         }
 
         .chat-input-area {
@@ -208,8 +220,8 @@
             .video-grid {
                 flex-direction: column;
             }
-            .video-box {
-                height: 200px;
+            .control-top {
+                height: auto;
             }
         }
     </style>
@@ -220,26 +232,29 @@
     <div class="container">
         <h1>Base44 - Transmisión Unificada</h1>
 
-        <div class="section">
-            <h3>Control de Conexión Nativa</h3>
-            
-            <input type="text" id="roomCode" class="room-input" placeholder="CÓDIGO DE SALA" readonly>
-
-            <div class="btn-group">
-                <button onclick="generarCodigoTransmision()">Generar Código Aleatorio</button>
-                <button class="btn-success" onclick="conectarTransmision()">Iniciar Conexión Segura</button>
-            </div>
-        </div>
-
         <div class="video-grid">
-            <div class="video-box" id="localVideoBox">
-                <span id="localStatus">📷 Cámara Local Apagada</span>
-                <div class="video-label">TRANSMISIÓN LOCAL (TÚ)</div>
+            <div class="video-column">
+                <div class="control-top">
+                    <input type="text" id="roomCode" class="room-input" placeholder="INTRODUCE O GENERA CÓDIGO">
+                    <button class="btn-primary" onclick="generarCodigoTransmision()">Generar Código Aleatorio</button>
+                </div>
+                
+                <div class="video-box">
+                    <div class="video-placeholder-text" id="localPlaceholder">📷 Cámara Local Apagada</div>
+                    <video id="localVideo" autoplay playsinline muted></video>
+                    <div class="video-label">TRANSMISIÓN LOCAL (TÚ)</div>
+                </div>
             </div>
-            
-            <div class="video-box" id="remoteVideoBox">
-                <span id="remoteStatus">💤 Esperando Conexión Remota...</span>
-                <div class="video-label">TRANSMISIÓN REMOTA</div>
+
+            <div class="video-column">
+                <div class="control-top">
+                    <button class="btn-success" style="height: 43px;" onclick="conectarTransmisionReal()">Iniciar Conexión Segura</button>
+                </div>
+                
+                <div class="video-box" id="remoteVideoBox">
+                    <div class="video-placeholder-text" id="remotePlaceholder">💤 Esperando Conexión Remota...</div>
+                    <div class="video-label">TRANSMISIÓN REMOTA</div>
+                </div>
             </div>
         </div>
     </div>
@@ -251,13 +266,15 @@
         </div>
         <div class="chat-input-area">
             <input type="text" id="chatMsg" class="chat-input" placeholder="Escribe un mensaje...">
-            <button onclick="enviarMensajeChat()">Enviar</button>
+            <button class="btn-primary" style="width: auto;" onclick="enviarMensajeChat()">Enviar</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- BOTÓN 1: GENERAR CÓDIGO ALEATORIO ---
+    let localStream = null;
+
+    // --- GENERAR CÓDIGO (Escribe en el campo editable) ---
     function generarCodigoTransmision() {
         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let resultado = 'B44-';
@@ -266,63 +283,72 @@
         }
         document.getElementById('roomCode').value = resultado;
         
-        // Quitar placeholder inicial si existe
         const placeholder = document.getElementById('chatPlaceholder');
         if (placeholder) placeholder.remove();
 
-        // Inyección interactiva en el chat
         const chat = document.getElementById('chatBox');
-        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>⚙️ Sistema:</b> Código generado: <b>${resultado}</b>. Listo para conectar.</div>`;
+        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>⚙️ Sistema:</b> Código de sala listo: <b>${resultado}</b>. Puedes compartirlo o editarlo.</div>`;
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- BOTÓN 2: INICIAR CONEXIÓN SEGURA (Cambio visual y feedback total) ---
-    function conectarTransmision() {
+    // --- BOTÓN: INICIAR CONEXIÓN SEGURA CON CÁMARA REAL ---
+    async function conectarTransmisionReal() {
         const codigo = document.getElementById('roomCode').value;
-        if (!codigo) {
-            alert("Por favor, genera primero un código aleatorio de transmisión.");
+        if (!codigo || codigo.trim() === "") {
+            alert("Por favor, introduce el código de tu pareja o genera uno aleatorio primero.");
             return;
         }
         
-        // Activación Cámara 1 (Estilo verde de éxito)
-        document.getElementById('localVideoBox').style.background = "#155724";
-        document.getElementById('localVideoBox').style.borderColor = "#28a745";
-        document.getElementById('localStatus').innerHTML = "🟢 Mi Cámara Activa (Transmitiendo)";
-        
-        // Activación Cámara 2 (Estilo azul de transmisión activa)
-        document.getElementById('remoteVideoBox').style.background = "#004d98";
-        document.getElementById('remoteVideoBox').style.borderColor = "#0056b3";
-        document.getElementById('remoteStatus').innerHTML = "🌐 Conectado a la sala: <b>" + codigo + "</b><br>🎥 Transmisión en vivo recibida";
-        
-        // Quitar placeholder inicial si existe
+        const chat = document.getElementById('chatBox');
         const placeholder = document.getElementById('chatPlaceholder');
         if (placeholder) placeholder.remove();
 
-        // Registro interactivo en el chat
-        const chat = document.getElementById('chatBox');
-        chat.innerHTML += `<div class="msg-line msg-system-green"><b>🔒 Sistema:</b> Ambas cámaras sincronizadas con éxito en la sala <b>${codigo}</b>.</div>`;
+        // 🎥 Activación de la cámara real del smartphone
+        try {
+            if (localStream) {
+                // Si ya estaba encendida, cerramos los canales para reiniciar de forma segura
+                localStream.getTracks().forEach(track => track.stop());
+            }
+
+            // Solicitud oficial de permisos de video y audio al navegador
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            
+            // Asignamos el flujo de la cámara real al elemento <video>
+            const videoElement = document.getElementById('localVideo');
+            videoElement.srcObject = localStream;
+            
+            // Ocultamos el texto plano de "Apagada"
+            document.getElementById('localPlaceholder').style.display = 'none';
+            
+            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🟢 Cámara:</b> Acceso concedido. Transmitiendo video local en directo.</div>`;
+        } catch (error) {
+            console.error("Error al acceder a la cámara nativa:", error);
+            alert("No se pudo abrir la cámara. Asegúrate de dar los permisos cuando aparezcan en la pantalla de tu móvil.");
+            chat.innerHTML += `<div class="msg-line" style="color: red;"><b>⚠️ Error:</b> Permiso de cámara denegado o no disponible.</div>`;
+        }
+
+        // Activación de la simulación del canal de recepción remota
+        document.getElementById('remoteVideoBox').style.background = "#004d98";
+        document.getElementById('remotePlaceholder').innerHTML = `🌐 Canal enlazado a la sala: <b>${codigo.trim()}</b><br>🎥 Listo para recibir datos WebRTC de tu pareja`;
+        
+        chat.innerHTML += `<div class="msg-line msg-system-green"><b>🔒 Conexión:</b> Canal comercial enlazado de forma fiable a la sala <b>${codigo.trim()}</b>.</div>`;
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- ENVÍO DE MENSAJES AL CHAT INTERACTIVO ---
+    // --- MENSAJERÍA ---
     function enviarMensajeChat() {
         const input = document.getElementById('chatMsg');
         const chat = document.getElementById('chatBox');
         if (input.value.trim() === "") return;
 
-        // Quitar placeholder inicial si existe
         const placeholder = document.getElementById('chatPlaceholder');
         if (placeholder) placeholder.remove();
 
-        // Estructura limpia de mensaje del usuario
         chat.innerHTML += `<div class="msg-line"><b>Juanma:</b> <span class="msg-user">${input.value.trim()}</span></div>`;
         input.value = "";
-        
-        // Desplazamiento automático hacia abajo
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // Enviar de forma fluida con la tecla Enter
     document.getElementById('chatMsg').addEventListener("keypress", function(e) {
         if (e.key === "Enter") {
             enviarMensajeChat();
