@@ -2,19 +2,26 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V124.1 [METEO REAL]</title>
+    <title>SISTEMA V125.0 [LIMPIEZA PROFUNDA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        /* [Estilos mantenidos de v124.0 para estabilidad] */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
+
+        /* PANEL PRINCIPAL: Sin basura, solo lo esencial */
         #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 10; }
         .box { background: #0a1122; padding: 40px; width: 95%; max-width: 500px; border: 3px solid #a50044; border-radius: 25px; text-align: center; }
-        input { width: 100%; padding: 20px; margin: 15px 0; background: #000; border: 2px solid #004d98; color: #fff; border-radius: 12px; text-align: center; font-size: 18px; }
-        #videoArea { display: none; width: 100vw; height: 100vh; display: flex; flex-direction: column; }
-        .v-container { width: 100%; flex: 1; position: relative; border-bottom: 2px solid #004d98; }
+        h3 { color: #004d98; margin-bottom: 10px; font-size: 16px; }
+        input { width: 100%; padding: 20px; margin: 10px 0; background: #000; border: 2px solid #004d98; color: #fff; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; }
+
+        /* VIDEOS Y CONTROL */
+        #videoArea { display: none; width: 100vw; height: 100vh; flex-direction: column; }
+        .v-container { width: 100%; flex: 1; position: relative; border-bottom: 2px solid #004d98; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 500; background: rgba(0,0,0,0.7); border: 1px solid #00d2ff; padding: 10px 15px; border-radius: 12px; font-size: 14px; pointer-events: none; color: #00d2ff; font-weight: bold; }
+        
+        /* WIDGET METEO: Blindado para que no ensucie la pantalla */
+        .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 999; background: rgba(0,0,0,0.8); border: 1px solid #00d2ff; padding: 8px 12px; border-radius: 10px; font-size: 14px; color: #00d2ff; font-weight: bold; }
+        
         .control-bar { height: 120px; width: 100%; display: flex; justify-content: space-around; align-items: center; background: linear-gradient(180deg, #a50044 0%, #004d98 100%); border-top: 3px solid #fff; padding: 10px; }
         .btn-end { background: rgba(0,0,0,0.3); border: 2px solid #fff; border-radius: 20px; padding: 20px 40px; cursor: pointer; font-weight: 900; font-size: 24px; color: #fff; text-transform: uppercase; }
         .btn-paypal { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
@@ -26,10 +33,10 @@
 
     <div id="panel">
         <div class="box">
-            <h3 style="color:#004d98;">ID CONEXIÓN</h3>
-            <input type="text" id="myID" readonly>
-            <h3 style="color:#004d98;">ID SOCIO</h3>
-            <input type="text" id="targetID" placeholder="Introduce ID...">
+            <h3>ID CONEXIÓN</h3>
+            <input type="text" id="myID" readonly placeholder="Generando...">
+            <h3>ID SOCIO</h3>
+            <input type="text" id="targetID" placeholder="Introduce ID socio...">
             <button id="btnIniciar" style="width:100%; padding:25px; background:#a50044; color:#fff; border:none; border-radius:15px; font-weight:bold; font-size:20px; cursor:pointer;">INICIAR TRANSMISIÓN</button>
         </div>
     </div>
@@ -47,27 +54,24 @@
     </div>
     
     <script>
-        // Función para obtener tiempo real de Vinaròs
-        async function actualizarTiempo() {
+        const peer = new Peer();
+        peer.on('open', id => { document.getElementById('myID').value = id; });
+
+        async function cargarTiempo() {
             try {
-                // Usamos un servicio de tiempo abierto y fiable
                 const res = await fetch("https://wttr.in/Vinaros?format=%t");
                 const temp = await res.text();
                 document.getElementById('w1').innerText = "Vinaròs: " + temp;
                 document.getElementById('w2').innerText = "Vinaròs: " + temp;
-            } catch(e) { console.error("Error meteorológico"); }
+            } catch(e) { document.getElementById('w1').innerText = "Meteo N/A"; }
         }
-
-        const peer = new Peer();
-        peer.on('open', id => document.getElementById('myID').value = id);
 
         document.getElementById('btnIniciar').addEventListener('click', async () => {
             const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = stream;
             document.getElementById('panel').style.display = 'none';
             document.getElementById('videoArea').style.display = 'flex';
-            
-            actualizarTiempo(); // Actualiza al iniciar
+            cargarTiempo();
             
             const targetID = document.getElementById('targetID').value;
             if(targetID) {
