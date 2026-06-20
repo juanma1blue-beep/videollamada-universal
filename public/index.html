@@ -1,233 +1,91 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>FaceCall Clean 1:1 FIXED</title>
-
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-
-<style>
-body {
-    margin:0;
-    font-family:sans-serif;
-    background:#0b0b0b;
-    color:white;
-    display:flex;
-    height:100vh;
-}
-
-#panel {
-    width:280px;
-    background:#111;
-    padding:15px;
-}
-
-#main {
-    flex:1;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-}
-
-video {
-    width:45%;
-    margin:5px;
-    border-radius:10px;
-    background:black;
-}
-
-input, button {
-    width:100%;
-    padding:10px;
-    margin-top:10px;
-    border:none;
-    border-radius:6px;
-}
-
-button {
-    background:#a50044;
-    color:white;
-    cursor:pointer;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>FaceCall Clean</title>
+    <style>
+        /* CSS Unificado */
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
+        .controls { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; transition: background 0.3s; }
+        
+        #llamarBtn { background-color: #004d98; } /* Azul */
+        #llamarBtn:hover { background-color: #002d58; }
+        
+        #colgarBtn { background-color: #a50044; } /* Grana */
+        #colgarBtn:hover { background-color: #7a0032; }
+        
+        .video-container { margin: 20px 0; }
+        video { width: 45%; background: #000; border-radius: 10px; }
+        
+        .footer { margin-top: 30px; }
+        .paypal-btn { background-color: #f7c000; color: black; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; }
+    </style>
 </head>
-
 <body>
 
-<div id="panel">
+    <div class="controls">
+        <button id="llamarBtn">Llamar</button>
+        <button id="colgarBtn">Colgar</button>
+    </div>
 
-<h3>FaceCall Clean FIX</h3>
+    <div class="video-container">
+        <video id="localVideo" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+    </div>
 
-<input id="room" placeholder="código de sesión">
+    <div class="code-section">
+        <input type="text" id="roomCode" placeholder="Código de sala" readonly>
+        <button id="generarBtn" style="background-color: #555;">Generar Código</button>
+    </div>
 
-<button onclick="copyRoom()">Generar código</button>
-<button onclick="join()">Entrar</button>
-<button onclick="call()">Llamar</button>
-<button onclick="hang()">Colgar</button>
+    <div class="footer">
+        <a href="https://PayPal.me/MarketEvolution" target="_blank" class="paypal-btn">Propinas PayPal - Market Evolution</a>
+    </div>
 
-</div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        /* JS Unificado */
+        const socket = io();
+        let localStream;
+        let peerConnection;
+        const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-<div id="main">
-<video id="local" autoplay playsinline muted></video>
-<video id="remote" autoplay playsinline></video>
-</div>
-
-<script>
-
-const socket = io();
-
-/* =========================
-   CONFIG STUN
-========================= */
-
-const config = {
-    iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
-    ]
-};
-
-/* =========================
-   STATE SAFE
-========================= */
-
-let pc = null;
-let stream = null;
-let roomId = null;
-
-/* =========================
-   SIGNAL HANDLER (GLOBAL FIX)
-========================= */
-
-socket.on("signal", async data => {
-
-    if(!pc) return;
-
-    if(data.offer){
-        await pc.setRemoteDescription(data.offer);
-
-        const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
-
-        socket.emit("signal", {
-            roomId,
-            data:{ answer }
-        });
-    }
-
-    if(data.answer){
-        await pc.setRemoteDescription(data.answer);
-    }
-
-    if(data.candidate){
-        await pc.addIceCandidate(data.candidate);
-    }
-
-});
-
-/* =========================
-   ROOM GENERATOR
-========================= */
-
-function copyRoom(){
-    const id = Math.random().toString(36).substring(2, 8).toUpperCase();
-    document.getElementById("room").value = id;
-    navigator.clipboard.writeText(id);
-}
-
-/* =========================
-   MEDIA
-========================= */
-
-async function getMedia(){
-
-    if(stream) return stream;
-
-    stream = await navigator.mediaDevices.getUserMedia({
-        audio:true,
-        video:true
-    });
-
-    document.getElementById("local").srcObject = stream;
-
-    return stream;
-}
-
-/* =========================
-   JOIN ROOM
-========================= */
-
-function join(){
-    roomId = document.getElementById("room").value;
-    socket.emit("join", roomId);
-}
-
-/* =========================
-   CREATE PEER (FIXED)
-========================= */
-
-function createPeer(){
-
-    if(pc){
-        pc.close();
-        pc = null;
-    }
-
-    pc = new RTCPeerConnection(config);
-
-    pc.ontrack = e => {
-        document.getElementById("remote").srcObject = e.streams[0];
-    };
-
-    pc.onicecandidate = e => {
-        if(e.candidate){
-            socket.emit("signal", {
-                roomId,
-                data:{ candidate:e.candidate }
-            });
+        async function init() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch (err) { console.error("Error cámara:", err); }
         }
-    };
-}
 
-/* =========================
-   CALL
-========================= */
+        document.getElementById('generarBtn').addEventListener('click', () => {
+            const code = Math.random().toString(36).substring(2, 9);
+            document.getElementById('roomCode').value = code;
+        });
 
-async function call(){
+        document.getElementById('llamarBtn').addEventListener('click', () => {
+            const code = document.getElementById('roomCode').value;
+            if (!code) return alert("Genera un código primero");
+            
+            socket.emit('join-room', code);
+            peerConnection = new RTCPeerConnection(config);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            
+            peerConnection.onicecandidate = e => {
+                if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code });
+            };
+            peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+        });
 
-    await getMedia();
-    createPeer();
+        document.getElementById('colgarBtn').addEventListener('click', () => {
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+                alert("Llamada finalizada");
+            }
+        });
 
-    stream.getTracks().forEach(t => pc.addTrack(t, stream));
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    socket.emit("signal", {
-        roomId,
-        data:{ offer }
-    });
-}
-
-/* =========================
-   HANG UP FIXED
-========================= */
-
-function hang(){
-
-    if(pc){
-        pc.close();
-        pc = null;
-    }
-
-    if(stream){
-        stream.getTracks().forEach(t => t.stop());
-        stream = null;
-    }
-
-    document.getElementById("remote").srcObject = null;
-}
-
-</script>
-
+        init();
+    </script>
 </body>
 </html>
