@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V126.0 [SOLUCIÓN DEFINITIVA]</title>
+    <title>SISTEMA V127.0 [LIMPIEZA TOTAL]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -18,10 +18,9 @@
         .v-container { width: 100%; flex: 1; position: relative; border-bottom: 2px solid #004d98; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* WIDGET METEO BLINDADO: Solo texto plano */
+        /* WIDGET METEO BLINDADO: Solo texto */
         .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 999; background: rgba(0,0,0,0.8); border: 1px solid #00d2ff; padding: 8px 12px; border-radius: 10px; font-size: 14px; color: #00d2ff; font-weight: bold; pointer-events: none; }
         
-        /* BARRA INFERIOR */
         .control-bar { height: 120px; width: 100%; display: flex; justify-content: space-around; align-items: center; background: linear-gradient(180deg, #a50044 0%, #004d98 100%); border-top: 3px solid #fff; padding: 10px; }
         .btn-end { background: rgba(0,0,0,0.3); border: 2px solid #fff; border-radius: 20px; padding: 20px 40px; cursor: pointer; font-weight: 900; font-size: 24px; color: #fff; text-transform: uppercase; }
         .btn-paypal { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
@@ -59,16 +58,14 @@
 
         async function cargarTiempo() {
             try {
-                // Forzamos al servidor a devolver solo texto plano sin etiquetas HTML
-                const res = await fetch("https://wttr.in/Vinaros?format=3");
-                const data = await res.text();
-                // Limpiamos cualquier rastro accidental
-                const temp = data.split(':')[1] ? data.split(':')[1].trim() : "22°C";
+                // API oficial de tiempo abierta para obtener datos puros en Celsius
+                const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=40.47&longitude=0.47&current=temperature_2m");
+                const data = await res.json();
+                const temp = data.current.temperature_2m + "°C";
                 document.getElementById('w1').innerText = "Vinaròs: " + temp;
                 document.getElementById('w2').innerText = "Vinaròs: " + temp;
-            } catch(e) {
-                document.getElementById('w1').innerText = "Vinaròs: 22°C";
-                document.getElementById('w2').innerText = "Vinaròs: 22°C";
+            } catch(e) { 
+                document.getElementById('w1').innerText = "Vinaròs: 22°C"; 
             }
         }
 
