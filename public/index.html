@@ -2,63 +2,81 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V134.0 [CARGA DIRECTA]</title>
+    <title>SISTEMA V1.X RESTAURADO</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
-        #panel { position: fixed; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 100; }
-        .box { background: #0a1122; padding: 30px; border: 2px solid #a50044; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; }
+        /* Estilos base que ya tenías y funcionaban */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
+        #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 10; }
+        .box { background: #0a1122; padding: 40px; width: 95%; max-width: 500px; border: 3px solid #a50044; border-radius: 25px; text-align: center; }
+        input { width: 100%; padding: 20px; margin: 10px 0; background: #000; border: 2px solid #004d98; color: #fff; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; }
         #videoArea { display: none; width: 100vw; height: 100vh; flex-direction: column; }
-        .v-container { flex: 1; position: relative; border-bottom: 2px solid #004d98; }
+        .v-container { width: 100%; flex: 1; position: relative; border-bottom: 2px solid #004d98; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .weather-widget { position: absolute; top: 10px; right: 10px; z-index: 50; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 10px; font-size: 14px; }
+        
+        /* WIDGET METEO BLINDADO PARA QUE NO ROMPA LA PANTALLA */
+        .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 999; background: rgba(0,0,0,0.8); border: 1px solid #00d2ff; padding: 8px 12px; border-radius: 10px; font-size: 14px; color: #00d2ff; font-weight: bold; }
+        
+        .control-bar { height: 120px; width: 100%; display: flex; justify-content: space-around; align-items: center; background: linear-gradient(180deg, #a50044 0%, #004d98 100%); border-top: 3px solid #fff; padding: 10px; }
+        .btn-end { background: rgba(0,0,0,0.3); border: 2px solid #fff; border-radius: 20px; padding: 20px 40px; cursor: pointer; font-weight: 900; font-size: 24px; color: #fff; text-transform: uppercase; }
+        .btn-paypal { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
+        .btn-paypal img { width: 60px; }
+        .paypal-text { font-size: 14px; color: #fff; font-weight: bold; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div id="panel">
         <div class="box">
-            <h3 id="statusText">SISTEMA LISTO</h3>
-            <button id="btnIniciar" style="padding:20px; width:100%; background:#a50044; color:#fff; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">INICIAR VÍDEO</button>
+            <h3>ID CONEXIÓN</h3>
+            <input type="text" id="myID" readonly>
+            <h3>ID SOCIO</h3>
+            <input type="text" id="targetID" placeholder="Introduce ID socio...">
+            <button id="btnIniciar" style="width:100%; padding:25px; background:#a50044; color:#fff; border:none; border-radius:15px; font-weight:bold; font-size:20px; cursor:pointer;">INICIAR TRANSMISIÓN</button>
         </div>
     </div>
 
     <div id="videoArea">
         <div class="v-container"><div class="weather-widget" id="w1">Esperando...</div><video id="remoteVideo" autoplay playsinline></video></div>
         <div class="v-container"><div class="weather-widget" id="w2">Esperando...</div><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="control-bar">
+            <button class="btn-end" onclick="window.location.reload()">FINALIZAR</button>
+            <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
+                <span class="paypal-text">PROPINAS</span>
+            </a>
+        </div>
     </div>
-
+    
     <script>
         const peer = new Peer();
-        
-        document.getElementById('btnIniciar').addEventListener('click', async () => {
-            document.getElementById('statusText').innerText = "Solicitando cámara...";
-            
-            try {
-                // 1. Prioridad absoluta: Cámara
-                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                document.getElementById('localVideo').srcObject = stream;
-                
-                // 2. Cambio de interfaz inmediato
-                document.getElementById('panel').style.display = 'none';
-                document.getElementById('videoArea').style.display = 'flex';
+        peer.on('open', id => document.getElementById('myID').value = id);
 
-                // 3. Obtener tiempo en segundo plano sin bloquear nada
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(async (pos) => {
-                        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pos.coords.latitude}&longitude=${pos.coords.longitude}&current=temperature_2m`);
-                        const data = await res.json();
-                        const temp = Math.round(data.current.temperature_2m) + "°C";
-                        document.getElementById('w1').innerText = temp;
-                        document.getElementById('w2').innerText = temp;
-                    }, () => {
-                        document.getElementById('w1').innerText = "28°C";
-                        document.getElementById('w2').innerText = "28°C";
-                    });
-                }
-            } catch (e) {
-                alert("Error de cámara: " + e.message);
-                document.getElementById('statusText').innerText = "Error, intenta de nuevo";
+        // REPARACIÓN: Solo extraemos el texto de la temperatura
+        async function cargarTiempo() {
+            try {
+                const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=40.47&longitude=0.47&current=temperature_2m");
+                const data = await res.json();
+                const temp = Math.round(data.current.temperature_2m) + "°C";
+                document.getElementById('w1').textContent = "Vinaròs: " + temp;
+                document.getElementById('w2').textContent = "Vinaròs: " + temp;
+            } catch(e) { 
+                document.getElementById('w1').textContent = "Vinaròs: 28°C"; 
+            }
+        }
+
+        document.getElementById('btnIniciar').addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('localVideo').srcObject = stream;
+            document.getElementById('panel').style.display = 'none';
+            document.getElementById('videoArea').style.display = 'flex';
+            cargarTiempo();
+            
+            const targetID = document.getElementById('targetID').value;
+            if(targetID) {
+                const call = peer.call(targetID, stream);
+                call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
             }
         });
     </script>
