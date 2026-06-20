@@ -38,11 +38,6 @@
             
             <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
             <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
-            
-            <div style="margin-top:10px; font-size: 12px;">
-                <h2>Guía Rápida de Uso</h2>
-                <p>1. Genera código. 2. Conecta. 3. Mano abierta 2s frente a cámara para colgar.</p>
-            </div>
         </div>
         <div class="chat-panel">
             <h3>Chat</h3>
@@ -52,33 +47,23 @@
         </div>
     </div>
     <script>
-        let localStream = null, peer = null, currentCall = null, model = null, stopGestureDuration = 0;
-        const constraints = { video: { width: 640, height: 480, frameRate: 30 }, audio: true };
-        
+        let localStream = null, peer = null, currentCall = null, model = null;
         async function loadModel() { model = await handpose.load(); }
         loadModel();
 
         async function activarCamaraLocal() {
-            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = localStream;
-            checkGesture();
+            detectarMano();
         }
 
-        async function checkGesture() {
-            if (!model || !localStream) { setTimeout(checkGesture, 500); return; }
-            const video = document.getElementById('localVideo');
-            const hands = await model.estimateHands(video);
-            
-            if (hands.length > 0) {
-                stopGestureDuration += 500;
-                if (stopGestureDuration >= 2000) {
-                    if (currentCall) currentCall.close();
-                    stopGestureDuration = 0;
-                }
-            } else {
-                stopGestureDuration = 0;
+        async function detectarMano() {
+            if (!model || !localStream) { setTimeout(detectarMano, 1000); return; }
+            const predictions = await model.estimateHands(document.getElementById('localVideo'));
+            if (predictions.length > 0) {
+                if (currentCall) currentCall.close();
             }
-            setTimeout(checkGesture, 500);
+            setTimeout(detectarMano, 1000);
         }
 
         function generarCodigoTransmision() {
