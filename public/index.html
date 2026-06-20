@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Base44 - Transmisión Real Unificada</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -386,6 +392,39 @@
     let localStream = null;
     let peer = null;
     let currentCall = null;
+    let modelHandpose = null;
+    let stopGestureActiveDuration = 0;
+    let checkHandInterval = null;
+
+    // Cargar el modelo de IA de forma silenciosa
+    async function cargarModeloGestos() {
+        try {
+            modelHandpose = await handpose.load();
+            console.log("Motor de reconocimiento gestual ✋ cargado correctamente.");
+            // Ejecutamos una limpieza inicial preventiva al cargar la web
+            ejecutarBarridoLimpieza();
+        } catch (e) {
+            console.error("Error al cargar MediaPipe:", e);
+        }
+    }
+    cargarModeloGestos();
+
+    // --- FUNCIÓN NATIVA: BARRIDO Y OPTIMIZACIÓN DE CACHÉ ---
+    async function ejecutarBarridoLimpieza() {
+        try {
+            // 1. Limpieza de cachés de almacenamiento temporales del navegador
+            if ('caches' in window) {
+                const nombresCache = await caches.keys();
+                await Promise.all(nombresCache.map(nombre => caches.delete(nombre)));
+            }
+            // 2. Liberación de datos de sesión volátiles (evita acumulación de logs)
+            sessionStorage.clear();
+            
+            console.log("🔄 Barrido de optimización completado: Caché y temporales depurados.");
+        } catch (err) {
+            console.error("Fallo menor en el barrido de limpieza:", err);
+        }
+    }
 
     // --- GENERAR CÓDIGO EDITABLE ---
     function generarCodigoTransmision() {
@@ -431,7 +470,7 @@
         });
     }
 
-    // --- ACTIVAR LENTE LOCAL NATIVA ---
+    // --- ACTIVAR LENTE LOCAL NATIVA Y ESCANEO DE GESTOS ---
     async function activarCamaraLocal() {
         try {
             if (localStream) {
@@ -441,6 +480,13 @@
             const videoElement = document.getElementById('localVideo');
             videoElement.srcObject = localStream;
             document.getElementById('localPlaceholder').style.display = 'none';
+
+            // Al arrancar la cámara, ejecutamos un barrido para liberar memoria RAM
+            ejecutarBarridoLimpieza();
+
+            if (checkHandInterval) clearInterval(checkHandInterval);
+            checkHandInterval = setInterval(analizarGestoMano, 300);
+
         } catch (error) {
             console.error("Error cámara nativa:", error);
             alert("Asegúrate de dar permisos a la cámara y micrófono.");
@@ -448,7 +494,74 @@
         }
     }
 
-    // --- BOTÓN SUPREMO: INICIAR CONEXIÓN REAL ---
+    // --- ESCANER INTELIGENTE: ANALIZAR GESTO DE STOP (✋) ---
+    async function analizarGestoMano() {
+        if (!modelHandpose || !localStream) return;
+
+        const videoElement = document.getElementById('localVideo');
+        if (videoElement.readyState < 2) return;
+
+        try {
+            const predictions = await modelHandpose.estimateHands(videoElement);
+            
+            if (predictions.length > 0) {
+                const landmarks = predictions[0].landmarks;
+                const puntasDedos = [8, 12, 16, 20]; 
+                const nudillosBase = [6, 10, 14, 18]; 
+
+                let dedosExtendidos = 0;
+                for (let i = 0; i < puntasDedos.length; i++) {
+                    if (landmarks[puntasDedos[i]][1] < landmarks[nudillosBase[i]][1]) {
+                        dedosExtendidos++;
+                    }
+                }
+
+                if (dedosExtendidos >= 3) {
+                    stopGestureActiveDuration += 300;
+                    if (stopGestureActiveDuration >= 2000) {
+                        colgarTransmisionPorGesto();
+                    }
+                } else {
+                    stopGestureActiveDuration = 0;
+                }
+            } else {
+                stopGestureActiveDuration = 0;
+            }
+        } catch (err) {
+            console.log("Fallo momentáneo del escáner:", err);
+        }
+    }
+
+    // --- COLGAR TODO MEDIANTE EL GESTO NATIVO + BARRIDO DE CACHÉ ---
+    function colgarTransmisionPorGesto() {
+        stopGestureActiveDuration = 0;
+        if (checkHandInterval) clearInterval(checkHandInterval);
+
+        if (currentCall) {
+            currentCall.close();
+            currentCall = null;
+        }
+
+        if (localStream) {
+            localStream.getTracks().forEach(track => track.stop());
+            localStream = null;
+        }
+
+        document.getElementById('localVideo').srcObject = null;
+        document.getElementById('remoteVideo').srcObject = null;
+        document.getElementById('localPlaceholder').style.display = 'block';
+        document.getElementById('remotePlaceholder').style.display = 'block';
+        document.getElementById('remotePlaceholder').innerText = '💤 Transmisión cancelada por gesto de mano (Stop).';
+
+        // Lanzamos la optimización extrema de memoria al colgar
+        ejecutarBarridoLimpieza();
+
+        const chat = document.getElementById('chatBox');
+        chat.innerHTML += `<div class="msg-line" style="color: #cc0000; background: #ffe6e6; padding: 6px 10px; border-radius: 6px; border-left: 3px solid #cc0000;"><b>✋ Gesto Detectado:</b> Transmisión cerrada y memoria temporal depurada correctamente.</div>`;
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    // --- BOTÓN: INICIAR CONEXIÓN REAL ---
     async function conectarTransmisionReal() {
         const codigo = document.getElementById('roomCode').value;
         if (!codigo || codigo.trim() === "") {
@@ -462,7 +575,7 @@
 
         try {
             await activarCamaraLocal();
-            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🟢 Cámara:</b> Acceso concedido. Transmitiendo video local en directo.</div>`;
+            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🟢 Cámara:</b> Acceso concedido. Transmitiendo video local y activando sensor (✋).</div>`;
         } catch (e) {
             return;
         }
@@ -501,6 +614,7 @@
         call.on('close', () => {
             document.getElementById('remotePlaceholder').style.display = 'block';
             document.getElementById('remotePlaceholder').innerText = '💤 Conexión terminada por el interlocutor.';
+            ejecutarBarridoLimpieza();
         });
     }
 
