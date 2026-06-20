@@ -34,6 +34,54 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
+        /* CABECERA ALINEADA CON BOTÓN DE DONACIONES */
+        .header-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #e1e8ed;
+            padding-bottom: 15px;
+        }
+
+        h1 {
+            color: #004d98;
+            font-size: 26px;
+        }
+
+        /* BOTÓN DE DONACIONES PAYPAL EN CSS PURO (SEGURO Y LEGAL) */
+        .paypal-donation-btn {
+            display: inline-flex;
+            align-items: center;
+            background-color: #ffc439;
+            color: #003087;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: background 0.2s ease, transform 0.1s ease;
+            border: 1px solid #e5b228;
+            cursor: pointer;
+        }
+
+        .paypal-donation-btn:hover {
+            background-color: #f5b425;
+            transform: translateY(-1px);
+        }
+
+        .paypal-logo-text {
+            font-style: italic;
+            font-weight: 900;
+            margin-right: 6px;
+            letter-spacing: -1px;
+            font-size: 16px;
+        }
+
+        .paypal-logo-text .p1 { color: #003087; }
+        .paypal-logo-text .p2 { color: #0079c1; margin-left: -1px; }
+
         /* Panel de Chat Lateral Derecho - Interactivo */
         .chat-panel {
             flex: 1;
@@ -44,13 +92,6 @@
             display: flex;
             flex-direction: column;
             height: 520px;
-        }
-
-        h1 {
-            color: #004d98;
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 26px;
         }
 
         /* REJILLA SIMÉTRICA DE DOS COLUMNAS ALINEADAS */
@@ -116,7 +157,7 @@
             background-color: #218838;
         }
 
-        /* Contenedores de las Cámaras (Elementos HTML de Video reales) */
+        /* Contenedores de las Cámaras Nativas */
         .video-box {
             width: 100%;
             height: 280px;
@@ -223,6 +264,11 @@
             .control-top {
                 height: auto;
             }
+            .header-area {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -230,7 +276,15 @@
 
 <div class="main-layout">
     <div class="container">
-        <h1>Base44 - Transmisión Unificada</h1>
+        
+        <div class="header-area">
+            <h1>Base44 - Transmisión Unificada</h1>
+            
+            <a href="https://PayPal.me/MarketEvolution" target="_blank" class="paypal-donation-btn">
+                <span class="paypal-logo-text"><span class="p1">Pay</span><span class="p2">Pal</span></span> 
+                💛 Donaciones / Propinas
+            </a>
+        </div>
 
         <div class="video-grid">
             <div class="video-column">
@@ -274,7 +328,7 @@
 <script>
     let localStream = null;
 
-    // --- GENERAR CÓDIGO (Escribe en el campo editable) ---
+    // --- GENERAR CÓDIGO EDITABLE ---
     function generarCodigoTransmision() {
         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let resultado = 'B44-';
@@ -291,7 +345,7 @@
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- BOTÓN: INICIAR CONEXIÓN SEGURA CON CÁMARA REAL ---
+    // --- BOTÓN: INICIAR CONEXIÓN CON CÁMARA REAL NATIVA ---
     async function conectarTransmisionReal() {
         const codigo = document.getElementById('roomCode').value;
         if (!codigo || codigo.trim() === "") {
@@ -303,31 +357,27 @@
         const placeholder = document.getElementById('chatPlaceholder');
         if (placeholder) placeholder.remove();
 
-        // 🎥 Activación de la cámara real del smartphone
+        // Activación de la lente real del dispositivo
         try {
             if (localStream) {
-                // Si ya estaba encendida, cerramos los canales para reiniciar de forma segura
                 localStream.getTracks().forEach(track => track.stop());
             }
 
-            // Solicitud oficial de permisos de video y audio al navegador
             localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             
-            // Asignamos el flujo de la cámara real al elemento <video>
             const videoElement = document.getElementById('localVideo');
             videoElement.srcObject = localStream;
             
-            // Ocultamos el texto plano de "Apagada"
             document.getElementById('localPlaceholder').style.display = 'none';
             
             chat.innerHTML += `<div class="msg-line msg-system-green"><b>🟢 Cámara:</b> Acceso concedido. Transmitiendo video local en directo.</div>`;
         } catch (error) {
             console.error("Error al acceder a la cámara nativa:", error);
-            alert("No se pudo abrir la cámara. Asegúrate de dar los permisos cuando aparezcan en la pantalla de tu móvil.");
-            chat.innerHTML += `<div class="msg-line" style="color: red;"><b>⚠️ Error:</b> Permiso de cámara denegado o no disponible.</div>`;
+            alert("No se pudo abrir la cámara. Asegúrate de dar los permisos correspondientes.");
+            chat.innerHTML += `<div class="msg-line" style="color: red;"><b>⚠️ Error:</b> Permiso de cámara denegado.</div>`;
         }
 
-        // Activación de la simulación del canal de recepción remota
+        // Simulación del canal para recibir WebRTC del interlocutor
         document.getElementById('remoteVideoBox').style.background = "#004d98";
         document.getElementById('remotePlaceholder').innerHTML = `🌐 Canal enlazado a la sala: <b>${codigo.trim()}</b><br>🎥 Listo para recibir datos WebRTC de tu pareja`;
         
