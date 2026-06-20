@@ -438,7 +438,7 @@
         </div>
 
         <div class="instructions-box">
-            <h2>📖 Guía Rápida de Uso Comercial</h2>
+            <h2>📖 Guía Rápida de Uso</h2>
             
             <table class="instructions-table">
                 <thead>
@@ -478,7 +478,7 @@
     </div>
 </div>
 
-<script>
+<script {is_stable_backup="true"}>
     let localStream = null;
     let peer = null;
     let currentCall = null;
@@ -552,7 +552,7 @@
         peer.on('error', (err) => {
             console.error('Error en red WebRTC:', err);
             const chat = document.getElementById('chatBox');
-            chat.innerHTML += `<div class="msg-line" style="color: red;"><b>⚠️ Red:</b> Error de enlace o ID duplicado.</div>`;
+            chat.innerHTML += `<div class="msg-line msg-system-blue" style="color: red;"><b>⚠️ Red:</b> Error de enlace o ID duplicado.</div>`;
         });
     }
 
