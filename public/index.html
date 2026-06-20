@@ -52,17 +52,19 @@
             } catch (err) { console.error("Error dispositivo:", err); }
         }
 
-        // Lógica de inicio de llamada automática
-        function iniciarLlamada(code) {
-            if (!localStream) return;
-            peerConnection = new RTCPeerConnection(config);
-            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-            peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code }); };
-            peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
-            peerConnection.createOffer().then(offer => {
-                peerConnection.setLocalDescription(offer);
-                socket.emit('signal', { offer, room: code });
-            });
+        // --- FUNCIÓN RESTAURADA: Optimización técnica ---
+        async function optimizarRendimiento() {
+            console.log("Ejecutando mantenimiento técnico...");
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                videoTrack.enabled = false;
+                setTimeout(() => { videoTrack.enabled = true; }, 300);
+            }
+            if (peerConnection && peerConnection.signalingState === "stable") {
+                const offer = await peerConnection.createOffer({ iceRestart: true });
+                await peerConnection.setLocalDescription(offer);
+                socket.emit('signal', { offer, room: document.getElementById('roomCode').value });
+            }
         }
 
         document.getElementById('generarBtn').addEventListener('click', () => {
@@ -72,14 +74,17 @@
             activarCamara();
         });
 
-        // Al cambiar el código o querer unirse
-        document.getElementById('optimizarBtn').addEventListener('click', () => {
-            const code = document.getElementById('roomCode').value;
-            socket.emit('join-room', code);
-            iniciarLlamada(code);
+        // Botón optimizar restaurado a su función de mantenimiento
+        document.getElementById('optimizarBtn').addEventListener('click', optimizarRendimiento);
+
+        document.getElementById('colgarBtn').addEventListener('click', () => {
+            if (localStream) localStream.getTracks().forEach(t => t.stop());
+            if (peerConnection) peerConnection.close();
+            peerConnection = null;
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
         });
 
-        // Recepción de señal automática (aquí ocurre la magia)
         socket.on('signal', async (data) => {
             if (data.offer) {
                 if (!peerConnection) {
@@ -97,14 +102,6 @@
             } else if (data.candidate) {
                 await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
             }
-        });
-
-        document.getElementById('colgarBtn').addEventListener('click', () => {
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            if (peerConnection) peerConnection.close();
-            peerConnection = null;
-            document.getElementById('localVideo').srcObject = null;
-            document.getElementById('remoteVideo').srcObject = null;
         });
     </script>
 </body>
