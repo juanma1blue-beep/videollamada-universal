@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Base44 - Transmisión Real Unificada</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -362,6 +363,7 @@
                 
                 <div class="video-box" id="remoteVideoBox">
                     <div class="video-placeholder-text" id="remotePlaceholder">💤 Esperando Conexión Remota...</div>
+                    <video id="remoteVideo" autoplay playsinline></video>
                     <div class="video-label">TRANSMISIÓN REMOTA</div>
                 </div>
             </div>
@@ -382,6 +384,8 @@
 
 <script>
     let localStream = null;
+    let peer = null;
+    let currentCall = null;
 
     // --- GENERAR CÓDIGO EDITABLE ---
     function generarCodigoTransmision() {
@@ -398,46 +402,116 @@
         const chat = document.getElementById('chatBox');
         chat.innerHTML += `<div class="msg-line msg-system-blue"><b>⚙️ Sistema:</b> Código de sala listo: <b>${resultado}</b>. Puedes compartirlo o editarlo.</div>`;
         chat.scrollTop = chat.scrollHeight;
+
+        // Inicializar el nodo de red con este identificador único de manera automática
+        inicializarPeer(resultado);
     }
 
-    // --- BOTÓN: INICIAR CONEXIÓN CON CÁMARA REAL NATIVA ---
+    // --- INICIALIZAR EL MOTOR WEBRTC CON TU CÓDIGO ---
+    function inicializarPeer(idSala) {
+        if (peer) peer.destroy();
+
+        // Creamos la conexión al servidor de señales gratuito y seguro
+        peer = new Peer(idSala);
+
+        peer.on('open', (id) => {
+            console.log('Registrado en la red WebRTC con ID:', id);
+        });
+
+        // Escuchar llamadas entrantes (Cuando tu pareja mete tu código e inicia la llamada)
+        peer.on('call', async (incomingCall) => {
+            // Aseguramos tener la cámara encendida para poder responder
+            if (!localStream) {
+                await activarCamaraLocal();
+            }
+            incomingCall.answer(localStream);
+            gestionarLlamada(incomingCall);
+        });
+
+        peer.on('error', (err) => {
+            console.error('Error en red WebRTC:', err);
+            const chat = document.getElementById('chatBox');
+            chat.innerHTML += `<div class="msg-line" style="color: red;"><b>⚠️ Red:</b> El código ya está ocupado o hay un problema de señal.</div>`;
+        </script>
+    }
+
+    // --- ACTIVAR LENTE LOCAL NATIVA ---
+    async function activarCamaraLocal() {
+        try {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+            }
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            const videoElement = document.getElementById('localVideo');
+            videoElement.srcObject = localStream;
+            document.getElementById('localPlaceholder').style.display = 'none';
+            
+            const placeholder = document.getElementById('chatPlaceholder');
+            if (placeholder) placeholder.remove();
+        } catch (error) {
+            console.error("Error cámara nativa:", error);
+            alert("Asegúrate de dar permisos a la cámara y micrófono.");
+            throw error;
+        }
+    }
+
+    // --- BOTÓN SUPREMO: INICIAR CONEXIÓN REAL CRUZADA ---
     async function conectarTransmisionReal() {
         const codigo = document.getElementById('roomCode').value;
         if (!codigo || codigo.trim() === "") {
             alert("Por favor, introduce el código de tu pareja o genera uno aleatorio primero.");
             return;
         }
-        
+
         const chat = document.getElementById('chatBox');
         const placeholder = document.getElementById('chatPlaceholder');
         if (placeholder) placeholder.remove();
 
-        // Activación de la lente real del dispositivo
+        // 1. Encendemos nuestra cámara local obligatoriamente
         try {
-            if (localStream) {
-                localStream.getTracks().forEach(track => track.stop());
-            }
-
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            
-            const videoElement = document.getElementById('localVideo');
-            videoElement.srcObject = localStream;
-            
-            document.getElementById('localPlaceholder').style.display = 'none';
-            
+            await activarCamaraLocal();
             chat.innerHTML += `<div class="msg-line msg-system-green"><b>🟢 Cámara:</b> Acceso concedido. Transmitiendo video local en directo.</div>`;
-        } catch (error) {
-            console.error("Error al acceder a la cámara nativa:", error);
-            alert("No se pudo abrir la cámara. Asegúrate de dar los permisos correspondientes.");
-            chat.innerHTML += `<div class="msg-line" style="color: red;"><b>⚠️ Error:</b> Permiso de cámara denegado.</div>`;
+        } catch (e) {
+            return;
         }
 
-        // Simulación del canal para recibir WebRTC del interlocutor
-        document.getElementById('remoteVideoBox').style.background = "#004d98";
-        document.getElementById('remotePlaceholder').innerHTML = `🌐 Canal enlazado a la sala: <b>${codigo.trim()}</b><br>🎥 Listo para recibir datos WebRTC de tu pareja`;
-        
-        chat.innerHTML += `<div class="msg-line msg-system-green"><b>🔒 Conexión:</b> Canal comercial enlazado de forma fiable a la sala <b>${codigo.trim()}</b>.</div>`;
+        // 2. Si el motor Peer no se ha inicializado (porque el usuario escribió el código a mano en vez de generarlo)
+        if (!peer) {
+            inicializarPeer('B44-CLIENTE-' + Math.floor(Math.random() * 10000));
+            // Le damos un instante pequeño para conectar a la red
+            setTimeout(() => lanzarLlamada(codigo, chat), 1000);
+        } else {
+            lanzarLlamada(codigo, chat);
+        }
+    }
+
+    // --- LLAMAR AL INTERLOCUTOR Y COLOCAR SU VIDEO DIRECTO ---
+    function lanzarLlamada(codigoDestino, chat) {
+        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>🔒 Conexión:</b> Enlazando canales comerciales y buscando sala <b>${codigoDestino.trim()}</b>...</div>`;
         chat.scrollTop = chat.scrollHeight;
+
+        const call = peer.call(codigoDestino.trim(), localStream);
+        gestionarLlamada(call);
+    }
+
+    // --- GESTIONAR FLUJO DE DATOS MULTIMEDIA REMOTOS ---
+    function gestionarLlamada(call) {
+        currentCall = call;
+
+        call.on('stream', (remoteStream) => {
+            const remoteVideo = document.getElementById('remoteVideo');
+            remoteVideo.srcObject = remoteStream;
+            document.getElementById('remotePlaceholder').style.display = 'none';
+
+            const chat = document.getElementById('chatBox');
+            chat.innerHTML += `<div class="msg-line msg-system-green"><b>🎥 Conexión Real:</b> ¡Transmisión Remota establecida y cruzada con éxito!</div>`;
+            chat.scrollTop = chat.scrollHeight;
+        });
+
+        call.on('close', () => {
+            document.getElementById('remotePlaceholder').style.display = 'block';
+            document.getElementById('remotePlaceholder').innerText = '💤 Conexión terminada por el interlocutor.';
+        });
     }
 
     // --- MENSAJERÍA ---
@@ -461,5 +535,12 @@
     });
 </script>
 
+ peer.on('error', (err) => {
+            console.error('Error en red WebRTC:', err);
+            const chat = document.getElementById('chatBox');
+            chat.innerHTML += `<div class="msg-line" style="color: red;"><b>⚠️ Red:</b> Error en el enlace de la sala.</div>`;
+        });
+    }
+</script>
 </body>
 </html>
