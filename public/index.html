@@ -2,23 +2,20 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V127.0 [LIMPIEZA TOTAL]</title>
+    <title>SISTEMA V129.0 [TIEMPO REAL ESTABLE]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        /* PANEL PRINCIPAL */
         #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 10; }
         .box { background: #0a1122; padding: 40px; width: 95%; max-width: 500px; border: 3px solid #a50044; border-radius: 25px; text-align: center; }
         input { width: 100%; padding: 20px; margin: 10px 0; background: #000; border: 2px solid #004d98; color: #fff; border-radius: 12px; text-align: center; font-size: 18px; font-weight: bold; }
 
-        /* VIDEOS */
         #videoArea { display: none; width: 100vw; height: 100vh; flex-direction: column; }
         .v-container { width: 100%; flex: 1; position: relative; border-bottom: 2px solid #004d98; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        /* WIDGET METEO BLINDADO: Solo texto */
         .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 999; background: rgba(0,0,0,0.8); border: 1px solid #00d2ff; padding: 8px 12px; border-radius: 10px; font-size: 14px; color: #00d2ff; font-weight: bold; pointer-events: none; }
         
         .control-bar { height: 120px; width: 100%; display: flex; justify-content: space-around; align-items: center; background: linear-gradient(180deg, #a50044 0%, #004d98 100%); border-top: 3px solid #fff; padding: 10px; }
@@ -41,8 +38,8 @@
     </div>
 
     <div id="videoArea">
-        <div class="v-container"><div class="weather-widget" id="w1">Vinaròs...</div><video id="remoteVideo" autoplay playsinline></video></div>
-        <div class="v-container"><div class="weather-widget" id="w2">Vinaròs...</div><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="v-container"><div class="weather-widget" id="w1">Vinaròs: --°C</div><video id="remoteVideo" autoplay playsinline></video></div>
+        <div class="v-container"><div class="weather-widget" id="w2">Vinaròs: --°C</div><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="control-bar">
             <button class="btn-end" onclick="window.location.reload()">FINALIZAR</button>
             <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
@@ -56,16 +53,21 @@
         const peer = new Peer();
         peer.on('open', id => document.getElementById('myID').value = id);
 
-        async function cargarTiempo() {
+        // Nueva lógica: Consultar solo el valor numérico, forzando texto plano
+        async function actualizarMeteo() {
             try {
-                // API oficial de tiempo abierta para obtener datos puros en Celsius
-                const res = await fetch("https://api.open-meteo.com/v1/forecast?latitude=40.47&longitude=0.47&current=temperature_2m");
-                const data = await res.json();
-                const temp = data.current.temperature_2m + "°C";
-                document.getElementById('w1').innerText = "Vinaròs: " + temp;
-                document.getElementById('w2').innerText = "Vinaròs: " + temp;
-            } catch(e) { 
-                document.getElementById('w1').innerText = "Vinaròs: 22°C"; 
+                // Usamos una URL que garantice el formato de datos sin renderizado HTML
+                const response = await fetch("https://api.open-meteo.com/v1/forecast?latitude=40.47&longitude=0.47&current=temperature_2m");
+                const json = await response.json();
+                const temp = Math.round(json.current.temperature_2m) + "°C";
+                
+                // Actualización limpia: solo el texto
+                const elementos = [document.getElementById('w1'), document.getElementById('w2')];
+                elementos.forEach(el => {
+                    if (el) el.textContent = "Vinaròs: " + temp;
+                });
+            } catch (error) {
+                console.error("Error meteorológico, omitiendo visualización...");
             }
         }
 
@@ -74,7 +76,8 @@
             document.getElementById('localVideo').srcObject = stream;
             document.getElementById('panel').style.display = 'none';
             document.getElementById('videoArea').style.display = 'flex';
-            cargarTiempo();
+            
+            actualizarMeteo();
             
             const targetID = document.getElementById('targetID').value;
             if(targetID) {
