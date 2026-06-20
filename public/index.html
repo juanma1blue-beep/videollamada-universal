@@ -106,7 +106,7 @@
             flex-direction: column;
         }
 
-        /* Campos de control superiores alineados entre líneas */
+        /* Campos de control superiores alineados entre líneas con la misma altura exacta */
         .control-top {
             height: 95px;
             display: flex;
@@ -115,16 +115,9 @@
             margin-bottom: 15px;
         }
 
-        /* Fila compuesta para entrada de texto y botón de YouTube */
-        .input-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            width: 100%;
-        }
-
+        /* Input Text estirado al 100% de la anchura */
         .room-input {
-            flex: 1;
+            width: 100%;
             padding: 10px;
             border: 2px solid #ccc;
             border-radius: 6px;
@@ -134,9 +127,10 @@
             letter-spacing: 1px;
             background-color: #fff;
             height: 43px;
+            margin-bottom: 10px;
         }
 
-        /* BOTÓN DE YOUTUBE EN CSS PURO (SEGURO Y LEGAL) */
+        /* BOTÓN DE YOUTUBE EN CSS PURO (ESTIRADO AL 100% EN LA COLUMNA DERECHA) */
         .youtube-btn {
             display: inline-flex;
             align-items: center;
@@ -144,16 +138,16 @@
             background-color: #ff0000;
             color: #ffffff;
             text-decoration: none;
-            padding: 0 15px;
+            width: 100%;
             border-radius: 6px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             transition: background 0.2s ease, transform 0.1s ease;
             height: 43px;
             border: none;
             cursor: pointer;
-            white-space: nowrap;
+            margin-bottom: 10px;
         }
 
         .youtube-btn:hover {
@@ -196,7 +190,7 @@
             cursor: pointer;
             transition: background 0.2s ease;
             text-align: center;
-            height: 43px; /* Altura unificada para simetría total */
+            height: 43px;
         }
 
         .btn-primary {
@@ -327,13 +321,6 @@
                 gap: 15px;
                 text-align: center;
             }
-            .input-row {
-                flex-direction: column;
-                height: auto;
-            }
-            .youtube-btn {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -354,12 +341,7 @@
         <div class="video-grid">
             <div class="video-column">
                 <div class="control-top">
-                    <div class="input-row">
-                        <input type="text" id="roomCode" class="room-input" placeholder="INTRODUCE O GENERA CÓDIGO">
-                        <a href="https://www.youtube.com/@JuanmaEntertainment" target="_blank" class="youtube-btn">
-                            <span class="youtube-icon"></span> YouTube
-                        </a>
-                    </div>
+                    <input type="text" id="roomCode" class="room-input" placeholder="INTRODUCE O GENERA CÓDIGO">
                     <button class="btn-primary" onclick="generarCodigoTransmision()">Generar Código Aleatorio</button>
                 </div>
                 
@@ -372,6 +354,9 @@
 
             <div class="video-column">
                 <div class="control-top">
+                    <a href="https://www.youtube.com/@JuanmaEntertainment" target="_blank" class="youtube-btn">
+                        <span class="youtube-icon"></span> YouTube
+                    </a>
                     <button class="btn-success" onclick="conectarTransmisionReal()">Iniciar Conexión Segura</button>
                 </div>
                 
