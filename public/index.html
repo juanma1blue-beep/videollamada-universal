@@ -3,69 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V94.0 [IMPLEMENTACIÓN TÁCTICA]</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>SISTEMA V95.0 [CORRECCIÓN VISIBILIDAD]</title>
     <style>
         * { box-sizing: border-box; }
-        body { margin: 0; background: #000; font-family: sans-serif; height: 100vh; overflow: hidden; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        /* Barra de mando unificada (Estilo imagen) */
-        .control-bar {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; gap: 10px; align-items: center; z-index: 3000;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 10px 20px; border-radius: 50px;
-            border: 2px solid rgba(255, 0, 0, 0.6);
-            backdrop-filter: blur(5px);
+        /* PANEL PRINCIPAL: Fondo diferenciado y jerarquía alta */
+        #panel { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            background: #000510; /* Azul muy oscuro para que se vea que es el panel */
+            z-index: 9999; /* Máxima prioridad sobre todo */
+            padding: 20px;
         }
 
-        /* Botón FINALIZAR */
-        .btn-end { 
-            background: none; border: none; cursor: pointer; font-weight: 900; 
-            font-size: 24px; text-transform: uppercase; letter-spacing: 2px;
+        .box { 
+            background: #050a1a; 
+            padding: 25px; 
+            width: 100%; 
+            max-width: 450px; 
+            border: 2px solid #002277; 
+            border-radius: 20px; 
+            box-shadow: 0 0 30px rgba(0, 50, 150, 0.4);
         }
-        .neo-azul { color: #002277; text-shadow: 0 0 5px #00d2ff; }
-        .neo-grana { color: #910023; text-shadow: 0 0 5px #ff4444; }
 
-        /* Botón PAYPAL */
-        .btn-paypal { 
-            text-decoration: none; color: #fff; font-size: 10px; text-align: center;
-            display: flex; flex-direction: column; align-items: center; border-left: 1px solid rgba(255,255,255,0.2); padding-left: 15px;
-        }
-        .btn-paypal img { width: 45px; height: auto; margin-bottom: 2px; }
-
-        /* Estructura Video */
-        .live-grid { display: none; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
-        video { width: 100%; height: 100%; object-fit: cover; border: 1px solid #002277; }
+        /* Ocultar video hasta que sea necesario */
+        .live-grid { display: none; } 
     </style>
 </head>
 <body>
-    <div id="panel"> </div>
 
-    <div class="live-grid" id="videoArea">
-        <video id="remoteVideo" autoplay playsinline></video>
-        <div style="position:relative;">
-            <video id="localVideo" autoplay playsinline muted></video>
-            
-            <div class="control-bar">
-                <button class="btn-end" onclick="finalizarConexion()">
-                    <span class="neo-azul">F</span><span class="neo-grana">I</span><span class="neo-azul">N</span>
-                    <span class="neo-grana">A</span><span class="neo-azul">L</span><span class="neo-grana">I</span>
-                    <span class="neo-azul">Z</span><span class="neo-grana">A</span><span class="neo-azul">R</span>
-                </button>
-                
-                <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
-                    <span>PROPINA PAYPAL</span>
-                </a>
-            </div>
+    <div id="panel">
+        <div class="box">
+            <h3 style="color:#00d2ff;">ID DE CONEXIÓN</h3>
+            <input type="text" id="myID" readonly style="width:100%; padding:10px; background:#0a1122; border:1px solid #002277; color:#fff; border-radius:8px;">
+            <br><br>
+            <h3 style="color:#00d2ff;">PANEL DE GESTIÓN TÁCTICA</h3>
+            <button onclick="iniciar()" style="width:100%; padding:15px; background:#002277; color:#fff; border:none; border-radius:8px; font-weight:bold;">INICIAR VIDEOLLAMADA</button>
         </div>
     </div>
-    
+
+    <div class="live-grid" id="videoArea">
+        </div>
+
     <script>
-        // Lógica de conexión intocable
-        function finalizarConexion() { window.location.reload(); }
-        // ... (resto de tu lógica de PeerJS)
+        function iniciar() {
+            document.getElementById('panel').style.display = 'none'; // Oculta el panel negro
+            document.getElementById('videoArea').style.display = 'grid'; // Muestra el video
+            // ... lógica de conexión ...
+        }
     </script>
 </body>
 </html>
