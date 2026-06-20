@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V104.0 [CORRECCIÓN]</title>
+    <title>SISTEMA V105.0 [CORRECCIÓN ESTABILIDAD]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
@@ -13,11 +13,25 @@
         .box { background: #0a1122; padding: 25px; width: 100%; max-width: 450px; border: 2px solid #a50044; border-radius: 20px; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 8px; }
 
+        /* REPARACIÓN DE GRID: Asegura que el video no se deforme */
+        .live-grid { 
+            display: none; 
+            flex-direction: column; 
+            width: 100vw; height: 100vh; 
+            background: #000;
+        }
+        video { 
+            width: 100%; height: 50%; 
+            object-fit: contain; /* Esto evita el bug de la imagen estrecha */
+            background: #000;
+        }
+
+        /* BARRA TÁCTICA BLINDADA */
         .control-bar {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            display: flex; align-items: center; z-index: 3000;
-            background: #050a1a; padding: 15px 30px; border-radius: 40px;
-            border: 2px solid #a50044; box-shadow: 0 0 20px rgba(165,0,68,0.4);
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; z-index: 9999;
+            background: #050a1a; padding: 15px 25px; border-radius: 40px;
+            border: 2px solid #a50044;
         }
         .btn-end { background: none; border: none; cursor: pointer; font-weight: 900; font-size: 20px; text-transform: uppercase; }
         .azul { color: #004d98; }
@@ -25,9 +39,6 @@
         
         .btn-paypal { text-decoration: none; color: #fff; font-size: 9px; text-align: center; display: flex; flex-direction: column; align-items: center; margin-left: 20px; }
         .btn-paypal img { width: 25px; margin-bottom: 2px; }
-
-        .live-grid { display: none; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
-        video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
@@ -65,16 +76,18 @@
         let localStream;
 
         async function iniciarConexion() {
-            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('localVideo').srcObject = localStream;
-            document.getElementById('panel').style.display = 'none';
-            document.getElementById('videoArea').style.display = 'grid';
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('localVideo').srcObject = localStream;
+                document.getElementById('panel').style.display = 'none';
+                document.getElementById('videoArea').style.display = 'flex'; // Cambio a flex para mejor control
 
-            const targetID = document.getElementById('targetID').value;
-            if (targetID) {
-                const call = peer.call(targetID, localStream);
-                call.on('stream', (remoteStream) => { document.getElementById('remoteVideo').srcObject = remoteStream; });
-            }
+                const targetID = document.getElementById('targetID').value;
+                if (targetID) {
+                    const call = peer.call(targetID, localStream);
+                    call.on('stream', (remoteStream) => { document.getElementById('remoteVideo').srcObject = remoteStream; });
+                }
+            } catch (err) { alert("Error de cámara: " + err); }
         }
 
         peer.on('call', (call) => {
