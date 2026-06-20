@@ -2,32 +2,22 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>FaceCall Professional</title>
+    <title>FaceCall Professional - Versión Estable</title>
     <style>
         body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
         
-        /* Contenedor de controles alineado en una sola fila */
         .controls-wrapper { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 10px; 
-            margin: 20px auto; 
-            background: #fff; 
-            padding: 15px; 
-            border-radius: 10px; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            max-width: 700px;
+            display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px auto; 
+            background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 700px;
         }
 
         button { padding: 12px 20px; font-size: 14px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; transition: 0.3s; }
-        input { padding: 10px; font-size: 14px; text-align: center; border: 2px solid #ccc; border-radius: 5px; width: 120px; }
+        input { padding: 10px; font-size: 14px; text-align: center; border: 2px solid #ccc; border-radius: 5px; width: 150px; }
 
-        /* Colores Azulgrana */
         #generarBtn { background-color: #333; }
         #llamarBtn { background-color: #004d98; } 
         #colgarBtn { background-color: #a50044; }
-
+        
         .video-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 900px; }
         video { width: 48%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; object-fit: cover; }
         
@@ -39,7 +29,7 @@
 
     <div class="controls-wrapper">
         <button id="generarBtn">Generar Código</button>
-        <input type="text" id="roomCode" placeholder="Código..." readonly>
+        <input type="text" id="roomCode" placeholder="Esperando código..." readonly>
         <button id="llamarBtn">Llamar</button>
         <button id="colgarBtn">Colgar</button>
     </div>
@@ -60,42 +50,67 @@
         let peerConnection;
         const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-        // Generar código y activar cámara
+        // 1. Inicializar Cámara
         document.getElementById('generarBtn').addEventListener('click', async () => {
             const code = Math.random().toString(36).substring(2, 9);
             document.getElementById('roomCode').value = code;
             
-            if (!localStream) {
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                    document.getElementById('localVideo').srcObject = localStream;
-                } catch (err) { alert("Error: Por favor permite el acceso a la cámara."); }
-            }
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+                console.log("Cámara iniciada correctamente.");
+            } catch (err) { alert("Error de cámara: " + err); }
         });
 
-        // Iniciar llamada
+        // 2. Lógica de Llamada (Señalización)
         document.getElementById('llamarBtn').addEventListener('click', async () => {
             const code = document.getElementById('roomCode').value;
-            if (!code) return alert("Genera un código primero.");
+            if (!code) return alert("Primero genera un código.");
             
+            console.log("Iniciando llamada en sala:", code);
             socket.emit('join-room', code);
+
             peerConnection = new RTCPeerConnection(config);
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
             
-            peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code }); };
-            peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+            // Escuchar candidatos ICE
+            peerConnection.onicecandidate = e => {
+                if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code });
+            };
+            
+            // Mostrar video remoto
+            peerConnection.ontrack = e => {
+                console.log("Video remoto recibido");
+                document.getElementById('remoteVideo').srcObject = e.streams[0];
+            };
             
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
             socket.emit('signal', { offer, room: code });
         });
 
-        // Colgar llamada
+        // 3. Lógica de Colgar
         document.getElementById('colgarBtn').addEventListener('click', () => {
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
                 document.getElementById('remoteVideo').srcObject = null;
+                console.log("Llamada terminada.");
+            }
+        });
+
+        // 4. Recepción de señales del servidor
+        socket.on('signal', async (data) => {
+            if (!peerConnection) return;
+            if (data.offer) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                socket.emit('signal', { answer, room: document.getElementById('roomCode').value });
+            } else if (data.answer) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            } else if (data.candidate) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
             }
         });
     </script>
