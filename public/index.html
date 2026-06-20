@@ -34,7 +34,7 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
-        /* Panel de Chat Lateral Derecho */
+        /* Panel de Chat Lateral Derecho - Estilo Interactivo */
         .chat-panel {
             flex: 1;
             background: #ffffff;
@@ -130,6 +130,7 @@
             border: 2px solid #333;
             text-align: center;
             padding: 10px;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         .video-label {
@@ -144,16 +145,47 @@
             letter-spacing: 1px;
         }
 
-        /* Historial de Mensajes del Chat */
+        /* Historial de Mensajes Interactivo */
         .chat-messages {
             flex: 1;
             border: 1px solid #e1e8ed;
             border-radius: 6px;
-            padding: 10px;
-            background: #fafafa;
+            padding: 12px;
+            background: #fdfdfd;
             overflow-y: auto;
             margin-bottom: 10px;
-            font-size: 14px;
+            font-size: 13px;
+        }
+
+        /* Burbujas y formato dinámico de texto */
+        .msg-line {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .msg-system-blue {
+            color: #004d98;
+            background: #e6f0fa;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border-left: 3px solid #004d98;
+        }
+
+        .msg-system-green {
+            color: #155724;
+            background: #d4edda;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border-left: 3px solid #28a745;
+        }
+
+        .msg-user {
+            background: #f1f0f0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            display: inline-block;
+            max-width: 100%;
         }
 
         .chat-input-area {
@@ -163,9 +195,10 @@
 
         .chat-input {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ccc;
             border-radius: 6px;
+            font-size: 14px;
         }
 
         @media (max-width: 768px) {
@@ -214,7 +247,7 @@
     <div class="chat-panel">
         <h3>Chat de Comunicación</h3>
         <div class="chat-messages" id="chatBox">
-            <p style="color: #888; font-style: italic;">Sistema de mensajería listo...</p>
+            <div class="msg-line" style="color: #888; font-style: italic;" id="chatPlaceholder">Sistema de mensajería listo...</div>
         </div>
         <div class="chat-input-area">
             <input type="text" id="chatMsg" class="chat-input" placeholder="Escribe un mensaje...">
@@ -233,12 +266,17 @@
         }
         document.getElementById('roomCode').value = resultado;
         
+        // Quitar placeholder inicial si existe
+        const placeholder = document.getElementById('chatPlaceholder');
+        if (placeholder) placeholder.remove();
+
+        // Inyección interactiva en el chat
         const chat = document.getElementById('chatBox');
-        chat.innerHTML += `<p style="color: #004d98;"><b>Sistema:</b> Código generado: ${resultado}. Listo para conectar.</p>`;
+        chat.innerHTML += `<div class="msg-line msg-system-blue"><b>⚙️ Sistema:</b> Código generado: <b>${resultado}</b>. Listo para conectar.</div>`;
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- BOTÓN 2: INICIAR CONEXIÓN SEGURA (Enciende las dos cámaras) ---
+    // --- BOTÓN 2: INICIAR CONEXIÓN SEGURA (Cambio visual y feedback total) ---
     function conectarTransmision() {
         const codigo = document.getElementById('roomCode').value;
         if (!codigo) {
@@ -246,31 +284,45 @@
             return;
         }
         
-        // Activación Cámara 1
+        // Activación Cámara 1 (Estilo verde de éxito)
         document.getElementById('localVideoBox').style.background = "#155724";
+        document.getElementById('localVideoBox').style.borderColor = "#28a745";
         document.getElementById('localStatus').innerHTML = "🟢 Mi Cámara Activa (Transmitiendo)";
         
-        // Activación Cámara 2
+        // Activación Cámara 2 (Estilo azul de transmisión activa)
         document.getElementById('remoteVideoBox').style.background = "#004d98";
+        document.getElementById('remoteVideoBox').style.borderColor = "#0056b3";
         document.getElementById('remoteStatus').innerHTML = "🌐 Conectado a la sala: <b>" + codigo + "</b><br>🎥 Transmisión en vivo recibida";
         
+        // Quitar placeholder inicial si existe
+        const placeholder = document.getElementById('chatPlaceholder');
+        if (placeholder) placeholder.remove();
+
+        // Registro interactivo en el chat
         const chat = document.getElementById('chatBox');
-        chat.innerHTML += `<p style="color: #28a745;"><b>Sistema:</b> Ambas cámaras sincronizadas en la sala ${codigo}.</p>`;
+        chat.innerHTML += `<div class="msg-line msg-system-green"><b>🔒 Sistema:</b> Ambas cámaras sincronizadas con éxito en la sala <b>${codigo}</b>.</div>`;
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- ENVÍO DE MENSAJES AL CHAT ---
+    // --- ENVÍO DE MENSAJES AL CHAT INTERACTIVO ---
     function enviarMensajeChat() {
         const input = document.getElementById('chatMsg');
         const chat = document.getElementById('chatBox');
         if (input.value.trim() === "") return;
 
-        chat.innerHTML += `<p><b>Juanma:</b> ${input.value.trim()}</p>`;
+        // Quitar placeholder inicial si existe
+        const placeholder = document.getElementById('chatPlaceholder');
+        if (placeholder) placeholder.remove();
+
+        // Estructura limpia de mensaje del usuario
+        chat.innerHTML += `<div class="msg-line"><b>Juanma:</b> <span class="msg-user">${input.value.trim()}</span></div>`;
         input.value = "";
+        
+        // Desplazamiento automático hacia abajo
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // Enviar con la tecla Enter
+    // Enviar de forma fluida con la tecla Enter
     document.getElementById('chatMsg').addEventListener("keypress", function(e) {
         if (e.key === "Enter") {
             enviarMensajeChat();
