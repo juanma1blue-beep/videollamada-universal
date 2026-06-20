@@ -2,42 +2,31 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V89.0 [RESTAURACIÓN TÁCTICA]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SISTEMA V90.0 [MAXIMIZADO]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
-        body { margin: 0; background: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        #panel { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         
-        .box { background: #050a1a; padding: 40px; width: 450px; border: 3px solid #002277; border-radius: 25px; box-shadow: 0 0 30px rgba(0, 34, 119, 0.8); }
-        h3 { font-size: 18px; color: #f2f2f2; margin: 25px 0 12px 0; border-bottom: 2px solid #002277; padding-bottom: 8px; }
+        /* Panel maximizado a pantalla completa pero manteniendo la forma de la imagen */
+        #panel { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        .box { background: #050a1a; padding: 25px; width: 100%; max-width: 500px; border: 2px solid #002277; border-radius: 20px; box-shadow: 0 0 20px rgba(0, 34, 119, 0.5); }
         
-        input { width: 100%; height: 50px; padding: 0 15px; margin-bottom: 15px; background: #0a1122; border: 2px solid #00d2ff; color: #00d2ff; border-radius: 8px; font-size: 18px; }
+        h3 { font-size: 16px; color: #ccc; margin: 15px 0 10px 0; border-bottom: 1px solid #002277; padding-bottom: 5px; }
+        input { width: 100%; height: 45px; padding: 10px; margin-bottom: 10px; background: #0a1122; border: 1px solid #00d2ff; color: #00d2ff; border-radius: 8px; font-size: 16px; }
         
-        button { width: 100%; padding: 15px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 10px; border-radius: 8px; transition: 0.1s; border-bottom: 4px solid rgba(0,0,0,0.5); font-size: 16px; }
-        button:active { transform: translateY(2px); }
+        button { width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 5px; border-radius: 8px; }
+        .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; font-size: 16px; }
+        .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; font-size: 16px; }
         
-        .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; }
-        .btn-wifi  { background: #002277; border: 1px solid #00d2ff; color: #fff; font-size: 14px; padding: 8px; margin-top: 0; margin-right: 10px; }
-        .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; }
+        .amigo-item { background: #0a1122; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid #002277; display: flex; align-items: center; justify-content: space-between; }
+        .btn-wifi { background: #002277; border: 1px solid #00d2ff; color: #fff; width: auto; padding: 5px 10px; margin: 0 10px; }
+        .btn-edit { width: 40px; height: 40px; border-radius: 50%; background: #910023; border: 1px solid #ff4444; color: white; display: flex; align-items: center; justify-content: center; padding: 0; }
         
-        .btn-edit { 
-            width: 45px; height: 45px; border-radius: 50%; background: #910023; border: 2px solid #ff4444;
-            color: white; font-size: 20px; display: flex; align-items: center; justify-content: center;
-            padding: 0; flex-shrink: 0;
-        }
-
-        .amigo-item { 
-            background: #0a1122; padding: 15px; margin-bottom: 12px; border-radius: 12px; 
-            border-left: 5px solid #002277; display: flex; align-items: center; justify-content: space-between; font-size: 16px;
-        }
-        .info-area { flex-grow: 1; line-height: 1.4; }
-        .controls-area { display: flex; align-items: center; }
-        
-        .btn-end { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 1000; background: #3d0000; border: 3px solid #ff0000; color: #ffcccc; padding: 20px 60px; border-radius: 40px; cursor: pointer; font-weight: 900; font-size: 20px; }
-        
-        .live-grid { display: grid; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; display: none; }
-        .cam-box { position: relative; border-bottom: 1px solid #002277; overflow: hidden; }
+        .btn-end { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #3d0000; border: 2px solid #ff0000; color: #ffcccc; padding: 15px 40px; border-radius: 30px; cursor: pointer; font-weight: 900; }
+        .live-grid { display: none; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
+        .cam-box { border: 1px solid #002277; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
@@ -50,13 +39,13 @@
             
             <h3>PANEL DE GESTIÓN TÁCTICA</h3>
             <input type="text" id="targetID" placeholder="Pega el ID aquí...">
-            <button class="btn-video" onclick="conectar()">Iniciar Videollamada</button>
+            <button class="btn-video" onclick="conectar()">INICIAR VIDEOLLAMADA</button>
             
             <h3>AGENDA</h3>
             <div id="listaAmigos"></div>
             <input type="text" id="nombre" placeholder="Nombre...">
             <input type="text" id="telefono" placeholder="Número...">
-            <button class="btn-save" onclick="guardar()">Guardar Contacto</button>
+            <button class="btn-save" onclick="guardar()">GUARDAR CONTACTO</button>
         </div>
     </div>
 
@@ -104,8 +93,8 @@
             let agenda = JSON.parse(localStorage.getItem('agenda') || '[]');
             lista.innerHTML = agenda.map((a, i) => `
                 <div class="amigo-item">
-                    <div class="info-area"><b>${a.nombre}</b><br>${a.telefono}</div>
-                    <div class="controls-area">
+                    <div><b>${a.nombre}</b><br>${a.telefono}</div>
+                    <div style="display:flex; align-items:center;">
                         <button class="btn-wifi" onclick="alert('Llamada WiFi a ${a.telefono}')">WIFI</button>
                         <button class="btn-edit" onclick="editar(${i})">✎</button>
                     </div>
