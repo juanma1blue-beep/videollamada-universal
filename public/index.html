@@ -41,7 +41,7 @@
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            position: relative;
+            position: relative; /* Clave para que el perfil no rompa el diseño */
         }
 
         h3 {
@@ -66,25 +66,11 @@
             background-color: #003366;
         }
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        input[type="text"], input[type="tel"] {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 14px;
-        }
-
-        /* Tarjeta de perfil emisor arriba a la derecha, limpia y equilibrada */
+        /* Tu perfil emisor: flotando arriba a la derecha, integrado y sin molestar */
         .perfil-emisor {
             position: absolute;
-            top: 15px;
-            right: 15px;
+            top: 20px;
+            right: 20px;
             text-align: right;
             font-size: 12px;
             background: rgba(0, 77, 152, 0.05);
@@ -113,7 +99,7 @@
             text-decoration: underline;
         }
 
-        /* Lista de contactos en pantalla */
+        /* Lista de contactos original de Base44 */
         .contacto-item {
             display: flex;
             justify-content: space-between;
@@ -163,15 +149,19 @@
 
         .btn-eliminar {
             background-color: #dc3545;
+            color: white;
+            border: none;
             padding: 8px 12px;
             font-size: 13px;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
         .btn-eliminar:hover {
             background-color: #c82333;
         }
 
-        /* Copia Mágica Inferior */
+        /* Copia Mágica Inferior original */
         .copia-magica-container {
             margin-top: 15px;
         }
@@ -191,7 +181,7 @@
 <body>
 
 <div class="container">
-    <h1>Base44 - Transmisión Unificada</h1>
+    <h1>Base44 - Sistema Unificado</h1>
 
     <div class="section">
         <div class="perfil-emisor">
@@ -203,9 +193,7 @@
 
         <h3>Mis Contactos Nativos</h3>
         
-        <div class="input-group" style="max-width: 70%; margin-bottom: 15px;">
-            <button id="addContactBtn" onclick="abrirFormularioContacto()" style="background-color: #28a745;">Añadir Contacto del Smartphone</button>
-        </div>
+        <button id="addContactBtn" onclick="abrirFormularioContacto()" style="background-color: #28a745; margin-bottom: 10px;">Añadir Contacto del Smartphone</button>
         
         <div id="contactList"></div>
     </div>
@@ -222,13 +210,13 @@
 </div>
 
 <script>
-    // Motores de datos al arrancar la aplicación
+    // Motores nativos al arrancar (Cargan todo del localStorage sin pérdidas)
     document.addEventListener("DOMContentLoaded", function() {
         cargarContactos();
         cargarMiPerfil();
     });
 
-    // --- GESTIÓN DE MI PERFIL EMISOR ---
+    // --- GESTIÓN DE MI PERFIL EMISOR (MEJORA) ---
     function cargarMiPerfil() {
         const telGuardado = localStorage.getItem('miTelefonoPropio');
         const display = document.getElementById('miTelefonoDisplay');
@@ -241,14 +229,13 @@
 
     function configurarMiTelefono() {
         const nuevoTel = prompt("Introduce tu número de móvil o el teléfono fijo de casa:");
-        // Si el usuario introduce datos, limpiamos espacios y guardamos de forma permanente
         if (nuevoTel !== null && nuevoTel.trim() !== "") {
             localStorage.setItem('miTelefonoPropio', nuevoTel.trim());
             cargarMiPerfil();
         }
     }
 
-    // --- GESTIÓN DE CONTACTOS NATIVOS ---
+    // --- GESTIÓN DE CONTACTOS ORIGINALES ---
     function obtenerContactos() {
         const contactosRaw = localStorage.getItem('contactos_base44');
         return contactosRaw ? JSON.parse(contactosRaw) : [];
@@ -309,7 +296,7 @@
         cargarContactos();
     }
 
-    // --- FUNCIÓN COPIA MÁGICA ---
+    // --- FUNCIÓN COPIA MÁGICA ORIGINAL ---
     function ejecutarCopiaMagica() {
         const campoTexto = document.getElementById('txtCopiaMagica');
         if (campoTexto.value.trim() === "") {
@@ -317,7 +304,7 @@
             return;
         }
         campoTexto.select();
-        campoTexto.setSelectionRange(0, 99999); // Para dispositivos móviles
+        campoTexto.setSelectionRange(0, 99999); // Soporte móvil móvil
         navigator.clipboard.writeText(campoTexto.value);
     }
 </script>
