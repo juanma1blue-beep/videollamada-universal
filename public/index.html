@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>FaceCall Professional - Solución Cámara</title>
+    <title>Sistema de Videollamada Profesional</title>
     <style>
         body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
         .controls-wrapper { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 700px; }
@@ -14,7 +14,7 @@
         .video-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 900px; }
         video { width: 48%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; object-fit: cover; }
         .footer { margin-top: 30px; }
-        .paypal-btn { background-color: #f7c000; color: black; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; }
+        .info-link { color: #555; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -32,7 +32,7 @@
     </div>
 
     <div class="footer">
-        <a href="https://PayPal.me/MarketEvolution" target="_blank" class="paypal-btn">Propinas PayPal - Market Evolution</a>
+        <p class="info-link">Sistema de comunicación privada</p>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -46,7 +46,7 @@
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-            } catch (err) { alert("Error accediendo a la cámara"); }
+            } catch (err) { alert("Error accediendo a los dispositivos de video/audio."); }
         }
 
         document.getElementById('generarBtn').addEventListener('click', () => {
@@ -69,23 +69,18 @@
             });
         });
 
-        // --- COLGAR CORREGIDO (APAGA LA CÁMARA) ---
         document.getElementById('colgarBtn').addEventListener('click', () => {
-            // 1. Detener pistas de la cámara
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
             }
-            // 2. Cerrar conexión
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
             }
-            // 3. Limpiar pantallas
             document.getElementById('localVideo').srcObject = null;
             document.getElementById('remoteVideo').srcObject = null;
-            
-            alert("Llamada finalizada y cámara apagada");
+            alert("Llamada finalizada y dispositivos desactivados");
         });
 
         socket.on('signal', async (data) => {
