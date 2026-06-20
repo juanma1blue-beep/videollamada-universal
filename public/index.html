@@ -1,108 +1,49 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Sistema de Videollamada Profesional</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
-        .controls-wrapper { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 700px; }
-        button { padding: 12px 20px; font-size: 14px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; transition: 0.3s; }
-        input { padding: 10px; font-size: 14px; text-align: center; border: 2px solid #004d98; border-radius: 5px; width: 150px; background-color: #fff; }
+        /* El chat visual que me pediste */
+        .chat-visual { background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 10px; position: relative; }
         
-        #generarBtn { background-color: #333; }
-        #optimizarBtn { background-color: #004d98; }
-        #colgarBtn { background-color: #a50044; }
-        
-        .video-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 900px; }
-        video { width: 48%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; object-fit: cover; }
-        
-        .footer { margin-top: 30px; }
-        .paypal-btn { background-color: #f7c000; color: black; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px; }
+        /* El botoncito transparente "mágico" */
+        .btn-transparente {
+            background: rgba(255, 255, 255, 0.1); /* Efecto cristal */
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+        .btn-transparente:hover { background: rgba(255, 255, 255, 0.3); }
     </style>
 </head>
 <body>
 
-    <div class="controls-wrapper">
-        <button id="generarBtn">Generar Código</button>
-        <input type="text" id="roomCode" placeholder="Escribe el código...">
-        <button id="optimizarBtn">Optimizar</button>
-        <button id="colgarBtn">Colgar</button>
-    </div>
+<div class="chat-visual">
+    <p>Código de transmisión: <strong id="elCodigo">ABC-123</strong></p>
+    <button class="btn-transparente" onclick="copiarYConectar()">Copiar código y conectar</button>
+</div>
 
-    <div class="video-container">
-        <video id="localVideo" autoplay playsinline muted></video>
-        <video id="remoteVideo" autoplay playsinline></video>
-    </div>
-
-    <div class="footer">
-        <a href="https://PayPal.me/MarketEvolution" target="_blank" class="paypal-btn">Propinas PayPal - Market Evolution</a>
-    </div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        const socket = io();
-        let localStream;
-        let peerConnection;
-        const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
-        async function activarCamara() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-            } catch (err) { console.error("Error dispositivo:", err); }
-        }
-
-        // --- FUNCIÓN RESTAURADA: Optimización técnica ---
-        async function optimizarRendimiento() {
-            console.log("Ejecutando mantenimiento técnico...");
-            if (localStream) {
-                const videoTrack = localStream.getVideoTracks()[0];
-                videoTrack.enabled = false;
-                setTimeout(() => { videoTrack.enabled = true; }, 300);
-            }
-            if (peerConnection && peerConnection.signalingState === "stable") {
-                const offer = await peerConnection.createOffer({ iceRestart: true });
-                await peerConnection.setLocalDescription(offer);
-                socket.emit('signal', { offer, room: document.getElementById('roomCode').value });
-            }
-        }
-
-        document.getElementById('generarBtn').addEventListener('click', () => {
-            const code = Math.random().toString(36).substring(2, 9);
-            document.getElementById('roomCode').value = code;
-            socket.emit('join-room', code);
-            activarCamara();
+<script>
+    function copiarYConectar() {
+        const codigo = document.getElementById('elCodigo').innerText;
+        
+        // 1. Acción: Copiar al portapapeles
+        navigator.clipboard.writeText(codigo).then(() => {
+            alert("Código copiado: " + codigo);
+            
+            // 2. Acción: Pegar automáticamente en el campo de conexión (roomCode)
+            const inputDestino = document.getElementById('roomCode');
+            inputDestino.value = codigo;
+            
+            // 3. Acción: Disparar la conexión automáticamente
+            // Aquí llamamos a la función que ya teníamos de "optimizar/conectar"
+            document.getElementById('optimizarBtn').click();
         });
-
-        // Botón optimizar restaurado a su función de mantenimiento
-        document.getElementById('optimizarBtn').addEventListener('click', optimizarRendimiento);
-
-        document.getElementById('colgarBtn').addEventListener('click', () => {
-            if (localStream) localStream.getTracks().forEach(t => t.stop());
-            if (peerConnection) peerConnection.close();
-            peerConnection = null;
-            document.getElementById('localVideo').srcObject = null;
-            document.getElementById('remoteVideo').srcObject = null;
-        });
-
-        socket.on('signal', async (data) => {
-            if (data.offer) {
-                if (!peerConnection) {
-                    peerConnection = new RTCPeerConnection(config);
-                    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-                    peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: document.getElementById('roomCode').value }); };
-                    peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
-                }
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                socket.emit('signal', { answer, room: document.getElementById('roomCode').value });
-            } else if (data.answer) {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-            } else if (data.candidate) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-            }
-        });
-    </script>
+    }
+</script>
 </body>
 </html>
