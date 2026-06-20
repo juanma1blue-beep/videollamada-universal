@@ -2,36 +2,21 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V124.0 [ZONA DE MANDO EXPANDIDA]</title>
+    <title>SISTEMA V124.1 [METEO REAL]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
+        /* [Estilos mantenidos de v124.0 para estabilidad] */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
-
         #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 10; }
         .box { background: #0a1122; padding: 40px; width: 95%; max-width: 500px; border: 3px solid #a50044; border-radius: 25px; text-align: center; }
         input { width: 100%; padding: 20px; margin: 15px 0; background: #000; border: 2px solid #004d98; color: #fff; border-radius: 12px; text-align: center; font-size: 18px; }
-
-        /* VIDEOS: Espacio optimizado */
         #videoArea { display: none; width: 100vw; height: 100vh; display: flex; flex-direction: column; }
         .v-container { width: 100%; flex: 1; position: relative; border-bottom: 2px solid #004d98; }
         video { width: 100%; height: 100%; object-fit: cover; }
-        .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 500; background: rgba(0,0,0,0.7); border: 1px solid #00d2ff; padding: 10px 15px; border-radius: 12px; font-size: 14px; pointer-events: none; }
-
-        /* ZONA DE MANDO EXPANDIDA (Los botones grandes) */
-        .control-bar { 
-            height: 120px; /* Espacio extra para que todo sea grande */
-            width: 100%;
-            display: flex; justify-content: space-around; align-items: center; 
-            background: linear-gradient(180deg, #a50044 0%, #004d98 100%);
-            border-top: 3px solid #fff;
-            padding: 10px;
-        }
-        .btn-end { 
-            background: rgba(0,0,0,0.3); border: 2px solid #fff; border-radius: 20px;
-            padding: 20px 40px; cursor: pointer; font-weight: 900; font-size: 24px; color: #fff;
-            text-transform: uppercase;
-        }
+        .weather-widget { position: absolute; top: 15px; right: 15px; z-index: 500; background: rgba(0,0,0,0.7); border: 1px solid #00d2ff; padding: 10px 15px; border-radius: 12px; font-size: 14px; pointer-events: none; color: #00d2ff; font-weight: bold; }
+        .control-bar { height: 120px; width: 100%; display: flex; justify-content: space-around; align-items: center; background: linear-gradient(180deg, #a50044 0%, #004d98 100%); border-top: 3px solid #fff; padding: 10px; }
+        .btn-end { background: rgba(0,0,0,0.3); border: 2px solid #fff; border-radius: 20px; padding: 20px 40px; cursor: pointer; font-weight: 900; font-size: 24px; color: #fff; text-transform: uppercase; }
         .btn-paypal { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
         .btn-paypal img { width: 60px; }
         .paypal-text { font-size: 14px; color: #fff; font-weight: bold; margin-top: 5px; }
@@ -49,20 +34,30 @@
         </div>
     </div>
 
-    <div id="videoArea" style="display:none;">
-        <div class="v-container"><div class="weather-widget">Vinaròs: 22°C</div><video id="remoteVideo" autoplay playsinline></video></div>
-        <div class="v-container"><div class="weather-widget">Vinaròs: 22°C</div><video id="localVideo" autoplay playsinline muted></video></div>
-        
+    <div id="videoArea">
+        <div class="v-container"><div class="weather-widget" id="w1">Cargando...</div><video id="remoteVideo" autoplay playsinline></video></div>
+        <div class="v-container"><div class="weather-widget" id="w2">Cargando...</div><video id="localVideo" autoplay playsinline muted></video></div>
         <div class="control-bar">
             <button class="btn-end" onclick="window.location.reload()">FINALIZAR</button>
             <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
                 <span class="paypal-text">PROPINAS</span>
             </a>
-            </div>
+        </div>
     </div>
     
     <script>
+        // Función para obtener tiempo real de Vinaròs
+        async function actualizarTiempo() {
+            try {
+                // Usamos un servicio de tiempo abierto y fiable
+                const res = await fetch("https://wttr.in/Vinaros?format=%t");
+                const temp = await res.text();
+                document.getElementById('w1').innerText = "Vinaròs: " + temp;
+                document.getElementById('w2').innerText = "Vinaròs: " + temp;
+            } catch(e) { console.error("Error meteorológico"); }
+        }
+
         const peer = new Peer();
         peer.on('open', id => document.getElementById('myID').value = id);
 
@@ -72,21 +67,13 @@
             document.getElementById('panel').style.display = 'none';
             document.getElementById('videoArea').style.display = 'flex';
             
+            actualizarTiempo(); // Actualiza al iniciar
+            
             const targetID = document.getElementById('targetID').value;
             if(targetID) {
                 const call = peer.call(targetID, stream);
                 call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
             }
-        });
-
-        peer.on('call', call => {
-            navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream => {
-                document.getElementById('localVideo').srcObject = stream;
-                document.getElementById('panel').style.display = 'none';
-                document.getElementById('videoArea').style.display = 'flex';
-                call.answer(stream);
-                call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
-            });
         });
     </script>
 </body>
