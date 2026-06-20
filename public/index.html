@@ -2,24 +2,17 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>FaceCall Clean</title>
+    <title>FaceCall Professional</title>
     <style>
-        /* CSS Unificado */
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
-        .controls { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
-        button { padding: 10px 20px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; transition: background 0.3s; }
-        
-        #llamarBtn { background-color: #004d98; } /* Azul */
-        #llamarBtn:hover { background-color: #002d58; }
-        
-        #colgarBtn { background-color: #a50044; } /* Grana */
-        #colgarBtn:hover { background-color: #7a0032; }
-        
-        .video-container { margin: 20px 0; }
-        video { width: 45%; background: #000; border-radius: 10px; }
-        
+        body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        button { padding: 12px 24px; font-size: 16px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; }
+        #llamarBtn { background-color: #004d98; }
+        #colgarBtn { background-color: #a50044; }
+        .video-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 900px; }
+        video { width: 48%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; object-fit: cover; }
         .footer { margin-top: 30px; }
-        .paypal-btn { background-color: #f7c000; color: black; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; }
+        .paypal-btn { background-color: #f7c000; color: black; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -36,7 +29,7 @@
 
     <div class="code-section">
         <input type="text" id="roomCode" placeholder="Código de sala" readonly>
-        <button id="generarBtn" style="background-color: #555;">Generar Código</button>
+        <button id="generarBtn">Generar Código</button>
     </div>
 
     <div class="footer">
@@ -45,17 +38,14 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        /* JS Unificado */
         const socket = io();
         let localStream;
         let peerConnection;
         const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
         async function init() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-            } catch (err) { console.error("Error cámara:", err); }
+            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('localVideo').srcObject = localStream;
         }
 
         document.getElementById('generarBtn').addEventListener('click', () => {
@@ -63,7 +53,7 @@
             document.getElementById('roomCode').value = code;
         });
 
-        document.getElementById('llamarBtn').addEventListener('click', () => {
+        document.getElementById('llamarBtn').addEventListener('click', async () => {
             const code = document.getElementById('roomCode').value;
             if (!code) return alert("Genera un código primero");
             
@@ -75,12 +65,18 @@
                 if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code });
             };
             peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+            
+            // Crear oferta para el otro usuario
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            socket.emit('signal', { offer, room: code });
         });
 
         document.getElementById('colgarBtn').addEventListener('click', () => {
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
+                document.getElementById('remoteVideo').srcObject = null;
                 alert("Llamada finalizada");
             }
         });
