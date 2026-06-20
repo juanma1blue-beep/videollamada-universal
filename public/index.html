@@ -3,68 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V103.0 [INTEGRIDAD TOTAL]</title>
+    <title>SISTEMA V104.0 [CORRECCIÓN]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        /* PANEL PRINCIPAL (Intacto) */
         #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 100; padding: 20px; }
         .box { background: #0a1122; padding: 25px; width: 100%; max-width: 450px; border: 2px solid #a50044; border-radius: 20px; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 8px; }
 
-        /* BARRA TÁCTICA (Intacta + Estética Barça) */
         .control-bar {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
             display: flex; align-items: center; z-index: 3000;
-            background: #050a1a; padding: 12px 25px; border-radius: 40px;
+            background: #050a1a; padding: 15px 30px; border-radius: 40px;
             border: 2px solid #a50044; box-shadow: 0 0 20px rgba(165,0,68,0.4);
         }
-        .btn-end { background: none; border: none; cursor: pointer; font-weight: 900; font-size: 22px; text-transform: uppercase; }
-        .azul-oscuro { color: #004d98; }
+        .btn-end { background: none; border: none; cursor: pointer; font-weight: 900; font-size: 20px; text-transform: uppercase; }
+        .azul { color: #004d98; }
         .grana { color: #a50044; }
-        .separator { width: 2px; height: 35px; background: #00d2ff; margin: 0 20px; }
-        .btn-paypal { text-decoration: none; color: #fff; font-size: 9px; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .btn-paypal img { width: 28px; margin-bottom: 2px; }
+        
+        .btn-paypal { text-decoration: none; color: #fff; font-size: 9px; text-align: center; display: flex; flex-direction: column; align-items: center; margin-left: 20px; }
+        .btn-paypal img { width: 25px; margin-bottom: 2px; }
 
         .live-grid { display: none; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
-        video { width: 100%; height: 100%; object-fit: cover; border: 1px solid #a50044; }
+        video { width: 100%; height: 100%; object-fit: cover; }
     </style>
 </head>
 <body>
 
     <div id="panel">
         <div class="box">
-            <h3 style="color:#004d98;">ID DE CONEXIÓN</h3>
+            <h3 style="color:#004d98;">ID CONEXIÓN</h3>
             <input type="text" id="myID" readonly>
-            <h3 style="color:#004d98;">ID DEL SOCIO</h3>
-            <input type="text" id="targetID" placeholder="Pega el ID aquí...">
-            <button onclick="iniciarConexion()" style="width:100%; padding:15px; background:#a50044; color:#fff; border:none; border-radius:8px; font-weight:bold;">INICIAR VIDEOLLAMADA</button>
+            <h3 style="color:#004d98;">ID SOCIO</h3>
+            <input type="text" id="targetID">
+            <button onclick="iniciarConexion()" style="width:100%; padding:15px; background:#a50044; border:none; border-radius:8px; font-weight:bold; color:#fff;">INICIAR</button>
         </div>
     </div>
 
     <div class="live-grid" id="videoArea">
         <video id="remoteVideo" autoplay playsinline></video>
-        <div style="position:relative;">
-            <video id="localVideo" autoplay playsinline muted></video>
-            <div class="control-bar">
-                <button class="btn-end" onclick="finalizarConexion()">
-                    <span class="azul-oscuro">F</span><span class="grana">I</span><span class="azul-oscuro">N</span>
-                    <span class="grana">A</span><span class="azul-oscuro">L</span><span class="grana">I</span>
-                    <span class="azul-oscuro">Z</span><span class="grana">A</span><span class="azul-oscuro">R</span>
-                </button>
-                <div class="separator"></div>
-                <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
-                    <span>PROPINA PAYPAL</span>
-                </a>
-            </div>
+        <video id="localVideo" autoplay playsinline muted></video>
+        <div class="control-bar">
+            <button class="btn-end" onclick="finalizarConexion()">
+                <span class="azul">F</span><span class="grana">I</span><span class="azul">N</span>
+                <span class="grana">A</span><span class="azul">L</span><span class="grana">I</span>
+                <span class="azul">Z</span><span class="grana">A</span><span class="azul">R</span>
+            </button>
+            <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
+                <span>PROPINA</span>
+            </a>
         </div>
     </div>
     
     <script>
-        // Lógica de conexión recuperada y protegida
         const randomID = Math.random().toString(36).substring(2, 10);
         document.getElementById('myID').value = randomID;
         const peer = new Peer(randomID);
@@ -85,7 +79,7 @@
 
         peer.on('call', (call) => {
             call.answer(localStream);
-            call.on('stream', (remoteStream) => { document.getElementById('remoteVideo').srcObject = remoteVideo.srcObject = remoteStream; });
+            call.on('stream', (remoteStream) => { document.getElementById('remoteVideo').srcObject = remoteStream; });
         });
 
         function finalizarConexion() { window.location.reload(); }
