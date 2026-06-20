@@ -7,7 +7,7 @@
         body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
         .controls-wrapper { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 700px; }
         button { padding: 12px 20px; font-size: 14px; cursor: pointer; border: none; border-radius: 5px; color: white; font-weight: bold; transition: 0.3s; }
-        input { padding: 10px; font-size: 14px; text-align: center; border: 2px solid #ccc; border-radius: 5px; width: 150px; }
+        input { padding: 10px; font-size: 14px; text-align: center; border: 2px solid #004d98; border-radius: 5px; width: 150px; background-color: #fff; }
         
         #generarBtn { background-color: #333; }
         #optimizarBtn { background-color: #004d98; }
@@ -15,13 +15,16 @@
         
         .video-container { display: flex; justify-content: center; gap: 10px; margin: 20px auto; max-width: 900px; }
         video { width: 48%; aspect-ratio: 16 / 9; background: #000; border-radius: 10px; object-fit: cover; }
+        
+        .footer { margin-top: 30px; }
+        .paypal-btn { background-color: #f7c000; color: black; padding: 12px 24px; border-radius: 5px; text-decoration: none; font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
     <div class="controls-wrapper">
         <button id="generarBtn">Generar Código</button>
-        <input type="text" id="roomCode" placeholder="Código..." readonly>
+        <input type="text" id="roomCode" placeholder="Escribe el código...">
         <button id="optimizarBtn">Optimizar</button>
         <button id="colgarBtn">Colgar</button>
     </div>
@@ -31,6 +34,10 @@
         <video id="remoteVideo" autoplay playsinline></video>
     </div>
 
+    <div class="footer">
+        <a href="https://PayPal.me/MarketEvolution" target="_blank" class="paypal-btn">Propinas PayPal - Market Evolution</a>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
@@ -38,36 +45,59 @@
         let peerConnection;
         const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-        // --- MÓDULO DE CÁMARA ---
         async function activarCamara() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
                 document.getElementById('localVideo').srcObject = localStream;
-            } catch (err) { console.error("Error acceso dispositivo:", err); }
+            } catch (err) { console.error("Error dispositivo:", err); }
         }
 
-        // --- MÓDULO DE OPTIMIZACIÓN AVANZADA ---
-        async function optimizarRendimiento() {
-            if (localStream) {
-                // Ciclo de refresco de track para limpiar buffer
-                const videoTrack = localStream.getVideoTracks()[0];
-                videoTrack.enabled = false;
-                setTimeout(() => { videoTrack.enabled = true; }, 300);
-            }
-            if (peerConnection && peerConnection.signalingState === "stable") {
-                const offer = await peerConnection.createOffer({ iceRestart: true });
-                await peerConnection.setLocalDescription(offer);
-                socket.emit('signal', { offer, room: document.getElementById('roomCode').value });
-            }
+        // Lógica de inicio de llamada automática
+        function iniciarLlamada(code) {
+            if (!localStream) return;
+            peerConnection = new RTCPeerConnection(config);
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+            peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code }); };
+            peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+            peerConnection.createOffer().then(offer => {
+                peerConnection.setLocalDescription(offer);
+                socket.emit('signal', { offer, room: code });
+            });
         }
 
         document.getElementById('generarBtn').addEventListener('click', () => {
             const code = Math.random().toString(36).substring(2, 9);
             document.getElementById('roomCode').value = code;
+            socket.emit('join-room', code);
             activarCamara();
         });
 
-        document.getElementById('optimizarBtn').addEventListener('click', optimizarRendimiento);
+        // Al cambiar el código o querer unirse
+        document.getElementById('optimizarBtn').addEventListener('click', () => {
+            const code = document.getElementById('roomCode').value;
+            socket.emit('join-room', code);
+            iniciarLlamada(code);
+        });
+
+        // Recepción de señal automática (aquí ocurre la magia)
+        socket.on('signal', async (data) => {
+            if (data.offer) {
+                if (!peerConnection) {
+                    peerConnection = new RTCPeerConnection(config);
+                    localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+                    peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: document.getElementById('roomCode').value }); };
+                    peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+                }
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                socket.emit('signal', { answer, room: document.getElementById('roomCode').value });
+            } else if (data.answer) {
+                await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+            } else if (data.candidate) {
+                await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+        });
 
         document.getElementById('colgarBtn').addEventListener('click', () => {
             if (localStream) localStream.getTracks().forEach(t => t.stop());
@@ -75,22 +105,6 @@
             peerConnection = null;
             document.getElementById('localVideo').srcObject = null;
             document.getElementById('remoteVideo').srcObject = null;
-        });
-
-        socket.on('signal', async (data) => {
-            if (!peerConnection) return;
-            try {
-                if (data.offer) {
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-                    const answer = await peerConnection.createAnswer();
-                    await peerConnection.setLocalDescription(answer);
-                    socket.emit('signal', { answer, room: document.getElementById('roomCode').value });
-                } else if (data.answer) {
-                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                } else if (data.candidate) {
-                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                }
-            } catch (e) { console.error("Error en flujo de datos:", e); }
         });
     </script>
 </body>
