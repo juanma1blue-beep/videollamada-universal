@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V109.0 [PERFECCIÓN TOTAL]</title>
+    <title>SISTEMA V110.0 [PULIDO FINAL]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,16 +24,17 @@
             border: 2px solid #a50044; z-index: 999;
         }
         
-        /* CORRECCIÓN ESPACIADO: Bloques fijos para cada letra */
+        /* CORRECCIÓN VOCALES: Flex proporcional en lugar de ancho fijo */
         .btn-end { 
             background: none; border: none; cursor: pointer; 
             font-weight: 900; font-size: 20px; text-transform: uppercase;
-            display: flex; align-items: center;
+            display: flex; align-items: center; justify-content: center;
         }
         .btn-end span { 
             display: inline-block; 
-            width: 20px; 
+            padding: 0 4px; /* Espaciado lateral fluido */
             text-align: center;
+            min-width: 18px; /* Mínimo para que no se peguen */
         }
         .azul { color: #004d98; }
         .grana { color: #a50044; }
