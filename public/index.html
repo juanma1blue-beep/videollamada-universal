@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>FaceCall Ultra Clean 1:1</title>
+<title>FaceCall Clean 1:1 FIXED</title>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
@@ -56,7 +56,7 @@ button {
 
 <div id="panel">
 
-<h3>FaceCall Clean</h3>
+<h3>FaceCall Clean FIX</h3>
 
 <input id="room" placeholder="código de sesión">
 
@@ -77,7 +77,7 @@ button {
 const socket = io();
 
 /* =========================
-   SIMPLE STUN (FREE)
+   CONFIG STUN
 ========================= */
 
 const config = {
@@ -86,9 +86,43 @@ const config = {
     ]
 };
 
-let pc;
-let stream;
-let roomId;
+/* =========================
+   STATE SAFE
+========================= */
+
+let pc = null;
+let stream = null;
+let roomId = null;
+
+/* =========================
+   SIGNAL HANDLER (GLOBAL FIX)
+========================= */
+
+socket.on("signal", async data => {
+
+    if(!pc) return;
+
+    if(data.offer){
+        await pc.setRemoteDescription(data.offer);
+
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        socket.emit("signal", {
+            roomId,
+            data:{ answer }
+        });
+    }
+
+    if(data.answer){
+        await pc.setRemoteDescription(data.answer);
+    }
+
+    if(data.candidate){
+        await pc.addIceCandidate(data.candidate);
+    }
+
+});
 
 /* =========================
    ROOM GENERATOR
@@ -119,20 +153,24 @@ async function getMedia(){
 }
 
 /* =========================
-   JOIN
+   JOIN ROOM
 ========================= */
 
 function join(){
-
     roomId = document.getElementById("room").value;
     socket.emit("join", roomId);
 }
 
 /* =========================
-   PEER CONNECTION
+   CREATE PEER (FIXED)
 ========================= */
 
 function createPeer(){
+
+    if(pc){
+        pc.close();
+        pc = null;
+    }
 
     pc = new RTCPeerConnection(config);
 
@@ -148,31 +186,6 @@ function createPeer(){
             });
         }
     };
-
-    socket.on("signal", async data => {
-
-        if(data.offer){
-            await pc.setRemoteDescription(data.offer);
-
-            const answer = await pc.createAnswer();
-            await pc.setLocalDescription(answer);
-
-            socket.emit("signal", {
-                roomId,
-                data:{ answer }
-            });
-        }
-
-        if(data.answer){
-            await pc.setRemoteDescription(data.answer);
-        }
-
-        if(data.candidate){
-            await pc.addIceCandidate(data.candidate);
-        }
-
-    });
-
 }
 
 /* =========================
@@ -193,17 +206,23 @@ async function call(){
         roomId,
         data:{ offer }
     });
-
 }
 
 /* =========================
-   HANG UP
+   HANG UP FIXED
 ========================= */
 
 function hang(){
 
-    if(pc) pc.close();
-    pc = null;
+    if(pc){
+        pc.close();
+        pc = null;
+    }
+
+    if(stream){
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+    }
 
     document.getElementById("remote").srcObject = null;
 }
