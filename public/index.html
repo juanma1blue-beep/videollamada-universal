@@ -66,7 +66,7 @@
             background-color: #003366;
         }
 
-        /* Tu perfil emisor: integrado perfectamente arriba a la derecha */
+        /* Perfil emisor: perfectamente integrado arriba a la derecha */
         .perfil-emisor {
             position: absolute;
             top: 20px;
@@ -77,6 +77,7 @@
             padding: 6px 12px;
             border-radius: 6px;
             border-right: 3px solid #004d98;
+            z-index: 10;
         }
 
         .perfil-emisor span {
@@ -99,7 +100,7 @@
             text-decoration: underline;
         }
 
-        /* Lista de contactos original e impecable */
+        /* Lista de contactos original de Base44 */
         .contacto-item {
             display: flex;
             justify-content: space-between;
@@ -210,35 +211,57 @@
 </div>
 
 <script>
-    // Motores listos desde el arranque
+    // Motores de seguridad activados desde el inicio
     document.addEventListener("DOMContentLoaded", function() {
-        cargarContactos();
-        cargarMiPerfil();
+        inicializarBaseDatos();
     });
 
-    // --- MI PERFIL EMISOR ---
+    function inicializarBaseDatos() {
+        try {
+            // Carga ultra segura de los componentes para evitar bloqueos al actualizar
+            cargarMiPerfil();
+            cargarContactos();
+        } catch (error) {
+            console.error("Error al inicializar la memoria local, restaurando valores por defecto:", error);
+            localStorage.clear();
+            cargarMiPerfil();
+            cargarContactos();
+        }
+    }
+
+    // --- GESTIÓN DE MI PERFIL EMISOR ---
     function cargarMiPerfil() {
         const telGuardado = localStorage.getItem('miTelefonoPropio');
         const display = document.getElementById('miTelefonoDisplay');
-        if (telGuardado) {
-            display.innerText = "📞 " + telGuardado;
-        } else {
-            display.innerText = "⚙️ Configurar";
+        if (display) {
+            if (telGuardado && telGuardado.trim() !== "") {
+                display.innerText = "📞 " + telGuardado;
+            } else {
+                display.innerText = "⚙️ Configurar";
+            }
         }
     }
 
     function configurarMiTelefono() {
         const nuevoTel = prompt("Introduce tu número de móvil o el teléfono fijo de casa:");
-        if (nuevoTel !== null && nuevoTel.trim() !== "") {
-            localStorage.setItem('miTelefonoPropio', nuevoTel.trim());
+        if (nuevoTel !== null) {
+            if (nuevoTel.trim() !== "") {
+                localStorage.setItem('miTelefonoPropio', nuevoTel.trim());
+            } else {
+                localStorage.removeItem('miTelefonoPropio');
+            }
             cargarMiPerfil();
         }
     }
 
-    // --- GESTIÓN DE CONTACTOS ---
+    // --- GESTIÓN DE CONTACTOS NATIVOS ---
     function obtenerContactos() {
-        const contactosRaw = localStorage.getItem('contactos_base44');
-        return contactosRaw ? JSON.parse(contactosRaw) : [];
+        try {
+            const contactosRaw = localStorage.getItem('contactos_base44');
+            return contactosRaw ? JSON.parse(contactosRaw) : [];
+        } catch (e) {
+            return [];
+        }
     }
 
     function guardarContactos(lista) {
@@ -265,6 +288,8 @@
     function cargarContactos() {
         const lista = obtenerContactos();
         const contenedor = document.getElementById('contactList');
+        if (!contenedor) return;
+        
         contenedor.innerHTML = "";
 
         if (lista.length === 0) {
@@ -296,10 +321,10 @@
         cargarContactos();
     }
 
-    // --- COPIA MÁGICA ---
+    // --- FUNCIÓN COPIA MÁGICA ---
     function ejecutarCopiaMagica() {
         const campoTexto = document.getElementById('txtCopiaMagica');
-        if (campoTexto.value.trim() === "") {
+        if (!campoTexto || campoTexto.value.trim() === "") {
             alert("Por favor, escribe algo en el cuadro de Copia Mágica antes de copiar.");
             return;
         }
