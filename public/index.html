@@ -41,7 +41,7 @@
             
             <div style="margin-top:10px; font-size: 12px;">
                 <h2>Guía Rápida de Uso</h2>
-                <p>1. Genera código. 2. Conecta. 3. Mano abierta 2s para colgar.</p>
+                <p>1. Genera código. 2. Conecta. 3. Mano abierta 2s frente a cámara para colgar.</p>
             </div>
         </div>
         <div class="chat-panel">
@@ -52,14 +52,39 @@
         </div>
     </div>
     <script>
-        let localStream = null, peer = null, currentCall = null;
+        let localStream = null, peer = null, currentCall = null, model = null, gestureTime = 0;
         const constraints = { video: { width: 640, height: 480, frameRate: 30 }, audio: true };
         
+        async function init() { model = await handpose.load(); }
+        init();
+
         async function activarCamaraLocal() {
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                document.getElementById('localVideo').srcObject = localStream;
-            } catch (e) { alert("Error al acceder a la cámara"); }
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            document.getElementById('localVideo').srcObject = localStream;
+            detectarGesto();
+        }
+
+        async function detectarGesto() {
+            if (!localStream) return;
+            const video = document.getElementById('localVideo');
+            const predictions = await model.estimateHands(video);
+            
+            if (predictions.length > 0) {
+                // Lógica simple: si hay mano detectada, sumamos tiempo
+                gestureTime += 500;
+                if (gestureTime >= 2000) {
+                    colgarTransmision();
+                    gestureTime = 0;
+                }
+            } else {
+                gestureTime = 0;
+            }
+            setTimeout(detectarGesto, 500);
+        }
+
+        function colgarTransmision() {
+            if (currentCall) currentCall.close();
+            alert("Transmisión finalizada por gesto.");
         }
 
         function generarCodigoTransmision() {
