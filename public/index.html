@@ -41,7 +41,7 @@
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            position: relative; /* Clave para que el perfil no rompa el diseño */
+            position: relative;
         }
 
         h3 {
@@ -66,7 +66,7 @@
             background-color: #003366;
         }
 
-        /* Tu perfil emisor: flotando arriba a la derecha, integrado y sin molestar */
+        /* Tu perfil emisor: integrado perfectamente arriba a la derecha */
         .perfil-emisor {
             position: absolute;
             top: 20px;
@@ -99,7 +99,7 @@
             text-decoration: underline;
         }
 
-        /* Lista de contactos original de Base44 */
+        /* Lista de contactos original e impecable */
         .contacto-item {
             display: flex;
             justify-content: space-between;
@@ -161,7 +161,7 @@
             background-color: #c82333;
         }
 
-        /* Copia Mágica Inferior original */
+        /* Copia Mágica Inferior Original */
         .copia-magica-container {
             margin-top: 15px;
         }
@@ -210,13 +210,13 @@
 </div>
 
 <script>
-    // Motores nativos al arrancar (Cargan todo del localStorage sin pérdidas)
+    // Motores listos desde el arranque
     document.addEventListener("DOMContentLoaded", function() {
         cargarContactos();
         cargarMiPerfil();
     });
 
-    // --- GESTIÓN DE MI PERFIL EMISOR (MEJORA) ---
+    // --- MI PERFIL EMISOR ---
     function cargarMiPerfil() {
         const telGuardado = localStorage.getItem('miTelefonoPropio');
         const display = document.getElementById('miTelefonoDisplay');
@@ -235,7 +235,7 @@
         }
     }
 
-    // --- GESTIÓN DE CONTACTOS ORIGINALES ---
+    // --- GESTIÓN DE CONTACTOS ---
     function obtenerContactos() {
         const contactosRaw = localStorage.getItem('contactos_base44');
         return contactosRaw ? JSON.parse(contactosRaw) : [];
@@ -296,7 +296,7 @@
         cargarContactos();
     }
 
-    // --- FUNCIÓN COPIA MÁGICA ORIGINAL ---
+    // --- COPIA MÁGICA ---
     function ejecutarCopiaMagica() {
         const campoTexto = document.getElementById('txtCopiaMagica');
         if (campoTexto.value.trim() === "") {
@@ -304,7 +304,7 @@
             return;
         }
         campoTexto.select();
-        campoTexto.setSelectionRange(0, 99999); // Soporte móvil móvil
+        campoTexto.setSelectionRange(0, 99999);
         navigator.clipboard.writeText(campoTexto.value);
     }
 </script>
