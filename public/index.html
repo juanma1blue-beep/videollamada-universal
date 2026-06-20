@@ -2,46 +2,41 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>SISTEMA V120.2 [ESTILO RESTAURADO]</title>
+    <title>SISTEMA V121.0 [ESTABLE]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at bottom, #1a1f33 0%, #050a1a 70%); z-index: 10; }
+        /* PANEL PRINCIPAL: Fijo y centrado */
+        #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 10; }
         .box { background: #0a1122; padding: 25px; width: 90%; max-width: 400px; border: 2px solid #a50044; border-radius: 20px; text-align: center; }
-        h3 { color: #004d98; margin-bottom: 5px; font-size: 16px; }
-        input { width: 100%; padding: 12px; margin: 5px 0 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 8px; text-align: center; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 8px; text-align: center; }
 
-        #videoArea { display: none; width: 100vw; height: 100vh; background: #000; }
-        .v-container { width: 100%; height: 50%; position: relative; }
+        /* VIDEOS: Estables */
+        #videoArea { display: none; width: 100vw; height: 100vh; }
+        .v-container { width: 100%; height: 50%; position: relative; border-bottom: 1px solid #a50044; }
         video { width: 100%; height: 100%; object-fit: cover; }
         
-        .weather-widget { position: absolute; top: 10px; right: 10px; z-index: 500; background: rgba(2,4,10,0.7); border: 1px solid #a50044; padding: 6px 10px; border-radius: 12px; font-size: 11px; cursor: pointer; }
+        /* WIDGET METEO: Minimalista */
+        .weather-widget { position: absolute; top: 10px; right: 10px; z-index: 500; background: rgba(0,0,0,0.6); border: 1px solid #004d98; padding: 5px 10px; border-radius: 10px; font-size: 10px; }
         
-        /* BARRA AZULGRANA RESTAURADA */
-        .control-bar { 
-            position: fixed; bottom: 20px; left: 5%; width: 90%;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 30px; border-radius: 40px; border: 2px solid #a50044; 
-            z-index: 999;
-            background: radial-gradient(circle at center, #004d98 0%, #a50044 50%, #000 100%);
-        }
+        /* CONTROL BAR: Estética Finalizada */
+        .control-bar { position: fixed; bottom: 20px; left: 5%; width: 90%; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; border-radius: 40px; border: 2px solid #a50044; z-index: 999; background: #02040a; }
         
-        /* BOTÓN FINALIZAR: Azulgrana y estelar */
+        /* BOTÓN FINALIZAR: Azulgrana restaurado */
         .btn-end { 
-            background: rgba(0,0,0,0.4); border: 1px solid #fff; border-radius: 20px;
-            padding: 10px 20px; cursor: pointer; font-weight: 900; font-size: 16px;
-            display: flex; align-items: center; text-transform: uppercase;
+            background: linear-gradient(to right, #004d98, #a50044);
+            border: none; border-radius: 20px; padding: 10px 25px; 
+            cursor: pointer; font-weight: 900; color: #fff; text-transform: uppercase;
         }
-        .azul { color: #00d2ff; } .grana { color: #ff3e6d; }
         
         /* TEXTO PROPINAS: Degradado azul restaurado */
         .btn-paypal { text-decoration: none; display: flex; flex-direction: column; align-items: center; }
-        .btn-paypal img { width: 55px; }
+        .btn-paypal img { width: 45px; }
         .paypal-text { 
             font-weight: bold; font-size: 11px; 
-            background: linear-gradient(to right, #004d98, #00d2ff);
+            background: linear-gradient(to right, #00d2ff, #004d98);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
     </style>
@@ -51,7 +46,7 @@
     <div id="panel">
         <div class="box">
             <h3>ID CONEXIÓN</h3>
-            <input type="text" id="myID" readonly onclick="navigator.clipboard.writeText(this.value); alert('ID copiado');">
+            <input type="text" id="myID" readonly>
             <h3>ID SOCIO</h3>
             <input type="text" id="targetID" placeholder="Introduce ID...">
             <button id="btnIniciar" style="width:100%; padding:15px; background:#a50044; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">INICIAR</button>
@@ -59,13 +54,11 @@
     </div>
 
     <div id="videoArea">
-        <div class="v-container"><div class="weather-widget" onclick="alert('Vinaròs: 22°C')">Vinaròs: 22°C</div><video id="remoteVideo" autoplay playsinline></video></div>
-        <div class="v-container"><div class="weather-widget" onclick="alert('Vinaròs: 22°C')">Vinaròs: 22°C</div><video id="localVideo" autoplay playsinline muted></video></div>
+        <div class="v-container"><div class="weather-widget">Vinaròs: 22°C</div><video id="remoteVideo" autoplay playsinline></video></div>
+        <div class="v-container"><div class="weather-widget">Vinaròs: 22°C</div><video id="localVideo" autoplay playsinline muted></video></div>
         
         <div class="control-bar">
-            <button class="btn-end" onclick="window.location.reload()">
-                <span class="azul">F</span><span class="grana">I</span><span class="azul">N</span>
-            </button>
+            <button class="btn-end" onclick="window.location.reload()">FINALIZAR</button>
             <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
                 <span class="paypal-text">PROPINAS</span>
@@ -76,7 +69,7 @@
     <script>
         const peer = new Peer();
         peer.on('open', id => document.getElementById('myID').value = id);
-
+        
         document.getElementById('btnIniciar').addEventListener('click', async () => {
             const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = stream;
@@ -87,16 +80,6 @@
                 const call = peer.call(targetID, stream);
                 call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
             }
-        });
-
-        peer.on('call', call => {
-            navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream => {
-                document.getElementById('localVideo').srcObject = stream;
-                document.getElementById('panel').style.display = 'none';
-                document.getElementById('videoArea').style.display = 'block';
-                call.answer(stream);
-                call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
-            });
         });
     </script>
 </body>
