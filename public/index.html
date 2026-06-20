@@ -3,54 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V99.0 [ESTÉTICA FINAL]</title>
+    <title>SISTEMA V100.0 [BARCELONA EDITION]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        /* PANEL PRINCIPAL ESTABLE */
+        /* PANEL PRINCIPAL (Intacto y estable) */
         #panel { 
             position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; 
             background: #050a1a; z-index: 100; padding: 20px;
         }
-        .box { background: #0a1122; padding: 25px; width: 100%; max-width: 450px; border: 2px solid #002277; border-radius: 20px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #002277; color: #00d2ff; border-radius: 8px; }
+        .box { background: #0a1122; padding: 25px; width: 100%; max-width: 450px; border: 2px solid #a50044; border-radius: 20px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 8px; }
 
-        /* BARRA TÁCTICA RECTANGULAR ALARGADA */
+        /* BARRA TÁCTICA BARCELONISTA */
         .control-bar {
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
             display: flex; align-items: center; z-index: 3000;
-            background: #000; padding: 15px 30px; border-radius: 50px;
-            border: 2px solid #ff0000; box-shadow: 0 0 15px rgba(255,0,0,0.5);
-            width: 90%; max-width: 400px;
+            background: #050a1a; padding: 12px 25px; border-radius: 40px;
+            border: 2px solid #a50044; box-shadow: 0 0 20px rgba(165,0,68,0.4);
         }
 
         .btn-end { 
-            background: none; border: none; cursor: pointer; color: #002277; 
-            font-weight: 900; font-size: 22px; text-transform: uppercase; flex-grow: 1;
+            background: none; border: none; cursor: pointer; color: #004d98; 
+            font-weight: 900; font-size: 22px; text-transform: uppercase;
         }
         
-        .separator { width: 2px; height: 40px; background: #00d2ff; margin: 0 20px; }
+        .separator { width: 2px; height: 35px; background: #00d2ff; margin: 0 20px; }
 
         .btn-paypal { 
-            text-decoration: none; color: #fff; font-size: 10px; text-align: center;
-            display: flex; flex-direction: column; align-items: center; width: 80px;
+            text-decoration: none; color: #fff; font-size: 9px; text-align: center;
+            display: flex; flex-direction: column; align-items: center; cursor: pointer;
         }
-        .btn-paypal img { width: 30px; margin-bottom: 4px; }
+        .btn-paypal img { width: 28px; margin-bottom: 2px; }
 
         .live-grid { display: none; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; }
-        video { width: 100%; height: 100%; object-fit: cover; border: 1px solid #002277; }
+        video { width: 100%; height: 100%; object-fit: cover; border: 1px solid #a50044; }
     </style>
 </head>
 <body>
 
     <div id="panel">
         <div class="box">
-            <h3 style="color:#00d2ff;">ID DE CONEXIÓN</h3>
+            <h3 style="color:#004d98;">ID DE CONEXIÓN</h3>
             <input type="text" id="myID" readonly>
-            <button onclick="iniciar()" style="width:100%; padding:15px; background:#002277; color:#fff; border:none; border-radius:8px; font-weight:bold;">INICIAR VIDEOLLAMADA</button>
-            <div id="listaAmigos"></div>
+            <button onclick="iniciar()" style="width:100%; padding:15px; background:#a50044; color:#fff; border:none; border-radius:8px; font-weight:bold;">INICIAR VIDEOLLAMADA</button>
         </div>
     </div>
 
@@ -60,9 +58,11 @@
             <video id="localVideo" autoplay playsinline muted></video>
             <div class="control-bar">
                 <button class="btn-end" onclick="finalizarConexion()">FINALIZAR</button>
+                
                 <div class="separator"></div>
+                
                 <a href="https://paypal.me/MarketEvolution" target="_blank" class="btn-paypal">
-                    <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal">
                     <span>PROPINA PAYPAL</span>
                 </a>
             </div>
