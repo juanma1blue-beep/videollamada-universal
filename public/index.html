@@ -41,7 +41,6 @@
             padding: 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            position: relative;
         }
 
         h3 {
@@ -64,40 +63,6 @@
 
         button:hover {
             background-color: #003366;
-        }
-
-        /* Perfil emisor: perfectamente integrado arriba a la derecha */
-        .perfil-emisor {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            text-align: right;
-            font-size: 12px;
-            background: rgba(0, 77, 152, 0.05);
-            padding: 6px 12px;
-            border-radius: 6px;
-            border-right: 3px solid #004d98;
-            z-index: 10;
-        }
-
-        .perfil-emisor span {
-            color: #777;
-            display: block;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .perfil-emisor strong {
-            color: #333;
-        }
-
-        .perfil-emisor small {
-            color: #004d98;
-            cursor: pointer;
-            display: inline-block;
-            margin-top: 2px;
-            text-decoration: underline;
         }
 
         /* Lista de contactos original de Base44 */
@@ -185,13 +150,6 @@
     <h1>Base44 - Sistema Unificado</h1>
 
     <div class="section">
-        <div class="perfil-emisor">
-            <span>Emisor Oficial</span>
-            <strong>Juanma</strong>
-            <br>
-            <small id="miTelefonoDisplay" onclick="configurarMiTelefono()">⚙️ Configurar</small>
-        </div>
-
         <h3>Mis Contactos Nativos</h3>
         
         <button id="addContactBtn" onclick="abrirFormularioContacto()" style="background-color: #28a745; margin-bottom: 10px;">Añadir Contacto del Smartphone</button>
@@ -211,57 +169,15 @@
 </div>
 
 <script>
-    // Motores de seguridad activados desde el inicio
+    // Carga nativa al arrancar
     document.addEventListener("DOMContentLoaded", function() {
-        inicializarBaseDatos();
+        cargarContactos();
     });
 
-    function inicializarBaseDatos() {
-        try {
-            // Carga ultra segura de los componentes para evitar bloqueos al actualizar
-            cargarMiPerfil();
-            cargarContactos();
-        } catch (error) {
-            console.error("Error al inicializar la memoria local, restaurando valores por defecto:", error);
-            localStorage.clear();
-            cargarMiPerfil();
-            cargarContactos();
-        }
-    }
-
-    // --- GESTIÓN DE MI PERFIL EMISOR ---
-    function cargarMiPerfil() {
-        const telGuardado = localStorage.getItem('miTelefonoPropio');
-        const display = document.getElementById('miTelefonoDisplay');
-        if (display) {
-            if (telGuardado && telGuardado.trim() !== "") {
-                display.innerText = "📞 " + telGuardado;
-            } else {
-                display.innerText = "⚙️ Configurar";
-            }
-        }
-    }
-
-    function configurarMiTelefono() {
-        const nuevoTel = prompt("Introduce tu número de móvil o el teléfono fijo de casa:");
-        if (nuevoTel !== null) {
-            if (nuevoTel.trim() !== "") {
-                localStorage.setItem('miTelefonoPropio', nuevoTel.trim());
-            } else {
-                localStorage.removeItem('miTelefonoPropio');
-            }
-            cargarMiPerfil();
-        }
-    }
-
-    // --- GESTIÓN DE CONTACTOS NATIVOS ---
+    // --- GESTIÓN DE CONTACTOS ORIGINALES ---
     function obtenerContactos() {
-        try {
-            const contactosRaw = localStorage.getItem('contactos_base44');
-            return contactosRaw ? JSON.parse(contactosRaw) : [];
-        } catch (e) {
-            return [];
-        }
+        const contactosRaw = localStorage.getItem('contactos_base44');
+        return contactosRaw ? JSON.parse(contactosRaw) : [];
     }
 
     function guardarContactos(lista) {
@@ -288,8 +204,6 @@
     function cargarContactos() {
         const lista = obtenerContactos();
         const contenedor = document.getElementById('contactList');
-        if (!contenedor) return;
-        
         contenedor.innerHTML = "";
 
         if (lista.length === 0) {
@@ -321,10 +235,10 @@
         cargarContactos();
     }
 
-    // --- FUNCIÓN COPIA MÁGICA ---
+    // --- FUNCIÓN COPIA MÁGICA ORIGINAL ---
     function ejecutarCopiaMagica() {
         const campoTexto = document.getElementById('txtCopiaMagica');
-        if (!campoTexto || campoTexto.value.trim() === "") {
+        if (campoTexto.value.trim() === "") {
             alert("Por favor, escribe algo en el cuadro de Copia Mágica antes de copiar.");
             return;
         }
