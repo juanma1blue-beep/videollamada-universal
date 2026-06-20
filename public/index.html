@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V91.0 [ESTÉTICA TÁCTICA LÍQUIDA]</title>
+    <title>SISTEMA V92.0 [INTEGRIDAD TOTAL]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        /* ESTILOS BASE - BLINDADOS */
         * { box-sizing: border-box; }
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; justify-content: center; align-items: center; overflow: hidden; }
         #panel { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; padding: 10px; }
@@ -14,42 +13,31 @@
         h3 { font-size: 16px; color: #ccc; margin: 15px 0 10px 0; border-bottom: 1px solid #002277; padding-bottom: 5px; }
         input { width: 100%; height: 45px; padding: 10px; margin-bottom: 10px; background: #0a1122; border: 1px solid #00d2ff; color: #00d2ff; border-radius: 8px; font-size: 16px; }
         button { width: 100%; padding: 12px; border: none; cursor: pointer; font-weight: bold; text-transform: uppercase; margin-top: 5px; border-radius: 8px; font-size: 16px; }
-        
-        /* BOTONES AGENDA Y GESTIÓN */
         .btn-video { background: #002277; border: 1px solid #00d2ff; color: #fff; }
         .btn-save  { background: #910023; border: 1px solid #ff4444; color: #fff; }
         .amigo-item { background: #0a1122; padding: 10px; margin-bottom: 8px; border-radius: 8px; border-left: 3px solid #002277; display: flex; align-items: center; justify-content: space-between; }
         .btn-wifi { background: #002277; border: 1px solid #00d2ff; color: #fff; width: auto; padding: 5px 10px; margin: 0 10px; }
         .btn-edit { width: 40px; height: 40px; border-radius: 50%; background: #910023; border: 1px solid #ff4444; color: white; display: flex; align-items: center; justify-content: center; padding: 0; }
-
-        /* AREA DE VIDEO Y GRILLA */
+        
         .live-grid { display: none; grid-template-rows: 1fr 1fr; width: 100vw; height: 100vh; position: fixed; inset: 0; }
         .cam-box { border: 1px solid #002277; overflow: hidden; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* --- NUEVO BOTÓN "FINALIZAR" TÁCTICO NEÓN --- */
+        /* BOTÓN FINALIZAR - ESTRUCTURA DE ALTA PRECISIÓN */
         .btn-end { 
             position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); z-index: 2000;
             padding: 18px 50px; border-radius: 40px; cursor: pointer; font-weight: 900; font-size: 20px;
-            text-transform: uppercase; border: none; outline: none; transition: 0.2s;
-
-            /* Botón Transparente (Glassmorfismo) */
-            background: rgba(255, 255, 255, 0.05); /* Muy tenue */
-            backdrop-filter: blur(10px); /* Efecto cristal desenfocado */
-            -webkit-backdrop-filter: blur(10px);
-            
-            /* Borde Rojo Neón Intenso */
-            border: 2px solid rgba(255, 0, 0, 0.8);
-            box-shadow: 
-                0 0 10px rgba(255, 0, 0, 0.5),   /* Brillo interno */
-                0 0 25px rgba(255, 0, 0, 0.3),   /* Brillo externo tenue */
-                inset 0 0 10px rgba(255, 0, 0, 0.2); /* Sombra interna */
+            text-transform: uppercase; border: 2px solid rgba(255, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+            display: flex; gap: 5px;
         }
-
-        /* Colores de neón específicos para las letras */
-        .neo-azul { color: #0088ff; text-shadow: 0 0 5px #0088ff, 0 0 10px #0088ff; }
-        .neo-grana { color: #910023; text-shadow: 0 0 5px #910023, 0 0 10px #910023; }
-
+        /* Las letras están aisladas del blur para mantener la nitidez */
+        .btn-end span { backdrop-filter: none; -webkit-backdrop-filter: none; }
+        .neo-azul { color: #00d2ff; text-shadow: 0 0 8px #00d2ff; }
+        .neo-grana { color: #ff4444; text-shadow: 0 0 8px #ff4444; }
     </style>
 </head>
 <body>
@@ -58,11 +46,9 @@
         <div class="box">
             <h3>ID DE CONEXIÓN</h3>
             <input type="text" id="myID" readonly>
-            
             <h3>PANEL DE GESTIÓN TÁCTICA</h3>
             <input type="text" id="targetID" placeholder="Pega el ID aquí...">
             <button class="btn-video" onclick="conectar()">INICIAR VIDEOLLAMADA</button>
-            
             <h3>AGENDA</h3>
             <div id="listaAmigos"></div>
             <input type="text" id="nombre" placeholder="Nombre...">
@@ -75,23 +61,15 @@
         <div class="cam-box"><video id="remoteVideo" autoplay playsinline></video></div>
         <div class="cam-box">
             <video id="localVideo" autoplay playsinline muted></video>
-            
             <button class="btn-end" onclick="finalizarConexion()">
-                <span class="neo-azul">F</span>
-                <span class="neo-grana">I</span>
-                <span class="neo-azul">N</span>
-                <span class="neo-grana">A</span>
-                <span class="neo-azul">L</span>
-                <span class="neo-grana">I</span>
-                <span class="neo-azul">Z</span>
-                <span class="neo-grana">A</span>
-                <span class="neo-azul">R</span>
+                <span class="neo-azul">F</span><span class="neo-grana">I</span><span class="neo-azul">N</span>
+                <span class="neo-grana">A</span><span class="neo-azul">L</span><span class="neo-grana">I</span>
+                <span class="neo-azul">Z</span><span class="neo-grana">A</span><span class="neo-azul">R</span>
             </button>
         </div>
     </div>
 
     <script>
-        // LÓGICA DE PROGRAMACIÓN - BLINDADA Y SIN BUGS
         const randomID = Math.random().toString(36).substring(2, 10);
         document.getElementById('myID').value = randomID;
         document.body.addEventListener('click', () => { navigator.clipboard.writeText(randomID).catch(() => {}); }, { once: true });
