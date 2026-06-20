@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V114.0 [COPIA RÁPIDA]</title>
+    <title>SISTEMA V115.0 [JERARQUÍA]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,19 +14,19 @@
             background: radial-gradient(circle at bottom, #1a1f33 0%, #050a1a 70%); 
             z-index: 10; 
         }
-        .box { background: #0a1122; padding: 25px; width: 90%; max-width: 400px; border: 2px solid #a50044; border-radius: 20px; }
+        .box { background: #0a1122; padding: 25px; width: 90%; max-width: 400px; border: 2px solid #a50044; border-radius: 20px; text-align: center; }
+        
+        /* Ajuste de etiquetas */
+        h3 { color: #004d98; margin-bottom: 5px; }
+        .help-text { color: #555; font-size: 12px; margin-bottom: 10px; display: block; }
+        
         input { 
-            width: 100%; padding: 12px; margin: 10px 0; background: #000; 
+            width: 100%; padding: 12px; margin: 5px 0 15px 0; background: #000; 
             border: 1px solid #004d98; color: #fff; border-radius: 8px;
-            cursor: pointer; transition: border 0.3s;
+            cursor: pointer; text-align: center; font-weight: bold;
         }
-        /* Efecto al tocar */
-        input:active { border-color: #a50044; outline: none; }
 
-        #videoArea { 
-            display: none; width: 100vw; height: 100vh; 
-            background: radial-gradient(circle at bottom, #1a1f33 0%, #050a1a 70%); 
-        }
+        #videoArea { display: none; width: 100vw; height: 100vh; background: radial-gradient(circle at bottom, #1a1f33 0%, #050a1a 70%); }
         .v-container { width: 100%; height: 50%; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
@@ -55,10 +55,14 @@
 
     <div id="panel">
         <div class="box">
-            <h3 style="color:#004d98;">ID CONEXIÓN (TOCA PARA COPIAR)</h3>
+            <h3>ID CONEXIÓN</h3>
             <input type="text" id="myID" readonly onclick="copiarID()">
-            <input type="text" id="targetID" placeholder="ID DEL SOCIO...">
-            <button onclick="iniciarConexion()" style="width:100%; padding:15px; background:#a50044; color:#fff; border:none; border-radius:8px; font-weight:bold;">INICIAR</button>
+            <span class="help-text">(Toca para copiar)</span>
+            
+            <h3 style="margin-top:10px;">ID SOCIO</h3>
+            <input type="text" id="targetID" placeholder="Introduce ID...">
+            
+            <button onclick="iniciarConexion()" style="width:100%; padding:15px; background:#a50044; color:#fff; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">INICIAR</button>
         </div>
     </div>
 
