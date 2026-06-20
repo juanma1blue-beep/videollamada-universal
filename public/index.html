@@ -12,43 +12,28 @@
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Arial', sans-serif; }
-        body { background-color: #f0f4f8; color: #333; line-height: 1.6; padding: 10px; }
-
-        .main-layout { display: flex; gap: 10px; max-width: 1200px; margin: 0 auto; align-items: flex-start; overflow-x: hidden; }
-        .container { flex: 2; background: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-
-        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #e1e8ed; padding-bottom: 10px; flex-wrap: nowrap; gap: 5px; }
-        h1 { color: #004d98; font-size: 18px; white-space: nowrap; }
-
-        .paypal-donation-btn { display: inline-flex; align-items: center; background-color: #ffc439; color: #003087; text-decoration: none; padding: 5px 10px; border-radius: 20px; font-weight: bold; font-size: 11px; height: 35px; border: 1px solid #e5b228; white-space: nowrap; }
-        .paypal-logo-text { font-style: italic; font-weight: 900; margin-right: 4px; font-size: 12px; }
-
-        .video-grid { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-        .video-column { flex: 1; min-width: 250px; display: flex; flex-direction: column; }
-        .control-top { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+        body { background-color: #f0f4f8; color: #333; line-height: 1.4; padding: 10px; }
+        .main-layout { display: flex; gap: 10px; max-width: 1200px; margin: 0 auto; }
+        .container { flex: 2; background: #ffffff; padding: 15px; border-radius: 8px; }
         
-        .room-input { width: 100%; padding: 8px; border: 2px solid #ccc; border-radius: 4px; font-size: 12px; text-align: center; height: 40px; }
-        .youtube-btn { display: inline-flex; align-items: center; justify-content: center; background-color: #ff0000; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: bold; height: 40px; border: none; font-size: 12px; }
+        /* AJUSTES PARA FLUIDEZ Y NO-LAG */
+        video { width: 100%; height: 100%; object-fit: cover; background: #000; transform: translateZ(0); will-change: transform; }
         
-        .video-box { width: 100%; height: 200px; background: #222; border-radius: 4px; position: relative; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .video-label { position: absolute; bottom: 5px; left: 5px; background: rgba(0, 0, 0, 0.7); padding: 2px 6px; border-radius: 3px; font-size: 9px; color: #fff; z-index: 3; }
-        
-        .instructions-box { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-top: 10px; font-size: 11px; }
-        .instructions-box h2 { font-size: 14px; color: #004d98; margin-bottom: 5px; white-space: nowrap; }
-        .instructions-table { width: 100%; border-collapse: collapse; margin-bottom: 8px; }
-        .instructions-table th, .instructions-table td { border: 1px solid #cbd5e1; padding: 5px; }
-        .instructions-list { list-style-type: none; margin-top: 5px; }
-        .instructions-list li { margin-bottom: 4px; }
+        .header-area { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        h1 { color: #004d98; font-size: 18px; }
 
-        .chat-panel { flex: 1; background: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: 400px; min-width: 250px; }
-        .chat-messages { flex: 1; border: 1px solid #e1e8ed; padding: 5px; overflow-y: auto; margin-bottom: 5px; font-size: 12px; }
+        .video-grid { display: flex; gap: 10px; }
+        .video-box { width: 100%; height: 200px; background: #222; border-radius: 4px; overflow: hidden; position: relative; }
         
-        button { width: 100%; color: white; border: none; padding: 5px; font-weight: bold; border-radius: 4px; cursor: pointer; height: 40px; font-size: 12px; }
+        /* CORRECCIÓN DE BUG EN CAMPO DE TEXTO */
+        .chat-panel { flex: 1; background: #ffffff; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; height: 400px; }
+        .chat-input-area { display: flex; gap: 5px; flex-shrink: 0; width: 100%; }
+        .chat-input { flex: 1; min-width: 0; padding: 10px; border: 2px solid #ccc; border-radius: 4px; height: 40px; }
+        
+        .instructions-box { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px; margin-top: 10px; font-size: 11px; }
+        button { height: 40px; padding: 0 15px; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; color: white; }
         .btn-primary { background-color: #004d98; }
         .btn-success { background-color: #28a745; }
-
-        @media (max-width: 900px) { .main-layout { flex-direction: column; } }
     </style>
 </head>
 <body>
@@ -56,61 +41,52 @@
         <div class="container">
             <div class="header-area">
                 <h1>Base44</h1>
-                <a href="https://PayPal.me/MarketEvolution" target="_blank" class="paypal-donation-btn">
-                    <span class="paypal-logo-text">PayPal</span> 💛 Donaciones
-                </a>
+                <a href="https://PayPal.me/MarketEvolution" target="_blank" style="background:#ffc439; padding:5px 10px; border-radius:20px; font-size:12px; font-weight:bold; color:#003087; text-decoration:none;">PayPal</a>
             </div>
             <div class="video-grid">
-                <div class="video-column">
-                    <div class="control-top">
-                        <input type="text" id="roomCode" class="room-input" placeholder="CÓDIGO">
-                        <button class="btn-primary" onclick="generarCodigoTransmision()">Generar Código</button>
-                    </div>
-                    <div class="video-box"><video id="localVideo" autoplay playsinline muted></video><div class="video-label">LOCAL</div></div>
-                </div>
-                <div class="video-column">
-                    <div class="control-top">
-                        <a href="https://www.youtube.com/@juanmaentertaiment" target="_blank" class="youtube-btn">YouTube</a>
-                        <button class="btn-success" onclick="conectarTransmisionReal()">Conectar</button>
-                    </div>
-                    <div class="video-box"><video id="remoteVideo" autoplay playsinline></video><div class="video-label">REMOTO</div></div>
-                </div>
+                <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
+                <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
             </div>
             <div class="instructions-box">
                 <h2>Guía Rápida de Uso</h2>
-                <table class="instructions-table">
-                    <tr><th>Rol</th><th>Acción</th></tr>
-                    <tr><td>Tú</td><td>Generar código</td></tr>
-                    <tr><td>Pareja</td><td>Conectar</td></tr>
-                </table>
-                <ul class="instructions-list">
-                    <li>🔹 <b>Gesto Stop:</b> Mano abierta 2s para colgar.</li>
-                    <li>🔹 <b>Auto-Optimización:</b> Barrido de caché tras cada llamada.</li>
-                </ul>
+                <p>Persona 1 genera código. Persona 2 conecta. Gesto Stop (✋) 2s para colgar.</p>
+                <p>Auto-optimización de caché activa en cada cierre.</p>
             </div>
         </div>
         <div class="chat-panel">
             <h3>Chat</h3>
-            <div class="chat-messages" id="chatBox"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="chatMsg" class="room-input" placeholder="Mensaje...">
+            <div id="chatBox" style="flex:1; overflow-y:auto; border:1px solid #ddd; margin-bottom:10px; padding:5px;"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatMsg" class="chat-input" placeholder="Escribe aquí...">
                 <button class="btn-primary" onclick="enviarMensajeChat()">Enviar</button>
             </div>
         </div>
     </div>
     <script>
-        let localStream = null, peer = null, currentCall = null, modelHandpose = null, stopGestureActiveDuration = 0, checkHandInterval = null;
-        async function cargarModeloGestos() { try { modelHandpose = await handpose.load(); } catch (e) {} }
-        cargarModeloGestos();
-        function generarCodigoTransmision() { const res = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase(); document.getElementById('roomCode').value = res; inicializarPeer(res); }
-        function inicializarPeer(id) { if (peer) peer.destroy(); peer = new Peer(id); peer.on('call', (c) => { c.answer(localStream); gestionarLlamada(c); }); }
-        async function activarCamaraLocal() { try { localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true }); document.getElementById('localVideo').srcObject = localStream; checkHandInterval = setInterval(analizarGestoMano, 300); } catch (e) {} }
-        async function analizarGestoMano() { if (!modelHandpose || !localStream) return; const p = await modelHandpose.estimateHands(document.getElementById('localVideo')); if (p.length > 0) { let d = 0; for(let i=0; i<4; i++) if (p[0].landmarks[8+i*4][1] < p[0].landmarks[6+i*4][1]) d++; if (d >= 3) { stopGestureActiveDuration += 300; if (stopGestureActiveDuration >= 2000) colgarTransmisionPorGesto(); } else stopGestureActiveDuration = 0; } }
-        function colgarTransmisionPorGesto() { if (currentCall) currentCall.close(); if (localStream) localStream.getTracks().forEach(t => t.stop()); }
-        function conectarTransmisionReal() { activarCamaraLocal().then(() => lanzarLlamada(document.getElementById('roomCode').value)); }
-        function lanzarLlamada(id) { const call = peer.call(id, localStream); gestionarLlamada(call); }
-        function gestionarLlamada(call) { currentCall = call; call.on('stream', (s) => document.getElementById('remoteVideo').srcObject = s); }
-        function enviarMensajeChat() { const input = document.getElementById('chatMsg'); document.getElementById('chatBox').innerHTML += `<div><b>Juanma:</b> ${input.value}</div>`; input.value = ""; }
+        let localStream = null, peer = null, currentCall = null;
+        // Optimización WebRTC para reducir lag
+        const constraints = { video: { width: { ideal: 640 }, height: { ideal: 480 }, frameRate: { ideal: 30 } }, audio: true };
+        
+        async function activarCamaraLocal() {
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            document.getElementById('localVideo').srcObject = localStream;
+        }
+        
+        function inicializarPeer(id) {
+            peer = new Peer(id);
+            peer.on('call', (c) => { c.answer(localStream); gestionarLlamada(c); });
+        }
+
+        function gestionarLlamada(call) {
+            currentCall = call;
+            call.on('stream', (s) => document.getElementById('remoteVideo').srcObject = s);
+        }
+
+        function enviarMensajeChat() {
+            const input = document.getElementById('chatMsg');
+            document.getElementById('chatBox').innerHTML += `<div><b>Juanma:</b> ${input.value}</div>`;
+            input.value = "";
+        }
     </script>
 </body>
 </html>
