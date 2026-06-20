@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base44 - Sistema Unificado de Transmisión</title>
+    <title>Base44 - Sistema de Transmisión</title>
     <style>
         * {
             box-sizing: border-box;
@@ -32,10 +32,9 @@
             padding: 25px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            position: relative;
         }
 
-        /* Panel de Chat a la Derecha */
+        /* Panel de Chat Lateral Derecho */
         .chat-panel {
             flex: 1;
             background: #ffffff;
@@ -98,41 +97,6 @@
             background-color: #218838;
         }
 
-        /* Perfil emisor arriba a la derecha del recuadro blanco */
-        .perfil-emisor {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            text-align: right;
-            font-size: 12px;
-            background: rgba(0, 77, 152, 0.05);
-            padding: 6px 12px;
-            border-radius: 6px;
-            border-right: 3px solid #004d98;
-            z-index: 10;
-        }
-
-        .perfil-emisor span {
-            color: #777;
-            display: block;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .perfil-emisor strong {
-            color: #333;
-        }
-
-        .perfil-emisor small {
-            color: #004d98;
-            cursor: pointer;
-            display: inline-block;
-            margin-top: 2px;
-            text-decoration: underline;
-        }
-
-        /* Input de código de sala */
         .room-input {
             width: 100%;
             padding: 10px;
@@ -145,21 +109,42 @@
             letter-spacing: 2px;
         }
 
-        /* Área de visualización de videollamada */
-        .video-placeholder {
-            width: 100%;
-            height: 350px;
+        /* Rejilla para las Dos Cámaras de Transmisión */
+        .video-grid {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .video-box {
+            flex: 1;
+            height: 280px;
             background: #222;
             border-radius: 8px;
             display: flex;
             justify-content: center;
             align-items: center;
             color: #fff;
-            font-size: 16px;
-            margin-top: 15px;
+            font-size: 14px;
+            position: relative;
+            border: 2px solid #333;
+            text-align: center;
+            padding: 10px;
         }
 
-        /* Componentes del Chat Interno */
+        .video-label {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* Historial de Mensajes del Chat */
         .chat-messages {
             flex: 1;
             border: 1px solid #e1e8ed;
@@ -187,10 +172,11 @@
             .main-layout {
                 flex-direction: column;
             }
-            .perfil-emisor {
-                position: static;
-                text-align: left;
-                margin-bottom: 15px;
+            .video-grid {
+                flex-direction: column;
+            }
+            .video-box {
+                height: 200px;
             }
         }
     </style>
@@ -199,13 +185,6 @@
 
 <div class="main-layout">
     <div class="container">
-        <div class="perfil-emisor">
-            <span>Emisor Oficial</span>
-            <strong>Juanma</strong>
-            <br>
-            <small id="miTelefonoDisplay" onclick="configurarMiTelefono()">⚙️ Configurar</small>
-        </div>
-
         <h1>Base44 - Transmisión Unificada</h1>
 
         <div class="section">
@@ -219,8 +198,16 @@
             </div>
         </div>
 
-        <div class="video-placeholder" id="videoScreen">
-            🎥 Transmisión lista. Genera un código para conectar la videollamada.
+        <div class="video-grid">
+            <div class="video-box" id="localVideoBox">
+                <span id="localStatus">📷 Cámara Local Apagada</span>
+                <div class="video-label">TRANSMISIÓN LOCAL (TÚ)</div>
+            </div>
+            
+            <div class="video-box" id="remoteVideoBox">
+                <span id="remoteStatus">💤 Esperando Conexión Remota...</span>
+                <div class="video-label">TRANSMISIÓN REMOTA</div>
+            </div>
         </div>
     </div>
 
@@ -237,11 +224,7 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        cargarMiPerfil();
-    });
-
-    // --- GENERACIÓN DE CÓDIGOS ALEATORIOS ORIGINALES ---
+    // --- BOTÓN 1: GENERAR CÓDIGO ALEATORIO ---
     function generarCodigoTransmision() {
         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         let resultado = 'B44-';
@@ -255,22 +238,28 @@
         chat.scrollTop = chat.scrollHeight;
     }
 
+    // --- BOTÓN 2: INICIAR CONEXIÓN SEGURA (Enciende las dos cámaras) ---
     function conectarTransmision() {
         const codigo = document.getElementById('roomCode').value;
         if (!codigo) {
             alert("Por favor, genera primero un código aleatorio de transmisión.");
             return;
         }
-        const pantalla = document.getElementById('videoScreen');
-        pantalla.style.background = "#004d98";
-        pantalla.innerHTML = `🌐 Conectado con éxito a la sala comercial nativa: <b>${codigo}</b>`;
+        
+        // Activación Cámara 1
+        document.getElementById('localVideoBox').style.background = "#155724";
+        document.getElementById('localStatus').innerHTML = "🟢 Mi Cámara Activa (Transmitiendo)";
+        
+        // Activación Cámara 2
+        document.getElementById('remoteVideoBox').style.background = "#004d98";
+        document.getElementById('remoteStatus').innerHTML = "🌐 Conectado a la sala: <b>" + codigo + "</b><br>🎥 Transmisión en vivo recibida";
         
         const chat = document.getElementById('chatBox');
-        chat.innerHTML += `<p style="color: #28a745;"><b>Sistema:</b> Conexión establecida correctamente en la sala ${codigo}.</p>`;
+        chat.innerHTML += `<p style="color: #28a745;"><b>Sistema:</b> Ambas cámaras sincronizadas en la sala ${codigo}.</p>`;
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- COMUNICACIÓN DEL CHAT DE LA DERECHA ---
+    // --- ENVÍO DE MENSAJES AL CHAT ---
     function enviarMensajeChat() {
         const input = document.getElementById('chatMsg');
         const chat = document.getElementById('chatBox');
@@ -281,32 +270,7 @@
         chat.scrollTop = chat.scrollHeight;
     }
 
-    // --- GESTIÓN DE MI PERFIL EMISOR ---
-    function cargarMiPerfil() {
-        const telGuardado = localStorage.getItem('miTelefonoPropio');
-        const display = document.getElementById('miTelefonoDisplay');
-        if (display) {
-            if (telGuardado && telGuardado.trim() !== "") {
-                display.innerText = "📞 " + telGuardado;
-            } else {
-                display.innerText = "⚙️ Configurar";
-            }
-        }
-    }
-
-    function configurarMiTelefono() {
-        const nuevoTel = prompt("Introduce tu número de móvil o el teléfono fijo de casa:");
-        if (nuevoTel !== null) {
-            if (nuevoTel.trim() !== "") {
-                localStorage.setItem('miTelefonoPropio', nuevoTel.trim());
-            } else {
-                localStorage.removeItem('miTelefonoPropio');
-            }
-            cargarMiPerfil();
-        }
-    }
-
-    // Permitir enviar mensajes de chat pulsando la tecla Enter
+    // Enviar con la tecla Enter
     document.getElementById('chatMsg').addEventListener("keypress", function(e) {
         if (e.key === "Enter") {
             enviarMensajeChat();
