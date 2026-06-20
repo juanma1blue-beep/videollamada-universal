@@ -2,437 +2,325 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Base44 - Sistema Unificado de Comunicación</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base44 - Sistema Unificado</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f4f4; 
-            margin: 0; 
-            padding: 20px; 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
             color: #333;
+            line-height: 1.6;
+            padding: 20px;
         }
-        
-        .main-container { 
-            display: flex; 
-            max-width: 1300px; 
-            margin: 0 auto; 
-            gap: 20px; 
-            align-items: flex-start;
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        
-        /* COLUMNA IZQUIERDA: CONTROL Y AGENDA */
-        .left-column { 
-            flex: 1.2; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
+
+        h1 {
+            color: #004d98;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 26px;
         }
-        
-        .section { 
-            background: #fff; 
-            padding: 20px; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-        }
-        
-        .controls-wrapper { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            gap: 10px; 
-            margin-bottom: 20px; 
-        }
-        
-        button { 
-            padding: 12px 20px; 
-            font-size: 14px; 
-            cursor: pointer; 
-            border: none; 
-            border-radius: 6px; 
-            color: white; 
-            font-weight: bold; 
-            transition: background 0.2s; 
-        }
-        
-        input[type="text"] { 
-            padding: 11px; 
-            font-size: 14px; 
-            text-align: center; 
-            border: 2px solid #004d98; 
-            border-radius: 6px; 
-            background-color: #fff; 
-        }
-        
-        #generarBtn { background-color: #333; }
-        #optimizarBtn { background-color: #004d98; }
-        #colgarBtn { background-color: #a50044; }
-        #addContactBtn { background-color: #28a745; }
-        
-        .video-container { 
-            display: flex; 
-            justify-content: center; 
-            gap: 15px; 
-            margin-top: 15px; 
-        }
-        
-        video { 
-            width: 48%; 
-            aspect-ratio: 16 / 9; 
-            background: #000; 
-            border-radius: 8px; 
-            object-fit: cover; 
-        }
-        
-        .contact-card { 
-            display: flex; 
-            justify-content: space-between; 
-            padding: 12px; 
-            border-bottom: 1px solid #eee; 
-            align-items: center; 
-        }
-        
-        .call-btn { background-color: #007bff; padding: 8px 15px; }
-        .delete-btn { background-color: #dc3545; padding: 8px 12px; }
-        
-        /* COLUMNA DERECHA: CHAT COMPLETO PROFESIONAL */
-        .right-column { 
-            flex: 0.8; 
-            background: #fff; 
-            border-radius: 12px; 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05); 
-            display: flex; 
-            flex-direction: column; 
-            height: 650px; 
+
+        .section {
+            background: #fafafa;
+            border: 1px solid #e1e8ed;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
             position: relative;
         }
-        
-        .chat-header { 
-            background: #004d98; 
-            color: white; 
-            padding: 15px; 
-            border-top-left-radius: 12px; 
-            border-top-right-radius: 12px; 
-            font-weight: bold; 
-            font-size: 16px;
+
+        h3 {
+            color: #004d98;
+            margin-bottom: 15px;
+            font-size: 18px;
         }
-        
-        .chat-messages { 
-            flex: 1; 
-            padding: 15px; 
-            overflow-y: auto; 
-            background: #f9f9f9; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
+
+        button {
+            background-color: #004d98;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
         }
-        
-        /* Globo de texto interactivo y transparente para ella */
-        .bubble-link { 
-            background: rgba(0, 77, 152, 0.1); 
-            border: 1px solid rgba(0, 77, 152, 0.2); 
-            padding: 12px; 
-            border-radius: 10px; 
-            color: #004d98; 
-            cursor: pointer; 
-            max-width: 85%; 
-            align-self: flex-start; 
-            transition: background 0.2s; 
+
+        button:hover {
+            background-color: #003366;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"], input[type="tel"] {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
             font-size: 14px;
         }
-        
-        .bubble-link:hover { 
-            background: rgba(0, 77, 152, 0.18); 
+
+        /* Tarjeta de perfil emisor arriba a la derecha, limpia y equilibrada */
+        .perfil-emisor {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            text-align: right;
+            font-size: 12px;
+            background: rgba(0, 77, 152, 0.05);
+            padding: 6px 12px;
+            border-radius: 6px;
+            border-right: 3px solid #004d98;
         }
-        
-        .chat-footer { 
-            padding: 15px; 
-            background: #fff; 
-            border-bottom-left-radius: 12px; 
-            border-bottom-right-radius: 12px; 
-            border-top: 1px solid #eee; 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
+
+        .perfil-emisor span {
+            color: #777;
+            display: block;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
-        
-        .chat-footer input[type="text"] { 
-            flex: 1; 
-            text-align: left; 
-            border: 1px solid #ccc; 
-            padding: 12px; 
-            border-radius: 25px; 
+
+        .perfil-emisor strong {
+            color: #333;
         }
-        
-        .send-btn { 
-            background-color: #004d98; 
-            border-radius: 50%; 
-            width: 45px; 
-            height: 45px; 
-            padding: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 18px; 
+
+        .perfil-emisor small {
+            color: #004d98;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 2px;
+            text-decoration: underline;
         }
-        
-        .mic-btn { 
-            background-color: #25d366; 
-            border-radius: 50%; 
-            width: 45px; 
-            height: 45px; 
-            padding: 0; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 18px; 
-            user-select: none;
+
+        /* Lista de contactos en pantalla */
+        .contacto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 12px 15px;
+            border: 1px solid #e6ecf0;
+            border-radius: 6px;
+            margin-top: 8px;
         }
-        
-        .mic-btn.recording { 
-            background-color: #a50044; 
-            animation: pulse 1.5s infinite;
+
+        .contacto-info {
+            display: flex;
+            flex-direction: column;
         }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+
+        .contacto-nombre {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .contacto-telefono {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .contacto-acciones {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-llamar {
+            background-color: #28a745;
+            text-decoration: none;
+            color: white;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-llamar:hover {
+            background-color: #218838;
+        }
+
+        .btn-eliminar {
+            background-color: #dc3545;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .btn-eliminar:hover {
+            background-color: #c82333;
+        }
+
+        /* Copia Mágica Inferior */
+        .copia-magica-container {
+            margin-top: 15px;
+        }
+
+        .textarea-copia {
+            width: 100%;
+            height: 80px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: none;
+            background-color: #fff;
         }
     </style>
 </head>
 <body>
 
-<div class="main-container">
-    
-    <div class="left-column">
+<div class="container">
+    <h1>Base44 - Transmisión Unificada</h1>
+
+    <div class="section">
+        <div class="perfil-emisor">
+            <span>Emisor Oficial</span>
+            <strong>Juanma</strong>
+            <br>
+            <small id="miTelefonoDisplay" onclick="configurarMiTelefono()">⚙️ Configurar</small>
+        </div>
+
+        <h3>Mis Contactos Nativos</h3>
         
-        <div class="section">
-            <div class="controls-wrapper">
-                <button id="generarBtn">Generar Código</button>
-                <input type="text" id="roomCode" placeholder="Código...">
-                <button id="optimizarBtn">Optimizar</button>
-                <button id="colgarBtn">Colgar</button>
-            </div>
-            <div class="video-container">
-                <video id="localVideo" autoplay playsinline muted></video>
-                <video id="remoteVideo" autoplay playsinline></video>
-            </div>
+        <div class="input-group" style="max-width: 70%; margin-bottom: 15px;">
+            <button id="addContactBtn" onclick="abrirFormularioContacto()" style="background-color: #28a745;">Añadir Contacto del Smartphone</button>
         </div>
         
-        <div class="section">
-            <h3>Mis Contactos Nativos</h3>
-            <button id="addContactBtn">Añadir Contacto del Smartphone</button>
-            <div id="contactList" style="margin-top: 10px;"></div>
-        </div>
-        
+        <div id="contactList"></div>
     </div>
-    
-    <div class="right-column">
-        <div class="chat-header">Sala de Transmisión Visual</div>
-        
-        <div class="chat-messages" id="chatMessages">
-            <div class="bubble-link" onclick="autoconectarCodigo('HER-774')">
-                <strong>Juanma:</strong> Código de conexión generado. Pulsa aquí para vincular e iniciar la videollamada de inmediato.
+
+    <div class="section">
+        <h3>Copia Mágica</h3>
+        <div class="copia-magica-container">
+            <textarea class="textarea-copia" id="txtCopiaMagica" placeholder="Introduce el texto o la información de control aquí..."></textarea>
+            <div style="margin-top: 10px; text-align: right;">
+                <button onclick="ejecutarCopiaMagica()">Copiar al Portapapeles</button>
             </div>
-        </div>
-        
-        <div class="chat-footer">
-            <input type="text" id="chatInput" placeholder="Escribe un mensaje para enviar...">
-            <button class="send-btn" id="sendTextBtn" title="Enviar texto">🕊️</button>
-            <button class="mic-btn" id="sendAudioBtn" title="Mantener para grabar">🎤</button>
         </div>
     </div>
-    
 </div>
 
-<script src="/socket.io/socket.io.js"></script>
 <script>
-    const socket = io();
-    let localStream, peerConnection;
-    let mediaRecorder;
-    let audioChunks = [];
-    const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-    
-    // --- NOMBRE CONFIGURADO DEL CREADOR ---
-    const miNombre = "Juanma";
-
-    // --- FUNCIONALIDAD DE VIDEOLLAMADA (RESTAURADA E INTOCABLE) ---
-    async function activarCamara() {
-        try {
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('localVideo').srcObject = localStream;
-        } catch (err) { console.error("Error al acceder a periféricos:", err); }
-    }
-
-    document.getElementById('generarBtn').addEventListener('click', () => {
-        const code = Math.random().toString(36).substring(2, 9).toUpperCase();
-        document.getElementById('roomCode').value = code;
-        socket.emit('join-room', code);
-        activarCamara();
-        
-        // Al generar el código, añadimos automáticamente la burbuja mágica al chat
-        inyectarBurbujaCodigo(code);
+    // Motores de datos al arrancar la aplicación
+    document.addEventListener("DOMContentLoaded", function() {
+        cargarContactos();
+        cargarMiPerfil();
     });
 
-    // Función de mantenimiento técnico original recuperada al 100%
-    async function optimizarRendimiento() {
-        console.log("Ejecutando optimización del buffer WebRTC...");
-        if (localStream) {
-            const videoTrack = localStream.getVideoTracks()[0];
-            videoTrack.enabled = false;
-            setTimeout(() => { videoTrack.enabled = true; }, 300);
-        }
-        if (peerConnection && peerConnection.signalingState === "stable") {
-            const offer = await peerConnection.createOffer({ iceRestart: true });
-            await peerConnection.setLocalDescription(offer);
-            socket.emit('signal', { offer, room: document.getElementById('roomCode').value });
-        }
-    }
-    document.getElementById('optimizarBtn').addEventListener('click', optimizarRendimiento);
-
-    document.getElementById('colgarBtn').addEventListener('click', () => {
-        if (localStream) localStream.getTracks().forEach(t => t.stop());
-        if (peerConnection) peerConnection.close();
-        peerConnection = null;
-        document.getElementById('localVideo').srcObject = null;
-        document.getElementById('remoteVideo').srcObject = null;
-    });
-
-    // --- ACCIÓN MÁGICA: AUTOCONEXIÓN TRANSPARENTE ---
-    function autoconectarCodigo(codigo) {
-        alert("Sincronizando código [" + codigo + "] y enlazando transmisión automáticamente...");
-        const inputCode = document.getElementById('roomCode');
-        inputCode.value = codigo;
-        // Simula la activación e inicia el protocolo
-        socket.emit('join-room', codigo);
-        activarCamara();
-        setTimeout(() => { optimizarRendimiento(); }, 500);
-    }
-
-    function inyectarBurbujaCodigo(codigo) {
-        const chatBox = document.getElementById('chatMessages');
-        const nuevaBurbuja = document.createElement('div');
-        nuevaBurbuja.className = 'bubble-link';
-        nuevaBurbuja.setAttribute('onclick', `autoconectarCodigo('${codigo}')`);
-        nuevaBurbuja.innerHTML = `<strong>${miNombre}:</strong> Código de transmisión generado. Pulsa aquí para vincular e iniciar la videollamada de inmediato.`;
-        chatBox.appendChild(nuevaBurbuja);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    // --- INTERFAZ DEL CHAT (ENVIAR TEXTO ESCRITO) ---
-    document.getElementById('sendTextBtn').addEventListener('click', () => {
-        const texto = document.getElementById('chatInput').value.trim();
-        if(texto) {
-            const chatBox = document.getElementById('chatMessages');
-            chatBox.innerHTML += `<div><strong>${miNombre}:</strong> ${texto}</div>`;
-            document.getElementById('chatInput').value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    });
-
-    // --- ENVIAR AUDIO (PUSH-TO-TALK REAL NATIVO) ---
-    const micBtn = document.getElementById('sendAudioBtn');
-    
-    micBtn.addEventListener('mousedown', async () => {
-        audioChunks = [];
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-            mediaRecorder.start();
-            micBtn.classList.add('recording');
-            micBtn.innerText = "🔴";
-        } catch (err) { console.error("Error micro:", err); }
-    });
-
-    micBtn.addEventListener('mouseup', () => {
-        if(mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.stop();
-            micBtn.classList.remove('recording');
-            micBtn.innerText = "🎤";
-            
-            mediaRecorder.onstop = () => {
-                const chatBox = document.getElementById('chatMessages');
-                chatBox.innerHTML += `<div><strong>${miNombre}:</strong> 🎙️ <i>Mensaje de voz enviado</i></div>`;
-                chatBox.scrollTop = chatBox.scrollHeight;
-                // Aquí el binario del audio queda procesado en 'audioChunks' de verdad
-            };
-        }
-    });
-
-    // --- GESTIÓN DE AGENDA INFINITA CON LOCALSTORAGE ---
-    async function importarContactoDelSistema() {
-        if ('contacts' in navigator && 'select' in navigator.contacts) {
-            try {
-                const contacts = await navigator.contacts.select(['name', 'tel'], { multiple: false });
-                if(contacts.length > 0) {
-                    const nuevoC = { name: contacts[0].name[0], phone: contacts[0].tel[0] };
-                    let lista = JSON.parse(localStorage.getItem('dbContactos') || '[]');
-                    lista.push(nuevoC);
-                    localStorage.setItem('dbContactos', JSON.stringify(lista));
-                    dibujarAgenda();
-                }
-            } catch (err) { console.log("Agenda cancelada o no soportada."); }
+    // --- GESTIÓN DE MI PERFIL EMISOR ---
+    function cargarMiPerfil() {
+        const telGuardado = localStorage.getItem('miTelefonoPropio');
+        const display = document.getElementById('miTelefonoDisplay');
+        if (telGuardado) {
+            display.innerText = "📞 " + telGuardado;
         } else {
-            // Alternativa si se prueba en un equipo de escritorio sin API de contactos nativa
-            const n = prompt("Introduce el nombre:");
-            const t = prompt("Introduce el teléfono:");
-            if(n && t) {
-                let lista = JSON.parse(localStorage.getItem('dbContactos') || '[]');
-                lista.push({ name: n, phone: t });
-                localStorage.setItem('dbContactos', JSON.stringify(lista));
-                dibujarAgenda();
-            }
+            display.innerText = "⚙️ Configurar";
         }
     }
 
-    function dibujarAgenda() {
+    function configurarMiTelefono() {
+        const nuevoTel = prompt("Introduce tu número de móvil o el teléfono fijo de casa:");
+        // Si el usuario introduce datos, limpiamos espacios y guardamos de forma permanente
+        if (nuevoTel !== null && nuevoTel.trim() !== "") {
+            localStorage.setItem('miTelefonoPropio', nuevoTel.trim());
+            cargarMiPerfil();
+        }
+    }
+
+    // --- GESTIÓN DE CONTACTOS NATIVOS ---
+    function obtenerContactos() {
+        const contactosRaw = localStorage.getItem('contactos_base44');
+        return contactosRaw ? JSON.parse(contactosRaw) : [];
+    }
+
+    function guardarContactos(lista) {
+        localStorage.setItem('contactos_base44', JSON.stringify(lista));
+    }
+
+    function abrirFormularioContacto() {
+        const nombre = prompt("Introduce el nombre del contacto (ej. Rocío):");
+        if (!nombre || nombre.trim() === "") return;
+
+        const telefono = prompt("Introduce el número de teléfono (9 dígitos seguidos):");
+        if (!telefono || telefono.trim() === "") return;
+
+        const lista = obtenerContactos();
+        lista.push({
+            nombre: nombre.trim(),
+            telefono: telefono.trim()
+        });
+
+        guardarContactos(lista);
+        cargarContactos();
+    }
+
+    function cargarContactos() {
+        const lista = obtenerContactos();
         const contenedor = document.getElementById('contactList');
-        contenedor.innerHTML = '';
-        let lista = JSON.parse(localStorage.getItem('dbContactos') || '[]');
-        lista.forEach((c, i) => {
-            contenedor.innerHTML += `
-                <div class="contact-card">
-                    <div><strong>${c.name}</strong><br><small>${c.phone}</small></div>
-                    <div>
-                        <button class="call-btn" onclick="window.location.href='tel:${c.phone}'">📞 Llamar</button>
-                        <button class="delete-btn" onclick="borrarContacto(${i})">X</button>
-                    </div>
-                </div>`;
+        contenedor.innerHTML = "";
+
+        if (lista.length === 0) {
+            contenedor.innerHTML = "<p style='color: #777; font-size: 14px; font-style: italic;'>No hay contactos guardados en la memoria local.</p>";
+            return;
+        }
+
+        lista.forEach((contacto, idx) => {
+            const item = document.createElement('div');
+            item.className = 'contacto-item';
+            item.innerHTML = `
+                <div class="contacto-info">
+                    <span class="contacto-nombre">${contacto.nombre}</span>
+                    <span class="contacto-telefono">${contacto.telefono}</span>
+                </div>
+                <div class="contacto-acciones">
+                    <a href="tel:${contacto.telefono}" class="btn-llamar">📞 Llamar</a>
+                    <button class="btn-eliminar" onclick="eliminarContacto(${idx})">X</button>
+                </div>
+            `;
+            contenedor.appendChild(item);
         });
     }
 
-    function borrarContacto(index) {
-        let lista = JSON.parse(localStorage.getItem('dbContactos'));
-        lista.splice(index, 1);
-        localStorage.setItem('dbContactos', JSON.stringify(lista));
-        dibujarAgenda();
+    function eliminarContacto(idx) {
+        const lista = obtenerContactos();
+        lista.splice(idx, 1);
+        guardarContactos(lista);
+        cargarContactos();
     }
 
-    document.getElementById('addContactBtn').addEventListener('click', importarContactoDelSistema);
-    
-    // Al arrancar, cargamos los contactos guardados
-    dibujarAgenda();
-
-    // Lógica WebRTC Sockets básica para señalización unificada
-    socket.on('signal', async (data) => {
-        if (!peerConnection) {
-            peerConnection = new RTCPeerConnection(config);
-            if(localStream) localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-            peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: document.getElementById('roomCode').value }); };
-            peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+    // --- FUNCIÓN COPIA MÁGICA ---
+    function ejecutarCopiaMagica() {
+        const campoTexto = document.getElementById('txtCopiaMagica');
+        if (campoTexto.value.trim() === "") {
+            alert("Por favor, escribe algo en el cuadro de Copia Mágica antes de copiar.");
+            return;
         }
-        if (data.offer) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            socket.emit('signal', { answer, room: document.getElementById('roomCode').value });
-        } else if (data.answer) {
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-        } else if (data.candidate) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-        }
-    });
+        campoTexto.select();
+        campoTexto.setSelectionRange(0, 99999); // Para dispositivos móviles
+        navigator.clipboard.writeText(campoTexto.value);
+    }
 </script>
+
 </body>
 </html>
