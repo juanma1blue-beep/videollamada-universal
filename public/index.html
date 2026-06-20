@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>FaceCall Professional - Restauración</title>
+    <title>FaceCall Professional - Solución Cámara</title>
     <style>
         body { font-family: sans-serif; text-align: center; background-color: #f4f4f4; margin: 0; padding: 20px; }
         .controls-wrapper { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 20px auto; background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 700px; }
@@ -42,39 +42,50 @@
         let peerConnection;
         const config = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
-        // --- Inicio de cámara (original) ---
         async function init() {
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('localVideo').srcObject = localStream;
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                document.getElementById('localVideo').srcObject = localStream;
+            } catch (err) { alert("Error accediendo a la cámara"); }
         }
 
         document.getElementById('generarBtn').addEventListener('click', () => {
             const code = Math.random().toString(36).substring(2, 9);
             document.getElementById('roomCode').value = code;
-            init(); // Iniciamos flujo original
+            init(); 
         });
 
         document.getElementById('llamarBtn').addEventListener('click', () => {
             const code = document.getElementById('roomCode').value;
             if (!code) return alert("Genera un código primero");
-            
             socket.emit('join-room', code);
             peerConnection = new RTCPeerConnection(config);
             localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-            
-            peerConnection.onicecandidate = e => {
-                if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code });
-            };
+            peerConnection.onicecandidate = e => { if (e.candidate) socket.emit('signal', { candidate: e.candidate, room: code }); };
             peerConnection.ontrack = e => document.getElementById('remoteVideo').srcObject = e.streams[0];
+            peerConnection.createOffer().then(offer => {
+                peerConnection.setLocalDescription(offer);
+                socket.emit('signal', { offer, room: code });
+            });
         });
 
-        // --- FUNCIONALIDAD COLGAR RESTAURADA ---
+        // --- COLGAR CORREGIDO (APAGA LA CÁMARA) ---
         document.getElementById('colgarBtn').addEventListener('click', () => {
+            // 1. Detener pistas de la cámara
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            // 2. Cerrar conexión
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
-                alert("Llamada finalizada"); // El aviso que tenías antes
             }
+            // 3. Limpiar pantallas
+            document.getElementById('localVideo').srcObject = null;
+            document.getElementById('remoteVideo').srcObject = null;
+            
+            alert("Llamada finalizada y cámara apagada");
         });
 
         socket.on('signal', async (data) => {
