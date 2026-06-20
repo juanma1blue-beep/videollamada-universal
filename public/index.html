@@ -3,59 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V95.0 [CORRECCIÓN VISIBILIDAD]</title>
+    <title>SISTEMA V96.0 [UNIFICADO]</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; }
         body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        /* PANEL PRINCIPAL: Fondo diferenciado y jerarquía alta */
+        /* PANEL PRINCIPAL - VISIBILIDAD GARANTIZADA */
         #panel { 
-            position: absolute; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            background: #000510; /* Azul muy oscuro para que se vea que es el panel */
-            z-index: 9999; /* Máxima prioridad sobre todo */
-            padding: 20px;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: flex; justify-content: center; align-items: center; 
+            background: #050a1a; z-index: 5000; padding: 20px;
         }
+        .box { background: #0a1122; padding: 25px; width: 100%; max-width: 450px; border: 2px solid #002277; border-radius: 20px; }
 
-        .box { 
-            background: #050a1a; 
-            padding: 25px; 
-            width: 100%; 
-            max-width: 450px; 
-            border: 2px solid #002277; 
-            border-radius: 20px; 
-            box-shadow: 0 0 30px rgba(0, 50, 150, 0.4);
+        /* BARRA DE MANDO TÁCTICA */
+        .control-bar {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 10px; align-items: center; z-index: 3000;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px; border-radius: 50px;
+            border: 2px solid rgba(255, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
         }
-
-        /* Ocultar video hasta que sea necesario */
-        .live-grid { display: none; } 
-    </style>
-</head>
-<body>
-
-    <div id="panel">
-        <div class="box">
-            <h3 style="color:#00d2ff;">ID DE CONEXIÓN</h3>
-            <input type="text" id="myID" readonly style="width:100%; padding:10px; background:#0a1122; border:1px solid #002277; color:#fff; border-radius:8px;">
-            <br><br>
-            <h3 style="color:#00d2ff;">PANEL DE GESTIÓN TÁCTICA</h3>
-            <button onclick="iniciar()" style="width:100%; padding:15px; background:#002277; color:#fff; border:none; border-radius:8px; font-weight:bold;">INICIAR VIDEOLLAMADA</button>
-        </div>
-    </div>
-
-    <div class="live-grid" id="videoArea">
-        </div>
-
-    <script>
-        function iniciar() {
-            document.getElementById('panel').style.display = 'none'; // Oculta el panel negro
-            document.getElementById('videoArea').style.display = 'grid'; // Muestra el video
-            // ... lógica de conexión ...
+        .btn-end { background: none; border: none; cursor: pointer; font-weight: 900; font-size: 24px; text-transform: uppercase; }
+        .neo-azul { color: #002277; text-shadow: 0 0 5px #00d2ff; }
+        .neo-grana { color: #910023; text-shadow: 0 0 5px #ff4444; }
+        
+        .btn-paypal { 
+            text-decoration: none; color: #fff; font-size: 10px; text-align: center;
+            display: flex; flex-direction: column; align-items: center; 
+            border-left: 1px solid rgba(255,255,255,0.2); padding-left: 15px;
         }
-    </script>
-</body>
-</html>
+        .btn-paypal img { width: 45px; height: auto; margin-bottom: 2px; }
+
+        .live
