@@ -1,51 +1,52 @@
-const express = require('express');
+import express from "express";
+import http from "http";
+import { Server } from "socket.io";
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
 
-// Servir los archivos estáticos desde la carpeta 'public'
-app.use(express.static('public'));
+app.use(express.static("public"));
 
-io.on('connection', (socket) => {
-    console.log('Un usuario se ha conectado: ' + socket.id);
+const rooms = new Map();
 
-    socket.on('join-room', (roomId) => {
+/* =========================
+   SIMPLE 1:1 ROOMS
+========================= */
+
+io.on("connection", (socket) => {
+
+    socket.on("join", (roomId) => {
+
+        if (!roomId) return;
+
+        if (!rooms.has(roomId)) rooms.set(roomId, new Set());
+
+        const room = rooms.get(roomId);
+
+        if (room.size >= 2) {
+            socket.emit("full");
+            return;
+        }
+
+        room.add(socket.id);
         socket.join(roomId);
-        console.log('Usuario ' + socket.id + ' se unió a la sala: ' + roomId);
-        
-        // Avisar a otros en la sala
-        socket.to(roomId).emit('user-connected', socket.id);
-    });
 
-    // --- PUENTE DE SEÑALIZACIÓN (Para conectar las cámaras) ---
-    
-    socket.on('offer', (payload) => {
-        io.to(payload.target).emit('offer', {
-            offer: payload.offer,
-            sender: socket.id
+        socket.to(roomId).emit("peer-joined");
+
+        socket.on("disconnect", () => {
+            room.delete(socket.id);
+            socket.to(roomId).emit("peer-left");
         });
+
     });
 
-    socket.on('answer', (payload) => {
-        io.to(payload.target).emit('answer', {
-            answer: payload.answer,
-            sender: socket.id
-        });
+    socket.on("signal", ({ roomId, data }) => {
+        socket.to(roomId).emit("signal", data);
     });
 
-    socket.on('ice-candidate', (payload) => {
-        io.to(payload.target).emit('ice-candidate', {
-            candidate: payload.candidate,
-            sender: socket.id
-        });
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Usuario desconectado');
-    });
 });
 
-const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
-    console.log(`Servidor activo en puerto ${PORT}`);
+server.listen(process.env.PORT || 3000, () => {
+    console.log("ULTRA CLEAN FACECALL RUNNING");
 });
