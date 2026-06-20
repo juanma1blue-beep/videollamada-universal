@@ -2,121 +2,52 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>SISTEMA V1.3 MEJORADO</title>
+<title>FaceCall Ultra Clean 1:1</title>
 
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
 body {
-    background: #000;
-    color: #fff;
-    font-family: sans-serif;
-    height: 100vh;
-    overflow: hidden;
+    margin:0;
+    font-family:sans-serif;
+    background:#0b0b0b;
+    color:white;
+    display:flex;
+    height:100vh;
 }
 
 #panel {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #050a1a;
-    z-index: 10;
+    width:280px;
+    background:#111;
+    padding:15px;
 }
 
-.box {
-    background: #0a1122;
-    padding: 40px;
-    width: 95%;
-    max-width: 500px;
-    border: 3px solid #a50044;
-    border-radius: 25px;
-    text-align: center;
-}
-
-input {
-    width: 100%;
-    padding: 20px;
-    margin: 10px 0;
-    background: #000;
-    border: 2px solid #004d98;
-    color: #fff;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-#videoArea {
-    display: none;
-    width: 100vw;
-    height: 100vh;
-    flex-direction: column;
-}
-
-.v-container {
-    width: 100%;
-    flex: 1;
-    position: relative;
-    border-bottom: 2px solid #004d98;
-    overflow: hidden;
+#main {
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
 }
 
 video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    width:45%;
+    margin:5px;
+    border-radius:10px;
+    background:black;
 }
 
-.weather-widget {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    z-index: 999;
-    background: rgba(0,0,0,0.8);
-    border: 1px solid #00d2ff;
-    padding: 8px 12px;
-    border-radius: 10px;
-    font-size: 14px;
-    color: #00d2ff;
-    font-weight: bold;
+input, button {
+    width:100%;
+    padding:10px;
+    margin-top:10px;
+    border:none;
+    border-radius:6px;
 }
 
-#estado {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    z-index: 999;
-    background: rgba(0,0,0,0.8);
-    padding: 10px;
-    border-radius: 10px;
-    font-weight: bold;
-}
-
-.control-bar {
-    height: 120px;
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: linear-gradient(180deg, #a50044 0%, #004d98 100%);
-    border-top: 3px solid #fff;
-    padding: 10px;
-}
-
-.btn-end {
-    background: rgba(0,0,0,0.3);
-    border: 2px solid #fff;
-    border-radius: 20px;
-    padding: 15px 25px;
-    cursor: pointer;
-    font-weight: 900;
-    font-size: 14px;
-    color: #fff;
-    text-transform: uppercase;
+button {
+    background:#a50044;
+    color:white;
+    cursor:pointer;
 }
 </style>
 </head>
@@ -124,149 +55,157 @@ video {
 <body>
 
 <div id="panel">
-    <div class="box">
-        <h3>ID CONEXIÓN</h3>
-        <input id="myID" readonly>
 
-        <h3>ID SOCIO</h3>
-        <input id="targetID" placeholder="Introduce ID socio">
+<h3>FaceCall Clean</h3>
 
-        <button onclick="iniciar()" class="btn-end" style="width:100%;margin-top:15px;">
-            INICIAR
-        </button>
-    </div>
+<input id="room" placeholder="código de sesión">
+
+<button onclick="copyRoom()">Generar código</button>
+<button onclick="join()">Entrar</button>
+<button onclick="call()">Llamar</button>
+<button onclick="hang()">Colgar</button>
+
 </div>
 
-<div id="videoArea">
-
-    <div id="estado">🟡 Inicializando...</div>
-
-    <div class="v-container">
-        <div class="weather-widget" id="w1">---</div>
-        <video id="remoteVideo" autoplay playsinline></video>
-    </div>
-
-    <div class="v-container">
-        <div class="weather-widget" id="w2">---</div>
-        <video id="localVideo" autoplay playsinline muted></video>
-    </div>
-
-    <div class="control-bar">
-
-        <button class="btn-end" onclick="colgar()">COLGAR</button>
-        <button class="btn-end" onclick="toggleMic()">MIC</button>
-        <button class="btn-end" onclick="toggleCam()">CAM</button>
-
-    </div>
+<div id="main">
+<video id="local" autoplay playsinline muted></video>
+<video id="remote" autoplay playsinline></video>
 </div>
 
 <script>
 
-let localStream = null;
-let call = null;
-let mic = true;
-let cam = true;
+const socket = io();
 
-const peer = new Peer();
+/* =========================
+   SIMPLE STUN (FREE)
+========================= */
 
-function estado(t){
-    document.getElementById("estado").textContent = t;
+const config = {
+    iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+    ]
+};
+
+let pc;
+let stream;
+let roomId;
+
+/* =========================
+   ROOM GENERATOR
+========================= */
+
+function copyRoom(){
+    const id = Math.random().toString(36).substring(2, 8).toUpperCase();
+    document.getElementById("room").value = id;
+    navigator.clipboard.writeText(id);
 }
 
-peer.on('open', id => {
-    document.getElementById('myID').value = id;
-    estado("🟢 Listo");
-});
+/* =========================
+   MEDIA
+========================= */
 
-peer.on('error', err => {
-    console.log(err);
-    estado("🔴 Error PeerJS");
-});
+async function getMedia(){
 
-peer.on('call', incoming => {
+    if(stream) return stream;
 
-    if(!localStream){
-        estado("⚠️ Sin cámara");
-        return;
-    }
-
-    call = incoming;
-
-    estado("📞 Llamada entrante");
-
-    call.answer(localStream);
-
-    call.on('stream', remote => {
-        document.getElementById('remoteVideo').srcObject = remote;
-        estado("🟢 Conectado");
-    });
-});
-
-async function iniciar(){
-
-try{
-
-    localStream = await navigator.mediaDevices.getUserMedia({
-        video:true,
-        audio:true
+    stream = await navigator.mediaDevices.getUserMedia({
+        audio:true,
+        video:true
     });
 
-    document.getElementById('localVideo').srcObject = localStream;
+    document.getElementById("local").srcObject = stream;
 
-    document.getElementById('panel').style.display = 'none';
-    document.getElementById('videoArea').style.display = 'flex';
-
-    const target = document.getElementById('targetID').value.trim();
-
-    if(target){
-
-        estado("📡 Llamando...");
-
-        call = peer.call(target, localStream);
-
-        call.on('stream', remote => {
-            document.getElementById('remoteVideo').srcObject = remote;
-            estado("🟢 Conectado");
-        });
-    }
-
-}catch(e){
-    estado("🔴 Error cámara");
-    alert("Permiso denegado o cámara ocupada");
+    return stream;
 }
 
+/* =========================
+   JOIN
+========================= */
+
+function join(){
+
+    roomId = document.getElementById("room").value;
+    socket.emit("join", roomId);
 }
 
-function colgar(){
+/* =========================
+   PEER CONNECTION
+========================= */
 
-    if(call){
-        call.close();
-        call = null;
-    }
+function createPeer(){
 
-    estado("🔴 Colgado");
+    pc = new RTCPeerConnection(config);
+
+    pc.ontrack = e => {
+        document.getElementById("remote").srcObject = e.streams[0];
+    };
+
+    pc.onicecandidate = e => {
+        if(e.candidate){
+            socket.emit("signal", {
+                roomId,
+                data:{ candidate:e.candidate }
+            });
+        }
+    };
+
+    socket.on("signal", async data => {
+
+        if(data.offer){
+            await pc.setRemoteDescription(data.offer);
+
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+
+            socket.emit("signal", {
+                roomId,
+                data:{ answer }
+            });
+        }
+
+        if(data.answer){
+            await pc.setRemoteDescription(data.answer);
+        }
+
+        if(data.candidate){
+            await pc.addIceCandidate(data.candidate);
+        }
+
+    });
+
 }
 
-function toggleMic(){
+/* =========================
+   CALL
+========================= */
 
-    if(!localStream) return;
+async function call(){
 
-    mic = !mic;
+    await getMedia();
+    createPeer();
 
-    localStream.getAudioTracks().forEach(t => t.enabled = mic);
+    stream.getTracks().forEach(t => pc.addTrack(t, stream));
 
-    estado(mic ? "🎤 Mic ON" : "🔇 Mic OFF");
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+
+    socket.emit("signal", {
+        roomId,
+        data:{ offer }
+    });
+
 }
 
-function toggleCam(){
+/* =========================
+   HANG UP
+========================= */
 
-    if(!localStream) return;
+function hang(){
 
-    cam = !cam;
+    if(pc) pc.close();
+    pc = null;
 
-    localStream.getVideoTracks().forEach(t => t.enabled = cam);
-
-    estado(cam ? "📷 Cam ON" : "📴 Cam OFF");
+    document.getElementById("remote").srcObject = null;
 }
 
 </script>
