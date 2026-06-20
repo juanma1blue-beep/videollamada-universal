@@ -3,18 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA V111.0 [BLINDADO]</title>
+    <title>SISTEMA V112.0 [PROFUNDIDAD]</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background: #000; color: #fff; font-family: sans-serif; height: 100vh; overflow: hidden; }
 
-        #panel { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: #050a1a; z-index: 10; }
+        /* PANEL INICIAL CON GRADIENTE DE PROFUNDIDAD */
+        #panel { 
+            position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; 
+            background: radial-gradient(circle at bottom, #1a1f33 0%, #050a1a 70%); 
+            z-index: 10; 
+        }
         .box { background: #0a1122; padding: 25px; width: 90%; max-width: 400px; border: 2px solid #a50044; border-radius: 20px; }
         input { width: 100%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004d98; color: #fff; border-radius: 8px; }
 
-        #videoArea { display: none; width: 100vw; height: 100vh; background: #000; }
-        .v-container { width: 100%; height: 50%; position: relative; background: #000; overflow: hidden; }
+        /* ÁREA DE VIDEO CON GRADIENTE DE PROFUNDIDAD */
+        #videoArea { 
+            display: none; width: 100vw; height: 100vh; 
+            background: radial-gradient(circle at bottom, #1a1f33 0%, #050a1a 70%); 
+        }
+        .v-container { width: 100%; height: 50%; position: relative; overflow: hidden; }
         video { width: 100%; height: 100%; object-fit: cover; }
 
         .control-bar {
@@ -33,7 +42,6 @@
         .azul { color: #004d98; }
         .grana { color: #a50044; }
         
-        /* MEJORA PAYPAL: Tamaño ajustado y color corporativo */
         .btn-paypal { 
             text-decoration: none; display: flex; flex-direction: column; align-items: center; 
             padding: 5px;
