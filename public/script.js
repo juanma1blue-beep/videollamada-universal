@@ -261,3 +261,41 @@ function safeStartCall(){
 
     startCall();
 }
+let callTimer = null;
+let seconds = 0;
+
+function startTimer(){
+
+    seconds = 0;
+
+    callTimer = setInterval(() => {
+
+        seconds++;
+
+        const min = Math.floor(seconds / 60);
+        const sec = seconds % 60;
+
+        setStatus(`🟢 En llamada ${min}:${sec.toString().padStart(2,"0")}`);
+
+    }, 1000);
+}
+
+function stopTimer(){
+    clearInterval(callTimer);
+}
+startTimer();
+stopTimer();
+function resetState(){
+
+    APP.call = null;
+    APP.detecting = false;
+    APP.stopFrames = 0;
+
+}
+resetState();
+const AI_CONFIG = {
+    maxHands: 1,
+    flipHorizontal: true,
+    scoreThreshold: 0.7
+};
+const hands = await APP.model.estimateHands(video, AI_CONFIG);
