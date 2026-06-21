@@ -1,78 +1,242 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Base44 - Versión 1.X.1</title>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
-    <style>
-        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
-        .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); max-width: 800px; margin: auto; }
-        video { width: 100%; height: 200px; background: #000; display: block; margin-bottom: 10px; }
-        .btn-paypal { display: flex; align-items: center; justify-content: center; background: #ffc439; padding: 10px; text-decoration: none; color: #003087; font-weight: bold; margin-bottom: 5px; }
-        .btn-youtube { display: flex; align-items: center; justify-content: center; background: #ff0000; padding: 10px; color: white; font-weight: bold; margin-bottom: 10px; }
-        button { width: 100%; padding: 10px; margin-bottom: 5px; }
-        #chatBox { height: 150px; border: 1px solid #ccc; overflow-y: scroll; background: white; margin-bottom: 10px; }
-    </style>
+<meta charset="UTF-8">
+<title>BASE44 V3 STABLE</title>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+
+<style>
+
+/* =========================
+   RESET
+========================= */
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+/* =========================
+   LAYOUT BASE
+========================= */
+
+body {
+    font-family: Arial, sans-serif;
+    background:#0b0b0b;
+    color:white;
+    height:100vh;
+    display:flex;
+}
+
+/* PANEL IZQUIERDO */
+
+#panel {
+    width:300px;
+    background:#111;
+    padding:15px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+/* ZONA PRINCIPAL */
+
+#main {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:10px;
+}
+
+/* VIDEOS */
+
+video {
+    width:45%;
+    border-radius:10px;
+    background:black;
+}
+
+/* INPUTS */
+
+input, button {
+    padding:10px;
+    border:none;
+    border-radius:6px;
+}
+
+button {
+    background:#a50044;
+    color:white;
+    cursor:pointer;
+}
+
+/* ESTADO */
+
+#status {
+    font-size:13px;
+    opacity:0.8;
+}
+
+/* CHAT */
+
+#chatBox {
+    height:150px;
+    overflow-y:auto;
+    background:#1a1a1a;
+    padding:8px;
+    border-radius:6px;
+    font-size:13px;
+}
+
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <a href="https://PayPal.me/MarketEvolution" class="btn-paypal"><img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" width="20" style="margin-right:8px;"> PAYPAL PROPINAS</a>
-        <a href="https://www.youtube.com/@juanmaentertaiment" class="btn-youtube"><img src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" width="25" style="margin-right:8px;"> CANAL YOUTUBE</a>
-        
-        <input type="text" id="roomCode" placeholder="CÓDIGO">
-        <button onclick="generar()">Generar Código</button>
-        <button onclick="conectar()">Conectar</button>
-        
-        <video id="localVideo" autoplay playsinline muted></video>
-        <video id="remoteVideo" autoplay playsinline></video>
 
-        <div id="chatBox"></div>
-        <input type="text" id="chatMsg" placeholder="Mensaje...">
-        <button onclick="enviar()">Enviar</button>
-    </div>
+<!-- =========================
+     PANEL CONTROL
+========================= -->
 
-    <script>
-        let localStream, peer, call, model;
+<div id="panel">
 
-        async function init() {
-            model = await handpose.load();
-            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('localVideo').srcObject = localStream;
-            // El bucle de detección original y puro
-            setInterval(detectar, 1000);
-        }
-        init();
+    <h3>BASE44 V3</h3>
 
-        async function detectar() {
-            if (!model || !document.getElementById('localVideo').srcObject) return;
-            const hands = await model.estimateHands(document.getElementById('localVideo'));
-            if (hands.length > 0 && call) {
-                call.close();
-                console.log("Gesto detectado, llamada cerrada.");
-            }
-        }
+    <div id="status">🟡 Inicializando...</div>
 
-        function generar() {
-            const id = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-            document.getElementById('roomCode').value = id;
-            peer = new Peer(id);
-            peer.on('call', c => { c.answer(localStream); call = c; c.on('stream', s => document.getElementById('remoteVideo').srcObject = s); });
-        }
+    <input id="roomCode" placeholder="Código de sesión">
 
-        function conectar() {
-            peer = new Peer();
-            call = peer.call(document.getElementById('roomCode').value, localStream);
-            call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
-        }
+    <button onclick="generateCode()">Generar código</button>
+    <button onclick="joinRoom()">Entrar</button>
+    <button onclick="startCall()">Llamar</button>
+    <button onclick="hangUp()">Colgar</button>
 
-        function enviar() {
-            document.getElementById('chatBox').innerHTML += "<div><b>Juanma:</b> " + document.getElementById('chatMsg').value + "</div>";
-            document.getElementById('chatMsg').value = "";
-        }
-    </script>
+    <hr>
+
+    <div id="chatBox"></div>
+
+    <input id="chatInput" placeholder="Mensaje">
+    <button onclick="sendChat()">Enviar</button>
+
+</div>
+
+<!-- =========================
+     ZONA VIDEO
+========================= -->
+
+<div id="main">
+
+    <video id="localVideo" autoplay playsinline muted></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+
+</div>
+
+<script>
+
+/* =========================
+   ESTADO GLOBAL (V3 CORE)
+========================= */
+
+const APP = {
+    peer: null,
+    call: null,
+    stream: null,
+    model: null,
+    room: "",
+    detecting: false,
+    stopFrames: 0
+};
+
+/* =========================
+   SOCKET
+========================= */
+
+const socket = io();
+
+/* =========================
+   STATUS
+========================= */
+
+function setStatus(text){
+    document.getElementById("status").innerText = text;
+}
+
+/* =========================
+   ROOM GENERATOR
+========================= */
+
+function generateCode(){
+    const code = "BASE44-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    document.getElementById("roomCode").value = code;
+    navigator.clipboard.writeText(code);
+}
+
+/* =========================
+   INIT CAMERA
+========================= */
+
+async function initMedia(){
+
+    if(APP.stream) return APP.stream;
+
+    try {
+
+        APP.stream = await navigator.mediaDevices.getUserMedia({
+            audio:true,
+            video:true
+        });
+
+        document.getElementById("localVideo").srcObject = APP.stream;
+
+        setStatus("🟢 Cámara activa");
+
+        return APP.stream;
+
+    } catch(e){
+        setStatus("🔴 Error cámara/mic");
+        console.error(e);
+    }
+}
+
+/* =========================
+   JOIN ROOM (BASE ONLY)
+========================= */
+
+function joinRoom(){
+    APP.room = document.getElementById("roomCode").value;
+    socket.emit("join", APP.room);
+    setStatus("🟡 Conectando a sala...");
+}
+
+/* =========================
+   CHAT SAFE
+========================= */
+
+function sendChat(){
+
+    const input = document.getElementById("chatInput");
+    const msg = input.value.trim();
+
+    if(!msg) return;
+
+    const div = document.createElement("div");
+    div.textContent = "Tú: " + msg;
+
+    document.getElementById("chatBox").appendChild(div);
+
+    input.value = "";
+}
+
+</script>
+
 </body>
 </html>
