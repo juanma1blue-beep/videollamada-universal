@@ -2,24 +2,18 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Base44 - Versión 1.X.1 (Restauración Original)</title>
+    <link rel="stylesheet" href="style.css">
+    <title>Base44 - V1.X.1</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
-    <style>
-        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; }
-        .container { background: white; padding: 15px; border-radius: 8px; max-width: 600px; margin: auto; }
-        video { width: 100%; background: #000; margin-bottom: 10px; }
-        button { width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer; }
-        #chatBox { height: 100px; border: 1px solid #ccc; overflow-y: scroll; margin-bottom: 10px; }
-    </style>
 </head>
 <body>
     <div class="container">
-        <a href="https://PayPal.me/MarketEvolution">PayPal Propinas</a>
-        <br><br>
+        <a href="https://PayPal.me/MarketEvolution" class="btn-paypal">PayPal Propinas</a>
+        <a href="https://www.youtube.com/@juanmaentertaiment" class="btn-youtube">Canal YouTube</a>
         <input type="text" id="roomCode" placeholder="CÓDIGO">
         <button onclick="generar()">Generar Código</button>
         <button onclick="conectar()">Conectar</button>
@@ -29,51 +23,6 @@
         <input type="text" id="chatMsg" placeholder="Mensaje...">
         <button onclick="enviar()">Enviar</button>
     </div>
-
-    <script>
-        let localStream, peer, call, model;
-        let stopGestureCount = 0;
-
-        async function init() {
-            model = await handpose.load();
-            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('localVideo').srcObject = localStream;
-            // Intervalo puro y duro de 1 segundo (como el día 17)
-            setInterval(detectar, 1000);
-        }
-        init();
-
-        async function detectar() {
-            if (!model || !call) return;
-            const hands = await model.estimateHands(document.getElementById('localVideo'));
-            if (hands.length > 0) {
-                stopGestureCount++;
-                if (stopGestureCount >= 2) { // 2 segundos (2 intervalos de 1s)
-                    call.close();
-                    stopGestureCount = 0;
-                }
-            } else {
-                stopGestureCount = 0;
-            }
-        }
-
-        function generar() {
-            const id = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-            document.getElementById('roomCode').value = id;
-            peer = new Peer(id);
-            peer.on('call', c => { c.answer(localStream); call = c; c.on('stream', s => document.getElementById('remoteVideo').srcObject = s); });
-        }
-
-        function conectar() {
-            peer = new Peer();
-            call = peer.call(document.getElementById('roomCode').value, localStream);
-            call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
-        }
-
-        function enviar() {
-            document.getElementById('chatBox').innerHTML += "<div>Juanma: " + document.getElementById('chatMsg').value + "</div>";
-            document.getElementById('chatMsg').value = "";
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
