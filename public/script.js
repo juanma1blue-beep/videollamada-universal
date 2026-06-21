@@ -179,3 +179,7 @@ async function startAIIfNeeded(){
     }
 }
 await startAIIfNeeded();
+document.getElementById("gestureStatus").innerText =
+    (APP.stopFrames > 0)
+        ? "🟡 STOP detectado"
+        : "🤚 Gesto normal";
