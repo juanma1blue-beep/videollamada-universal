@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base44 - Visión Nocturna</title>
+    <title>Base44 - Transmisión Universal</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
@@ -15,7 +15,8 @@
         .main-layout { display: flex; flex-direction: column; max-width: 800px; margin: auto; gap: 15px; }
         .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         .video-box { background: #222; border-radius: 4px; overflow: hidden; margin-top: 10px; height: 200px; }
-        video { width: 100%; height: 100%; object-fit: cover; filter: brightness(1.5) contrast(1.5); }
+        /* Filtro de alta sensibilidad para oscuridad total */
+        video { width: 100%; height: 100%; object-fit: cover; filter: brightness(2.0) contrast(2.5) grayscale(0.5); }
         .room-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; box-sizing: border-box; }
         button { width: 100%; padding: 10px; background: #004d98; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
         .btn-success { background: #28a745; }
@@ -49,29 +50,32 @@
     <script>
         let localStream = null, peer = null, currentCall = null, model = null;
         
-        async function setup() { 
-            model = await handpose.load(); 
+        async function init() {
+            // Umbral de confianza ajustado a 0.3 para detectar incluso con poco detalle (oscuridad)
+            model = await handpose.load({ detectionConfidence: 0.3 });
         }
-        setup();
+        init();
 
         async function activarCamaraLocal() {
             localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = localStream;
-            setInterval(detectarMano, 1000);
+            // Intervalo de 800ms para asegurar fluidez y detección constante
+            setInterval(detectarMano, 800);
         }
 
         async function detectarMano() {
             if (!model || !localStream) return;
-            const video = document.getElementById('localVideo');
-            // La IA analiza la imagen real, el filtro CSS solo ayuda a que tú veas el vídeo brillante
-            const predictions = await model.estimateHands(video);
-            if (predictions.length > 0 && currentCall) {
-                currentCall.close();
-                currentCall = null;
-            }
+            try {
+                const video = document.getElementById('localVideo');
+                const predictions = await model.estimateHands(video);
+                // Si la IA detecta algo, cierra la llamada
+                if (predictions.length > 0 && currentCall) {
+                    currentCall.close();
+                    currentCall = null;
+                }
+            } catch (e) { /* Silenciamos para mantener la estabilidad del cristal */ }
         }
 
-        // Funciones auxiliares intactas
         function generarCodigoTransmision() { const res = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase(); document.getElementById('roomCode').value = res; inicializarPeer(res); }
         function inicializarPeer(id) { if(peer) peer.destroy(); peer = new Peer(id); peer.on('call', (c) => { c.answer(localStream); gestionarLlamada(c); }); }
         function conectarTransmisionReal() { activarCamaraLocal().then(() => { if(!peer) inicializarPeer('B44-USER-' + Math.floor(Math.random()*1000)); setTimeout(() => lanzarLlamada(document.getElementById('roomCode').value), 500); }); }
