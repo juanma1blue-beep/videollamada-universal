@@ -1,70 +1,181 @@
-const socket = io();
-const localVideo = document.getElementById('localVideo');
-const remoteVideo = document.getElementById('remoteVideo');
-const timerDisplay = document.getElementById('timer');
-const statusMessage = document.getElementById('statusMessage');
-let localStream, timerInterval, seconds = 0, minutes = 0, hours = 0;
+ /* =========================
+   INIT PEER
+========================= */
 
-window.onload = () => { document.getElementById('roomInput').value = Math.random().toString(36).substring(2, 9); };
+function initPeer(){
 
-async function startCamera() {
+    if(APP.peer) return;
+
+    APP.peer = new Peer();
+
+    APP.peer.on("open", id => {
+        console.log("Peer ID:", id);
+        setStatus("🟢 Conectado al servidor");
+    });
+
+    APP.peer.on("call", async (incomingCall) => {
+
+        await initMedia();
+
+        APP.call = incomingCall;
+
+        APP.call.answer(APP.stream);
+
+        APP.call.on("stream", (remoteStream) => {
+            document.getElementById("remoteVideo").srcObject = remoteStream;
+            setStatus("🟢 En llamada");
+        });
+
+        APP.call.on("close", () => {
+            hangUp();
+        });
+
+    });
+
+    APP.peer.on("error", (err) => {
+        console.error(err);
+        setStatus("🔴 Error PeerJS");
+    });
+}
+async function startCall(){
+
+    await initMedia();
+    initPeer();
+
+    const targetId = document.getElementById("roomCode").value;
+
+    if(!targetId){
+        setStatus("🔴 Falta código");
+        return;
+    }
+
+    if(APP.call){
+        APP.call.close();
+    }
+
+    APP.call = APP.peer.call(targetId, APP.stream);
+
+    APP.call.on("stream", (remoteStream) => {
+        document.getElementById("remoteVideo").srcObject = remoteStream;
+        setStatus("🟢 En llamada");
+    });
+
+    APP.call.on("close", () => {
+        hangUp();
+    });
+
+    setStatus("🟡 Llamando...");
+}
+function hangUp(){
+
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, latency: 0 } });
-        localVideo.srcObject = localStream;
-        localVideo.muted = true;
-        startTimer();
-        startVoiceDetection(localStream); // Activamos detector de voz
-    } catch (err) { console.error("Error cámara:", err); }
+
+        if(APP.call){
+            APP.call.close();
+            APP.call = null;
+        }
+
+        if(APP.stream){
+            APP.stream.getTracks().forEach(t => t.stop());
+        }
+
+        document.getElementById("remoteVideo").srcObject = null;
+        document.getElementById("localVideo").srcObject = null;
+
+        setStatus("🔴 Llamada finalizada");
+
+    } catch(e){
+        console.error(e);
+    }
 }
+async function initAI(){
 
-// Detector de voz (Aislado)
-async function startVoiceDetection(stream) {
-    const audioContext = new AudioContext();
-    const source = audioContext.createMediaStreamSource(stream);
-    const analyzer = audioContext.createAnalyser();
-    source.connect(analyzer);
-    const pcmData = new Float32Array(analyzer.fftSize);
-    setInterval(() => {
-        analyzer.getFloatTimeDomainData(pcmData);
-        let sum = 0;
-        for (let i = 0; i < pcmData.length; i++) sum += pcmData[i] * pcmData[i];
-        let amplitude = Math.sqrt(sum / pcmData.length);
-        if (amplitude > 0.05) document.getElementById('localBox').classList.add('talking');
-        else document.getElementById('localBox').classList.remove('talking');
-    }, 200);
+    try {
+
+        setStatus("🟡 Cargando IA...");
+
+        APP.model = await handpose.load();
+
+        setStatus("🟢 IA lista");
+
+        startDetectionLoop();
+
+    } catch(e){
+        console.error(e);
+        setStatus("🔴 Error IA");
+    }
 }
+function isStopGesture(hand){
 
-function toggleAudio() {
-    const track = localStream.getAudioTracks()[0];
-    track.enabled = !track.enabled;
-    document.getElementById('btnAudio').style.backgroundColor = track.enabled ? "#333" : "#ff3b30";
+    if(!hand || !hand.landmarks) return false;
+
+    const lm = hand.landmarks;
+
+    const index = lm[8];
+    const middle = lm[12];
+    const ring = lm[16];
+    const pinky = lm[20];
+    const wrist = lm[0];
+
+    // dedos por encima de la muñeca (mano abierta)
+    const fingersUp =
+        index[1] < wrist[1] &&
+        middle[1] < wrist[1] &&
+        ring[1] < wrist[1] &&
+        pinky[1] < wrist[1];
+
+    return fingersUp;
 }
+function startDetectionLoop(){
 
-function toggleVideo() {
-    const track = localStream.getVideoTracks()[0];
-    track.enabled = !track.enabled;
-    document.getElementById('btnVideo').style.backgroundColor = track.enabled ? "#333" : "#ff3b30";
+    if(APP.detecting) return;
+
+    APP.detecting = true;
+
+    const loop = async () => {
+
+        if(!APP.model || !APP.stream){
+            requestAnimationFrame(loop);
+            return;
+        }
+
+        const video = document.getElementById("localVideo");
+
+        try {
+
+            const hands = await APP.model.estimateHands(video);
+
+            if(hands.length > 0 && isStopGesture(hands[0])){
+
+                APP.stopFrames++;
+
+                setStatus("🟡 STOP detectado (" + APP.stopFrames + ")");
+
+                if(APP.stopFrames >= 6){
+
+                    APP.stopFrames = 0;
+
+                    setStatus("🔴 Colgando por gesto STOP");
+
+                    hangUp();
+                }
+
+            } else {
+                APP.stopFrames = 0;
+            }
+
+        } catch(e){
+            console.error(e);
+        }
+
+        requestAnimationFrame(loop);
+    };
+
+    loop();
 }
-
-function startTimer() {
-    timerInterval = setInterval(() => {
-        seconds++;
-        if (seconds === 60) { seconds = 0; minutes++; }
-        if (minutes === 60) { minutes = 0; hours++; }
-        timerDisplay.innerText = (hours < 10 ? "0"+hours : hours) + ":" + (minutes < 10 ? "0"+minutes : minutes) + ":" + (seconds < 10 ? "0"+seconds : seconds);
-    }, 1000);
+async function startAIIfNeeded(){
+    if(!APP.model){
+        await initAI();
+    }
 }
-
-socket.on('disconnect', () => {
-    statusMessage.innerText = "Reconectando...";
-    statusMessage.style.color = "#ff9500";
-    setTimeout(() => { socket.connect(); socket.emit('join-room', document.getElementById('roomInput').value); }, 5000);
-});
-
-socket.on('connect', () => statusMessage.innerText = "Conectado");
-socket.on('user-joined', () => { statusMessage.innerText = "Usuario conectado"; statusMessage.style.color = "#00ff00"; });
-
-function joinRoom() { const roomId = document.getElementById('roomInput').value; if (roomId) socket.emit('join-room', roomId); }
-function endCall() { clearInterval(timerInterval); if(localStream) localStream.getTracks().forEach(t => t.stop()); window.location.reload(); }
-
-startCamera();
+await startAIIfNeeded();
