@@ -1,76 +1,100 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>RAIDCALL ULTRA STABLE</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RaidCall Full Client</title>
 
 <style>
 body{
   margin:0;
-  font-family:sans-serif;
+  font-family:Arial;
   background:#0f0f12;
   color:white;
   display:flex;
+  height:100vh;
 }
 
-#panel{
+/* SIDEBAR */
+#sidebar{
   width:260px;
   background:#1c1d22;
-  padding:10px;
+  padding:15px;
+  box-sizing:border-box;
 }
 
-button,input{
+input,button{
   width:100%;
   padding:10px;
-  margin-top:5px;
+  margin-top:8px;
+  border:none;
+  border-radius:5px;
 }
 
 button{
   background:#5865f2;
-  border:none;
   color:white;
   cursor:pointer;
 }
 
+/* MAIN */
 #main{
   flex:1;
   display:flex;
   flex-direction:column;
   align-items:center;
+  justify-content:center;
 }
 
 video{
   width:320px;
-  margin:10px;
   border-radius:10px;
+  margin:10px;
   background:black;
 }
 
+/* STATUS */
 #status{
   margin-top:10px;
+  font-size:14px;
+  opacity:0.8;
+}
+
+/* PTT */
+#ptt{
+  margin-top:10px;
+  background:red;
 }
 </style>
 </head>
 
 <body>
 
-<div id="panel">
+<!-- SIDEBAR -->
+<div id="sidebar">
 
-  <h3>RAIDCALL ULTRA</h3>
+  <h2>🎧 RAIDCALL</h2>
 
-  <input id="room" placeholder="Room code">
+  <input id="roomInput" placeholder="Room ID" />
 
-  <button onclick="createRoom()">Create Room</button>
-  <button onclick="joinRoom()">Join Room</button>
+  <button onclick="createRoom()">➕ Create Room</button>
+  <button onclick="joinRoom()">🚪 Join Room</button>
 
-  <div id="status">Offline</div>
+  <div id="status">Disconnected</div>
+
+  <button id="ptt"
+    onmousedown="pushToTalk(true)"
+    onmouseup="pushToTalk(false)">
+    🎤 PUSH TO TALK
+  </button>
 
 </div>
 
+<!-- MAIN -->
 <div id="main">
 
-  <video id="local" autoplay muted></video>
-  <video id="remote" autoplay></video>
+  <video id="localVideo" autoplay muted></video>
+  <video id="remoteVideo" autoplay></video>
 
 </div>
 
@@ -79,20 +103,19 @@ video{
 <script>
 const socket = io();
 
+/* STATE */
 let roomId;
 let pc;
 let stream;
 
-let reconnecting = false;
-
-/* ICE CONFIG (STABLE + TURN READY) */
+/* ICE CONFIG */
 const config = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" }
 
-    // 🔥 PRODUCTION (optional TURN)
+    // TURN (PRODUCTION)
     // {
-    //   urls: "turn:YOUR_TURN_SERVER",
+    //   urls: "turn:YOUR_SERVER:3478",
     //   username: "user",
     //   credential: "pass"
     // }
@@ -101,98 +124,89 @@ const config = {
 
 /* CREATE ROOM */
 function createRoom(){
-  roomId = Math.random().toString(36).slice(2,8);
-  document.getElementById("room").value = roomId;
+  roomId = Math.random().toString(36).substring(2,8);
+  document.getElementById("roomInput").value = roomId;
 }
 
-/* JOIN */
+/* JOIN ROOM */
 async function joinRoom(){
 
-  roomId = document.getElementById("room").value;
+  roomId = document.getElementById("roomInput").value;
 
-  socket.emit("join-room", roomId);
+  socket.emit("join-room", { roomId });
 
   stream = await navigator.mediaDevices.getUserMedia({
     video:true,
     audio:true
   });
 
-  document.getElementById("local").srcObject = stream;
+  document.getElementById("localVideo").srcObject = stream;
 
-  document.getElementById("status").innerText =
-    "Connected: " + roomId;
+  setStatus("Connected to " + roomId);
 }
 
-/* SAFE PEER CREATE */
+/* STATUS */
+function setStatus(msg){
+  document.getElementById("status").innerText = msg;
+}
+
+/* PEER */
 function createPeer(isOffer){
 
-  if(pc){
-    pc.close();
-  }
+  if(pc) pc.close();
 
   pc = new RTCPeerConnection(config);
 
-  stream.getTracks().forEach(t => pc.addTrack(t, stream));
+  stream.getTracks().forEach(track => {
+    pc.addTrack(track, stream);
+  });
 
-  pc.ontrack = (e) => {
-    document.getElementById("remote").srcObject = e.streams[0];
+  pc.ontrack = (event) => {
+    document.getElementById("remoteVideo").srcObject = event.streams[0];
   };
 
-  /* STABILITY: ICE RESTART */
+  /* STABILITY */
   pc.oniceconnectionstatechange = () => {
-
     if(pc.iceConnectionState === "failed"){
-      console.log("Reconnecting ICE...");
-
       pc.restartIce();
-
-      if(isOffer){
-        pc.createOffer({ iceRestart:true })
-        .then(o=>pc.setLocalDescription(o))
-        .then(()=>{
-          socket.emit("signal", {
-            roomId,
-            data:{ offer:pc.localDescription }
-          });
-        });
-      }
+      setStatus("Reconnecting...");
     }
   };
 
-  pc.onicecandidate = (e) => {
-    if(e.candidate){
+  pc.onicecandidate = (event) => {
+    if(event.candidate){
       socket.emit("signal", {
         roomId,
-        data:{ candidate:e.candidate }
+        data:{ candidate:event.candidate }
       });
     }
   };
 
   if(isOffer){
     pc.createOffer()
-    .then(o=>pc.setLocalDescription(o))
-    .then(()=>{
-      socket.emit("signal", {
-        roomId,
-        data:{ offer:pc.localDescription }
+      .then(o => pc.setLocalDescription(o))
+      .then(() => {
+        socket.emit("signal", {
+          roomId,
+          data:{ offer:pc.localDescription }
+        });
       });
-    });
   }
 }
 
-/* SIGNAL FLOW */
-socket.on("peer-ready", ()=>{
+/* SIGNALING */
+socket.on("peer-ready", () => {
   createPeer(true);
 });
 
-socket.on("signal", async (data)=>{
+socket.on("signal", async (data) => {
 
   if(data.offer){
     createPeer(false);
     await pc.setRemoteDescription(data.offer);
 
-    const ans = await pc.createAnswer();
-    await pc.setLocalDescription(ans);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
 
     socket.emit("signal", {
       roomId,
@@ -211,11 +225,12 @@ socket.on("signal", async (data)=>{
   }
 });
 
-/* AUTO RECOVERY */
-socket.on("peer-disconnect", () => {
-  document.getElementById("status").innerText =
-    "Peer disconnected - waiting...";
-});
+/* PUSH TO TALK */
+function pushToTalk(active){
+  if(stream && stream.getAudioTracks()[0]){
+    stream.getAudioTracks()[0].enabled = active;
+  }
+}
 </script>
 
 </body>
