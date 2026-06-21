@@ -2,243 +2,27 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>BASE44 V3 STABLE</title>
-
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
-
-<style>
-
-/* =========================
-   RESET
-========================= */
-
-* {
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-/* =========================
-   LAYOUT BASE
-========================= */
-
-body {
-    font-family: Arial, sans-serif;
-    background:#0b0b0b;
-    color:white;
-    height:100vh;
-    display:flex;
-}
-
-/* PANEL IZQUIERDO */
-
-#panel {
-    width:300px;
-    background:#111;
-    padding:15px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
-
-/* ZONA PRINCIPAL */
-
-#main {
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    justify-content:center;
-    align-items:center;
-    gap:10px;
-}
-
-/* VIDEOS */
-
-video {
-    width:45%;
-    border-radius:10px;
-    background:black;
-}
-
-/* INPUTS */
-
-input, button {
-    padding:10px;
-    border:none;
-    border-radius:6px;
-}
-
-button {
-    background:#a50044;
-    color:white;
-    cursor:pointer;
-}
-
-/* ESTADO */
-
-#status {
-    font-size:13px;
-    opacity:0.8;
-}
-
-/* CHAT */
-
-#chatBox {
-    height:150px;
-    overflow-y:auto;
-    background:#1a1a1a;
-    padding:8px;
-    border-radius:6px;
-    font-size:13px;
-}
-
-</style>
+<title>V5 STABLE PRO CALL</title>
 </head>
 
 <body>
 
-<!-- =========================
-     PANEL CONTROL
-========================= -->
+<h2>V5 CALL SYSTEM</h2>
 
-<div id="panel">
+<input id="roomInput" placeholder="Código sala">
 
-    <h3>BASE44 V3</h3>
+<button onclick="generateRoom()">Generar código</button>
+<button onclick="joinRoom()">Unirse</button>
+<button onclick="startCall()">Llamar</button>
+<button onclick="hangUp()">Colgar</button>
 
-    <div id="status">🟡 Inicializando...</div>
+<br><br>
 
-    <input id="roomCode" placeholder="Código de sesión">
+<video id="localVideo" autoplay playsinline muted></video>
+<video id="remoteVideo" autoplay playsinline></video>
 
-    <button onclick="generateCode()">Generar código</button>
-    <button onclick="joinRoom()">Entrar</button>
-    <button onclick="startCall()">Llamar</button>
-    <button onclick="hangUp()">Colgar</button>
-
-    <hr>
-
-    <div id="chatBox"></div>
-
-    <input id="chatInput" placeholder="Mensaje">
-    <button onclick="sendChat()">Enviar</button>
-
-</div>
-
-<!-- =========================
-     ZONA VIDEO
-========================= -->
-
-<div id="main">
-
-    <video id="localVideo" autoplay playsinline muted></video>
-    <video id="remoteVideo" autoplay playsinline></video>
-
-</div>
-
-<script>
-
-/* =========================
-   ESTADO GLOBAL (V3 CORE)
-========================= */
-
-const APP = {
-    peer: null,
-    call: null,
-    stream: null,
-    model: null,
-    room: "",
-    detecting: false,
-    stopFrames: 0
-};
-
-/* =========================
-   SOCKET
-========================= */
-
-const socket = io();
-
-/* =========================
-   STATUS
-========================= */
-
-function setStatus(text){
-    document.getElementById("status").innerText = text;
-}
-
-/* =========================
-   ROOM GENERATOR
-========================= */
-
-function generateCode(){
-    const code = "BASE44-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    document.getElementById("roomCode").value = code;
-    navigator.clipboard.writeText(code);
-}
-
-/* =========================
-   INIT CAMERA
-========================= */
-
-async function initMedia(){
-
-    if(APP.stream) return APP.stream;
-
-    try {
-
-        APP.stream = await navigator.mediaDevices.getUserMedia({
-            audio:true,
-            video:true
-        });
-
-        document.getElementById("localVideo").srcObject = APP.stream;
-
-        setStatus("🟢 Cámara activa");
-
-        return APP.stream;
-
-    } catch(e){
-        setStatus("🔴 Error cámara/mic");
-        console.error(e);
-    }
-}
-
-/* =========================
-   JOIN ROOM (BASE ONLY)
-========================= */
-
-function joinRoom(){
-    APP.room = document.getElementById("roomCode").value;
-    socket.emit("join", APP.room);
-    setStatus("🟡 Conectando a sala...");
-}
-
-/* =========================
-   CHAT SAFE
-========================= */
-
-function sendChat(){
-
-    const input = document.getElementById("chatInput");
-    const msg = input.value.trim();
-
-    if(!msg) return;
-
-    const div = document.createElement("div");
-    div.textContent = "Tú: " + msg;
-
-    document.getElementById("chatBox").appendChild(div);
-
-    input.value = "";
-}
-<div id="gestureStatus">🤚 Gesto: inactivo</div>
-</script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
 
 </body>
 </html>
-<button onclick="safeStartCall()">Llamar</button>
-<button onclick="safeStartCall()">Llamar</button>
