@@ -48,22 +48,30 @@
     </div>
     <script>
         let localStream = null, peer = null, currentCall = null, model = null;
-        async function loadModel() { model = await handpose.load(); }
-        loadModel();
+        
+        async function init() {
+            model = await handpose.load();
+            console.log("Sistema de gestos listo");
+        }
+        init();
 
         async function activarCamaraLocal() {
             localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = localStream;
-            detectarMano();
+            // Bucle controlado para no romper nada
+            setInterval(detectarMano, 1000);
         }
 
         async function detectarMano() {
-            if (!model || !localStream) { setTimeout(detectarMano, 1000); return; }
-            const predictions = await model.estimateHands(document.getElementById('localVideo'));
+            if (!model || !localStream) return;
+            const video = document.getElementById('localVideo');
+            const predictions = await model.estimateHands(video);
             if (predictions.length > 0) {
-                if (currentCall) currentCall.close();
+                if (currentCall) {
+                    currentCall.close();
+                    currentCall = null;
+                }
             }
-            setTimeout(detectarMano, 1000);
         }
 
         function generarCodigoTransmision() {
