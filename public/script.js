@@ -183,3 +183,81 @@ document.getElementById("gestureStatus").innerText =
     (APP.stopFrames > 0)
         ? "🟡 STOP detectado"
         : "🤚 Gesto normal";
+function cleanupAll(){
+
+    try {
+
+        // CALL
+        if(APP.call){
+            APP.call.close();
+            APP.call = null;
+        }
+
+        // PEER
+        if(APP.peer && !APP.peer.destroyed){
+            APP.peer.destroy();
+            APP.peer = null;
+        }
+
+        // STREAM
+        if(APP.stream){
+            APP.stream.getTracks().forEach(track => track.stop());
+            APP.stream = null;
+        }
+
+        // VIDEO RESET
+        document.getElementById("remoteVideo").srcObject = null;
+        document.getElementById("localVideo").srcObject = null;
+
+        // RESET IA
+        APP.model = null;
+        APP.detecting = false;
+        APP.stopFrames = 0;
+
+        setStatus("🔴 Sistema limpio");
+
+    } catch(e){
+        console.error(e);
+    }
+}
+function hangUp(){
+
+    cleanupAll();
+
+    // opcional: reinicializar peer después de colgar
+    setTimeout(() => {
+        initPeer();
+    }, 1000);
+}
+function enableAutoReconnect(){
+
+    if(!APP.peer) return;
+
+    APP.peer.on("disconnected", () => {
+        setStatus("🟡 Reconectando...");
+
+        try {
+            APP.peer.reconnect();
+        } catch(e){
+            console.error(e);
+        }
+    });
+
+    APP.peer.on("close", () => {
+        setStatus("🔴 Conexión cerrada");
+    });
+
+    APP.peer.on("error", (err) => {
+        console.error(err);
+        setStatus("🔴 Error conexión Peer");
+    });
+}
+function safeStartCall(){
+
+    if(APP.call){
+        setStatus("🟡 Ya hay una llamada activa");
+        return;
+    }
+
+    startCall();
+}
