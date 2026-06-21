@@ -1,237 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>RaidCall Full Client</title>
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f0f12;
-  color:white;
-  display:flex;
-  height:100vh;
-}
-
-/* SIDEBAR */
-#sidebar{
-  width:260px;
-  background:#1c1d22;
-  padding:15px;
-  box-sizing:border-box;
-}
-
-input,button{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  border:none;
-  border-radius:5px;
-}
-
-button{
-  background:#5865f2;
-  color:white;
-  cursor:pointer;
-}
-
-/* MAIN */
-#main{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-}
-
-video{
-  width:320px;
-  border-radius:10px;
-  margin:10px;
-  background:black;
-}
-
-/* STATUS */
-#status{
-  margin-top:10px;
-  font-size:14px;
-  opacity:0.8;
-}
-
-/* PTT */
-#ptt{
-  margin-top:10px;
-  background:red;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Base44 - Versión 1.X.1 (Restauración Original)</title>
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+    <style>
+        body { font-family: sans-serif; background: #f0f4f8; padding: 10px; }
+        .container { background: white; padding: 15px; border-radius: 8px; max-width: 600px; margin: auto; }
+        video { width: 100%; background: #000; margin-bottom: 10px; }
+        button { width: 100%; padding: 10px; margin-bottom: 5px; cursor: pointer; }
+        #chatBox { height: 100px; border: 1px solid #ccc; overflow-y: scroll; margin-bottom: 10px; }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <a href="https://PayPal.me/MarketEvolution">PayPal Propinas</a>
+        <br><br>
+        <input type="text" id="roomCode" placeholder="CÓDIGO">
+        <button onclick="generar()">Generar Código</button>
+        <button onclick="conectar()">Conectar</button>
+        <video id="localVideo" autoplay playsinline muted></video>
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div id="chatBox"></div>
+        <input type="text" id="chatMsg" placeholder="Mensaje...">
+        <button onclick="enviar()">Enviar</button>
+    </div>
 
-<!-- SIDEBAR -->
-<div id="sidebar">
+    <script>
+        let localStream, peer, call, model;
+        let stopGestureCount = 0;
 
-  <h2>🎧 RAIDCALL</h2>
+        async function init() {
+            model = await handpose.load();
+            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('localVideo').srcObject = localStream;
+            // Intervalo puro y duro de 1 segundo (como el día 17)
+            setInterval(detectar, 1000);
+        }
+        init();
 
-  <input id="roomInput" placeholder="Room ID" />
+        async function detectar() {
+            if (!model || !call) return;
+            const hands = await model.estimateHands(document.getElementById('localVideo'));
+            if (hands.length > 0) {
+                stopGestureCount++;
+                if (stopGestureCount >= 2) { // 2 segundos (2 intervalos de 1s)
+                    call.close();
+                    stopGestureCount = 0;
+                }
+            } else {
+                stopGestureCount = 0;
+            }
+        }
 
-  <button onclick="createRoom()">➕ Create Room</button>
-  <button onclick="joinRoom()">🚪 Join Room</button>
+        function generar() {
+            const id = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            document.getElementById('roomCode').value = id;
+            peer = new Peer(id);
+            peer.on('call', c => { c.answer(localStream); call = c; c.on('stream', s => document.getElementById('remoteVideo').srcObject = s); });
+        }
 
-  <div id="status">Disconnected</div>
+        function conectar() {
+            peer = new Peer();
+            call = peer.call(document.getElementById('roomCode').value, localStream);
+            call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
+        }
 
-  <button id="ptt"
-    onmousedown="pushToTalk(true)"
-    onmouseup="pushToTalk(false)">
-    🎤 PUSH TO TALK
-  </button>
-
-</div>
-
-<!-- MAIN -->
-<div id="main">
-
-  <video id="localVideo" autoplay muted></video>
-  <video id="remoteVideo" autoplay></video>
-
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-
-<script>
-const socket = io();
-
-/* STATE */
-let roomId;
-let pc;
-let stream;
-
-/* ICE CONFIG */
-const config = {
-  iceServers: [
-    { urls: "stun:stun.l.google.com:19302" }
-
-    // TURN (PRODUCTION)
-    // {
-    //   urls: "turn:YOUR_SERVER:3478",
-    //   username: "user",
-    //   credential: "pass"
-    // }
-  ]
-};
-
-/* CREATE ROOM */
-function createRoom(){
-  roomId = Math.random().toString(36).substring(2,8);
-  document.getElementById("roomInput").value = roomId;
-}
-
-/* JOIN ROOM */
-async function joinRoom(){
-
-  roomId = document.getElementById("roomInput").value;
-
-  socket.emit("join-room", { roomId });
-
-  stream = await navigator.mediaDevices.getUserMedia({
-    video:true,
-    audio:true
-  });
-
-  document.getElementById("localVideo").srcObject = stream;
-
-  setStatus("Connected to " + roomId);
-}
-
-/* STATUS */
-function setStatus(msg){
-  document.getElementById("status").innerText = msg;
-}
-
-/* PEER */
-function createPeer(isOffer){
-
-  if(pc) pc.close();
-
-  pc = new RTCPeerConnection(config);
-
-  stream.getTracks().forEach(track => {
-    pc.addTrack(track, stream);
-  });
-
-  pc.ontrack = (event) => {
-    document.getElementById("remoteVideo").srcObject = event.streams[0];
-  };
-
-  /* STABILITY */
-  pc.oniceconnectionstatechange = () => {
-    if(pc.iceConnectionState === "failed"){
-      pc.restartIce();
-      setStatus("Reconnecting...");
-    }
-  };
-
-  pc.onicecandidate = (event) => {
-    if(event.candidate){
-      socket.emit("signal", {
-        roomId,
-        data:{ candidate:event.candidate }
-      });
-    }
-  };
-
-  if(isOffer){
-    pc.createOffer()
-      .then(o => pc.setLocalDescription(o))
-      .then(() => {
-        socket.emit("signal", {
-          roomId,
-          data:{ offer:pc.localDescription }
-        });
-      });
-  }
-}
-
-/* SIGNALING */
-socket.on("peer-ready", () => {
-  createPeer(true);
-});
-
-socket.on("signal", async (data) => {
-
-  if(data.offer){
-    createPeer(false);
-    await pc.setRemoteDescription(data.offer);
-
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-
-    socket.emit("signal", {
-      roomId,
-      data:{ answer:pc.localDescription }
-    });
-  }
-
-  if(data.answer){
-    await pc.setRemoteDescription(data.answer);
-  }
-
-  if(data.candidate){
-    try{
-      await pc.addIceCandidate(data.candidate);
-    }catch(e){}
-  }
-});
-
-/* PUSH TO TALK */
-function pushToTalk(active){
-  if(stream && stream.getAudioTracks()[0]){
-    stream.getAudioTracks()[0].enabled = active;
-  }
-}
-</script>
-
+        function enviar() {
+            document.getElementById('chatBox').innerHTML += "<div>Juanma: " + document.getElementById('chatMsg').value + "</div>";
+            document.getElementById('chatMsg').value = "";
+        }
+    </script>
 </body>
 </html>
