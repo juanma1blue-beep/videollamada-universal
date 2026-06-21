@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base44 - Restauración Total</title>
+    <title>Base44 - Restauración Milimétrica</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
@@ -14,75 +14,143 @@
         body { font-family: sans-serif; background: #f0f4f8; padding: 10px; margin: 0; }
         .main-layout { display: flex; flex-direction: column; max-width: 800px; margin: auto; gap: 15px; }
         .container { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .video-box { background: #222; border-radius: 4px; overflow: hidden; margin-top: 10px; height: 200px; }
+        .video-box { background: #222; border-radius: 4px; overflow: hidden; margin-top: 10px; height: 200px; position: relative; }
         video { width: 100%; height: 100%; object-fit: cover; }
         .room-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 10px; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background: #004d98; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 5px; }
+        
+        /* Botones Mejorados */
+        button { width: 100%; padding: 12px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 5px; transition: background 0.3s; }
         .btn-success { background: #28a745; }
-        .btn-youtube { background: #ff0000; }
-        .btn-paypal { background: #ffc439; color: #003087; text-decoration: none; display: block; text-align: center; padding: 10px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; }
+        .btn-success:hover { background: #218838; }
+        
+        /* Premium PayPal */
+        .btn-paypal { 
+            background: linear-gradient(135deg, #ffc439 0%, #ffb300 100%);
+            color: #003087; text-decoration: none; display: flex; align-items: center; justify-content: center;
+            padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 10px; border: 2px solid #e0a800;
+        }
+        
+        /* Premium YouTube */
+        .btn-youtube { 
+            background: linear-gradient(135deg, #ff0000 0%, #c40000 100%);
+            color: white; text-decoration: none; display: flex; align-items: center; justify-content: center;
+            padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 10px;
+        }
+
         .chat-panel { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         #chatBox { height: 150px; border: 1px solid #ccc; overflow-y: auto; padding: 5px; margin-bottom: 10px; }
+        
+        /* Indicador Gesto */
+        #gestoStatus { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="main-layout">
         <div class="container">
-            <h1>Base44</h1>
-            <a href="https://PayPal.me/MarketEvolution" target="_blank" class="btn-paypal">PayPal 💛 Propinas</a>
-            <a href="https://www.youtube.com/@juanmaentertaiment" target="_blank" class="btn-youtube" style="display:block; text-align:center; color:white; padding:10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-decoration:none;">Canal YouTube</a>
+            <h1>BASE44</h1>
+            <a href="https://PayPal.me/MarketEvolution" target="_blank" class="btn-paypal">
+                <span style="font-size:1.2em; margin-right:8px;">💛</span> PAYPAL PROPINAS
+            </a>
+            <a href="https://www.youtube.com/@juanmaentertaiment" target="_blank" class="btn-youtube">
+                <span style="font-size:1.2em; margin-right:8px;">▶️</span> CANAL YOUTUBE
+            </a>
             
             <input type="text" id="roomCode" class="room-input" placeholder="CÓDIGO">
-            <button onclick="generar()">Generar Código</button>
-            <button class="btn-success" onclick="conectar()">Conectar</button>
+            <button onclick="generarCodigoTransmision()">Generar Código</button>
+            <button class="btn-success" onclick="conectarTransmisionReal()">Conectar</button>
             
-            <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
+            <div class="video-box">
+                <video id="localVideo" autoplay playsinline muted></video>
+                <div id="gestoStatus">✋ Gesto Stop: Inactivo</div>
+            </div>
             <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
+            
         </div>
         <div class="chat-panel">
             <h3>Chat</h3>
             <div id="chatBox"></div>
             <input type="text" id="chatMsg" class="room-input" placeholder="Mensaje...">
-            <button onclick="enviar()">Enviar</button>
+            <button onclick="enviarMensajeChat()">Enviar</button>
         </div>
     </div>
     <script>
-        let localStream, peer, call, model;
-
-        async function init() {
-            model = await handpose.load();
-            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-            document.getElementById('localVideo').srcObject = localStream;
-            detectar();
+        let localStream = null, peer = null, currentCall = null, model = null, stopGestureDuration = 0;
+        const constraints = { video: { width: 640, height: 480, frameRate: 30 }, audio: true };
+        
+        async function loadModel() { 
+            model = await handpose.load(); 
+            console.log("Sistema gestual Base44 cargado.");
         }
-        init();
+        loadModel();
 
-        async function detectar() {
+        async function activarCamaraLocal() {
+            localStream = await navigator.mediaDevices.getUserMedia(constraints);
+            document.getElementById('localVideo').srcObject = localStream;
+            checkGesture();
+        }
+
+        async function checkGesture() {
+            if (!model || !localStream || !currentCall) { setTimeout(checkGesture, 500); return; }
             const video = document.getElementById('localVideo');
             const hands = await model.estimateHands(video);
-            if (hands.length > 0 && call) {
-                call.close();
+            const statusLabel = document.getElementById('gestoStatus');
+            
+            if (hands.length > 0) {
+                stopGestureDuration += 500;
+                statusLabel.innerText = "✋ Gesto Stop: Detectando... (" + ( stopGestureDuration / 1000 ).toFixed(1) + "s)";
+                if (stopGestureDuration >= 2000) {
+                    currentCall.close();
+                    stopGestureDuration = 0;
+                    statusLabel.innerText = "🛑 LLAMADA DETENIDA POR GESTO";
+                    statusLabel.style.background = "red";
+                    setTimeout(() => {
+                        statusLabel.innerText = "✋ Gesto Stop: Inactivo";
+                        statusLabel.style.background = "rgba(0,0,0,0.7)";
+                    }, 3000);
+                }
+            } else {
+                stopGestureDuration = 0;
+                statusLabel.innerText = "✋ Gesto Stop: Inactivo";
             }
-            setTimeout(detectar, 1000);
+            setTimeout(checkGesture, 500);
         }
 
-        function generar() {
-            const id = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase();
-            document.getElementById('roomCode').value = id;
+        // --- Funciones PeerJS ---
+        function generarCodigoTransmision() {
+            const res = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            document.getElementById('roomCode').value = res;
+            inicializarPeer(res);
+        }
+
+        function inicializarPeer(id) {
+            if(peer) peer.destroy();
             peer = new Peer(id);
-            peer.on('call', c => { c.answer(localStream); call = c; c.on('stream', s => document.getElementById('remoteVideo').srcObject = s); });
+            peer.on('call', (c) => { c.answer(localStream); gestionarLlamada(c); });
         }
 
-        function conectar() {
-            peer = new Peer();
-            call = peer.call(document.getElementById('roomCode').value, localStream);
-            call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
+        function conectarTransmisionReal() {
+            activarCamaraLocal().then(() => {
+                if(!peer) inicializarPeer('B44-USER-' + Math.floor(Math.random()*1000));
+                setTimeout(() => lanzarLlamada(document.getElementById('roomCode').value), 500);
+            });
         }
 
-        function enviar() {
-            const msg = document.getElementById('chatMsg').value;
-            document.getElementById('chatBox').innerHTML += "<div><b>Juanma:</b> " + msg + "</div>";
-            document.getElementById('chatMsg').value = "";
+        function lanzarLlamada(id) {
+            const call = peer.call(id, localStream);
+            gestionarLlamada(call);
+        }
+
+        function gestionarLlamada(call) {
+            currentCall = call;
+            call.on('stream', (s) => document.getElementById('remoteVideo').srcObject = s);
+        }
+
+        function enviarMensajeChat() {
+            const input = document.getElementById('chatMsg');
+            if (input.value.trim() === "") return;
+            document.getElementById('chatBox').innerHTML += `<div><b>Juanma:</b> ${input.value}</div>`;
+            input.value = "";
+            document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
         }
     </script>
 </body>
