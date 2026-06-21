@@ -2,62 +2,70 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base44 - Alta Velocidad</title>
+    <title>Base44 - Original Al Milímetro</title>
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
     <style>
-        body { font-family: sans-serif; background: #000; color: #fff; padding: 10px; margin: 0; }
-        .video-box { width: 100%; height: 200px; background: #222; margin-bottom: 10px; overflow: hidden; border: 1px solid #444; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        button { width: 100%; padding: 15px; background: #004d98; color: white; border: none; font-weight: bold; margin-bottom: 10px; }
-        .btn-success { background: #28a745; }
-        .btn-paypal { background: #ffc439; color: #000; text-decoration: none; display: block; text-align: center; padding: 10px; font-weight: bold; }
+        body { font-family: sans-serif; padding: 20px; }
+        .btn-paypal { display: block; background: #ffc439; padding: 10px; text-align: center; text-decoration: none; color: black; font-weight: bold; margin-bottom: 5px; }
+        .btn-youtube { display: block; background: #ff0000; padding: 10px; text-align: center; color: white; font-weight: bold; margin-bottom: 10px; }
+        video { width: 100%; max-width: 400px; display: block; margin-bottom: 10px; background: #000; }
+        input { width: 100%; padding: 10px; margin-bottom: 5px; }
+        button { width: 100%; padding: 10px; margin-bottom: 5px; }
     </style>
 </head>
 <body>
-    <a href="https://PayPal.me/MarketEvolution" class="btn-paypal">PayPal 💛</a>
-    <input type="text" id="roomCode" style="width:100%; padding:10px; margin:10px 0;">
-    <button onclick="generarCodigo()">Generar</button>
-    <button class="btn-success" onclick="conectar()">Conectar</button>
-    <div class="video-box"><video id="localVideo" autoplay playsinline muted></video></div>
-    <div class="video-box"><video id="remoteVideo" autoplay playsinline></video></div>
+    <a href="https://PayPal.me/MarketEvolution" class="btn-paypal">PayPal 💛 Propinas</a>
+    <a href="https://www.youtube.com/@juanmaentertaiment" class="btn-youtube">Canal YouTube</a>
+    
+    <input type="text" id="roomCode" placeholder="CÓDIGO">
+    <button onclick="generar()">Generar</button>
+    <button onclick="conectar()">Conectar</button>
+    
+    <video id="localVideo" autoplay playsinline muted></video>
+    <video id="remoteVideo" autoplay playsinline></video>
+
+    <div id="chatBox" style="height:100px; border:1px solid #ccc; overflow-y:scroll;"></div>
+    <input type="text" id="chatMsg" placeholder="Mensaje...">
+    <button onclick="enviar()">Enviar</button>
 
     <script>
         let localStream, peer, call, model;
-        
-        async function start() {
+
+        async function init() {
             model = await handpose.load();
-            localStream = await navigator.mediaDevices.getUserMedia({video: {width: 320, height: 240}, audio: true});
+            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
             document.getElementById('localVideo').srcObject = localStream;
             detectar();
         }
+        init();
 
         async function detectar() {
-            if (model && localStream) {
-                const hands = await model.estimateHands(document.getElementById('localVideo'));
-                if (hands.length > 0 && call) call.close();
+            const hands = await model.estimateHands(document.getElementById('localVideo'));
+            if (hands.length > 0 && call) {
+                call.close();
             }
             setTimeout(detectar, 1000);
         }
 
-        function generarCodigo() {
+        function generar() {
             const id = 'B44-' + Math.random().toString(36).substr(2, 6).toUpperCase();
             document.getElementById('roomCode').value = id;
             peer = new Peer(id);
-            peer.on('call', (c) => { c.answer(localStream); call = c; c.on('stream', s => document.getElementById('remoteVideo').srcObject = s); });
+            peer.on('call', c => { c.answer(localStream); call = c; c.on('stream', s => document.getElementById('remoteVideo').srcObject = s); });
         }
 
         function conectar() {
-            start();
-            setTimeout(() => {
-                peer = new Peer();
-                call = peer.call(document.getElementById('roomCode').value, localStream);
-                call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
-            }, 1000);
+            peer = new Peer();
+            call = peer.call(document.getElementById('roomCode').value, localStream);
+            call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
+        }
+
+        function enviar() {
+            document.getElementById('chatBox').innerHTML += "<div>Juanma: " + document.getElementById('chatMsg').value + "</div>";
         }
     </script>
 </body>
