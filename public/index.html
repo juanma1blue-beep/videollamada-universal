@@ -1,28 +1,15 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
-    <title>Base44 - V1.X.1</title>
-    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+  <meta charset="UTF-8">
+  <title>P2P Video Call</title>
 </head>
 <body>
-    <div class="container">
-        <a href="https://PayPal.me/MarketEvolution" class="btn-paypal">PayPal Propinas</a>
-        <a href="https://www.youtube.com/@juanmaentertaiment" class="btn-youtube">Canal YouTube</a>
-        <input type="text" id="roomCode" placeholder="CÓDIGO">
-        <button onclick="generar()">Generar Código</button>
-        <button onclick="conectar()">Conectar</button>
-        <video id="localVideo" autoplay playsinline muted></video>
-        <video id="remoteVideo" autoplay playsinline></video>
-        <div id="chatBox"></div>
-        <input type="text" id="chatMsg" placeholder="Mensaje...">
-        <button onclick="enviar()">Enviar</button>
-    </div>
-    <script src="script.js"></script>
+  <h1>P2P Video Call</h1>
+  <video id="local-video" width="640" height="480"></video>
+  <video id="remote-video" width="640" height="480"></video>
+  <button id="start-call-btn">Start Call</button>
+  <input type="text" id="room-code-input" placeholder="Room Code">
+  <script src="script.js"></script>
 </body>
 </html>
